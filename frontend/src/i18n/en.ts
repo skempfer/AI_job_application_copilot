@@ -4,7 +4,7 @@
  */
 export const en = {
   // Header
-  appTitle: 'AI Job Application Copilot',
+  appTitle: 'Viora',
   
   // Input labels
   cvLabel: 'Your CV',
@@ -43,8 +43,7 @@ export const en = {
   theme: 'Theme',
   english: 'English',
   portuguese: 'Português',
-  neutral: 'Neutral',
-  cross: 'Cross',
+  light: 'Light',
   dark: 'Dark',
   
   // Error messages

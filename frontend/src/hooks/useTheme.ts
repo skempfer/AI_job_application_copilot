@@ -11,9 +11,9 @@ interface UseThemeReturn {
 /**
  * useTheme hook - Access theme context in any component
  * Provides:
- * - theme: current theme ('neutral', 'cross', or 'dark')
+ * - theme: current theme ('light' or 'dark')
  * - setTheme: function to change theme
- * - toggleTheme: convenience function to cycle through themes
+ * - toggleTheme: convenience function to toggle between light and dark
  * - resetToSystem: reset to system preference
  *
  * @throws Error if used outside ThemeProvider
@@ -34,11 +34,9 @@ export function useTheme(): UseThemeReturn {
   }
 
   const toggleTheme = () => {
-    // Cycle: neutral -> cross -> dark -> neutral
-    const themes: Theme[] = ['neutral', 'cross', 'dark'];
-    const currentIndex = themes.indexOf(context.theme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    context.setTheme(themes[nextIndex]);
+    // Toggle: light <-> dark
+    const newTheme = context.theme === 'light' ? 'dark' : 'light';
+    context.setTheme(newTheme);
   };
 
   const resetToSystem = () => {

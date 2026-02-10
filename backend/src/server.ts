@@ -44,6 +44,6 @@ app.use((_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 AI Job Copilot Backend rodando em http://localhost:${PORT}`);
-  console.log(`⚡ Usando Groq: ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"}`);
+  console.log(`🚀 Viora Backend running on http://localhost:${PORT}`);
+  console.log(`⚡ Using Groq: ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"}`);
 });

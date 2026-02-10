@@ -1,4 +1,4 @@
-# Contributing to AI Job Application Copilot
+# Contributing to Viora
 
 Thank you for considering contributing to this project! 🙏
 
@@ -41,7 +41,7 @@ This project adheres to ethical principles:
 
 ```bash
 # Clone the repository
-git clone <repo-url>
+git clone https://github.com/skempfer/AI_job_application_copilot?tab=readme-ov-file
 cd AI_job_application_copilot
 
 # Install dependencies
@@ -377,4 +377,4 @@ By contributing, you agree that your contributions will be licensed under the pr
 
 ---
 
-**Thank you for helping make AI Job Application Copilot better! 🚀**
+**Thank you for helping make Viora better! 🚀**

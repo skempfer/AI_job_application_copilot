@@ -10,14 +10,7 @@ export function SettingsToggle() {
   const { theme, setTheme } = useTheme();
 
   const getThemeLabel = (t: typeof theme) => {
-    switch (t) {
-      case 'neutral':
-        return '☀️';
-      case 'cross':
-        return '⭐';
-      case 'dark':
-        return '🌙';
-    }
+    return t === 'light' ? '☀️' : '🌙';
   };
 
   return (
@@ -48,9 +41,9 @@ export function SettingsToggle() {
         </button>
       </div>
 
-      {/* Theme toggles - show all 3 options */}
+      {/* Theme toggles - light and dark */}
       <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-2 border border-gray-200 dark:border-gray-700">
-        {(['neutral', 'cross', 'dark'] as const).map((t) => (
+        {(['light', 'dark'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTheme(t)}

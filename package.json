@@ -1,7 +1,7 @@
 {
   "name": "ai-job-application-copilot",
   "version": "1.1.0",
-  "description": "A decision support system for job applications using AI",
+  "description": "Viora - AI-powered career intelligence for smarter job decisions",
   "private": true,
   "scripts": {
     "prepare": "husky install",

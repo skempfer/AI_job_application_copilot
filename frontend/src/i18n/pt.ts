@@ -4,7 +4,7 @@
  */
 export const pt = {
   // Header
-  appTitle: 'Assistente de Candidatura em Emprego com IA',
+  appTitle: 'Viora',
   
   // Input labels
   cvLabel: 'Seu CV',
@@ -13,7 +13,7 @@ export const pt = {
   jobPlaceholder: 'Cole aqui a descrição completa da vaga...\n\nInclua:\n- Skills necessárias\n- Responsabilidades\n- Nível de experiência\n- Benefícios e expectativas',
   
   // Buttons
-  analyzeButton: '🔍 Analisar Ajuste',
+  analyzeButton: '🔍 Analisar compatibilidade',
   analyzingButton: 'Analisando...',
   
   // Results section
@@ -43,14 +43,13 @@ export const pt = {
   theme: 'Tema',
   english: 'English',
   portuguese: 'Português',
-  neutral: 'Neutral',
-  cross: 'Cross',
-  dark: 'Dark',
+  light: 'Claro',
+  dark: 'Escuro',
   
   // Error messages
   cvError: 'Por favor, forneça um CV válido',
   jobError: 'Por favor, forneça uma descrição válida da vaga',
-  analyzeError: 'Erro ao analisar ajuste. Tente novamente.',
+  analyzeError: 'Erro ao analisar compatibilidade. Tente novamente.',
   dismissError: 'Descartar',
   
   // Validation
@@ -58,7 +57,7 @@ export const pt = {
   
   // Empty state
   readyToStart: 'Pronto para começar?',
-  emptyStateText: 'Cole seu CV e a descrição da vaga acima, depois clique em "Analisar Ajuste"',
+  emptyStateText: 'Cole seu CV e a descrição da vaga acima, depois clique em "Analisar compatibilidade"',
   
   // Footer
   dataPrivacy: '🔒 Seus dados não são armazenados. Análise feita via Groq API (gratuita, ultra-rápida).',

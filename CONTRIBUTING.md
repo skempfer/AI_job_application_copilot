@@ -1,6 +1,6 @@
-# Contributing to AI Job Application Copilot
+# Contributing to Viora
 
-Thank you for considering contributing to this project! 🙏
+Thank you for considering contributing to Viora! 🙏
 
 This document provides guidelines for contributing code, reporting bugs, and suggesting features.
 
@@ -376,4 +376,4 @@ By contributing, you agree that your contributions will be licensed under the pr
 
 ---
 
-**Thank you for helping make AI Job Application Copilot better! 🚀**
+**Thank you for helping make Viora better! 🚀**

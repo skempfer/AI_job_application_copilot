@@ -1,9 +1,9 @@
 import { createContext, ReactNode, useEffect, useState } from 'react';
 
-export type Theme = 'neutral' | 'cross' | 'dark';
+export type Theme = 'light' | 'dark';
 
-const DEFAULT_THEME: Theme = 'neutral';
-const SUPPORTED_THEMES: Theme[] = ['neutral', 'cross', 'dark'];
+const DEFAULT_THEME: Theme = 'light';
+const SUPPORTED_THEMES: Theme[] = ['light', 'dark'];
 
 interface ThemeContextType {
   theme: Theme;
@@ -24,14 +24,13 @@ interface ThemeProviderProps {
 
 /**
  * Detect system dark mode preference
- * Returns 'dark' if user prefers dark mode, otherwise DEFAULT_THEME
+ * Returns 'dark' if user prefers dark mode, otherwise 'light'
  */
 function getSystemThemePreference(): Theme {
   if (typeof window === 'undefined') {
     return DEFAULT_THEME;
   }
 
-  // Check if user prefers dark mode
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     return 'dark';
   }
