@@ -1,9 +1,13 @@
+import { useLanguage } from '../hooks/useLanguage';
+
 interface ErrorDisplayProps {
   message: string;
   onDismiss: () => void;
 }
 
 export function ErrorDisplay({ message, onDismiss }: ErrorDisplayProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="card bg-red-50 border-red-300 animate-fade-in">
       <div className="flex items-start justify-between gap-4">
@@ -17,7 +21,7 @@ export function ErrorDisplay({ message, onDismiss }: ErrorDisplayProps) {
         <button
           onClick={onDismiss}
           className="text-red-600 hover:text-red-800 font-bold text-xl"
-          aria-label="Fechar erro"
+          aria-label={t('dismissError')}
         >
           ×
         </button>

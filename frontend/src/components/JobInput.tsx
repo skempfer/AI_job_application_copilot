@@ -1,3 +1,5 @@
+import { useLanguage } from '../hooks/useLanguage';
+
 interface JobInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -5,10 +7,12 @@ interface JobInputProps {
 }
 
 export function JobInput({ value, onChange, disabled = false }: JobInputProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-2">
       <label htmlFor="job-input" className="block text-sm font-semibold text-gray-700">
-        Descrição da Vaga
+        {t('jobLabel')}
       </label>
       <textarea
         id="job-input"
@@ -17,7 +21,7 @@ export function JobInput({ value, onChange, disabled = false }: JobInputProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        placeholder="Cole aqui a descrição completa da vaga...&#10;&#10;Inclua:&#10;- Responsabilidades&#10;- Requisitos técnicos&#10;- Senioridade esperada&#10;- Stack tecnológica"
+        placeholder={t('jobPlaceholder')}
       />
       <p className="text-xs text-gray-500">
         {value.trim().length} caracteres

@@ -1,3 +1,4 @@
+import { useLanguage } from '../hooks/useLanguage';
 import type { FormattedAnalysisResult } from '../types/analysis';
 import { ExplanationDisplay } from './ExplanationDisplay';
 
@@ -6,12 +7,14 @@ interface ResultsDisplayProps {
 }
 
 export function ResultsDisplay({ result }: ResultsDisplayProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Score e Decisão */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">Análise Completa</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t('completeAnalysis')}</h2>
           <div className={`px-4 py-2 rounded-full border-2 font-bold text-2xl ${result.scoreBadgeClass}`}>
             {result.fitScore}/100
           </div>
@@ -22,9 +25,9 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
           <div>
             <p className="font-semibold text-lg text-gray-800">{result.decisionText}</p>
             <p className="text-sm text-gray-600">
-              {result.decision === 'apply' && 'Você é um ótimo fit para esta vaga!'}
-              {result.decision === 'apply_with_fixes' && 'Ajuste seu CV antes de aplicar para maximizar suas chances.'}
-              {result.decision === 'skip' && 'Esta vaga não está alinhada com seu perfil atual.'}
+              {result.decision === 'apply' && t('applyText')}
+              {result.decision === 'apply_with_fixes' && t('applyWithFixesText')}
+              {result.decision === 'skip' && t('skipText')}
             </p>
           </div>
         </div>
@@ -43,7 +46,7 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <span className="text-green-600">✓</span>
-            Seus Pontos Fortes
+            {t('strengths')}
           </h3>
           <ul className="space-y-2">
             {result.strengths.map((strength, idx) => (
@@ -61,7 +64,7 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <span className="text-orange-600">⚠</span>
-            Gaps a Endereçar
+            {t('gaps')}
           </h3>
           <ul className="space-y-2">
             {result.gaps.map((gap, idx) => (
@@ -79,7 +82,7 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
         <div className="card bg-blue-50 border-blue-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <span className="text-blue-600">📝</span>
-            Como Ajustar seu CV
+            {t('suggestions')}
           </h3>
           <ul className="space-y-3">
             {result.cvSuggestions.map((suggestion, idx) => (
@@ -96,7 +99,7 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
       <div className="card bg-green-50 border-green-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <span className="text-green-600">💬</span>
-          Mensagem Sugerida para o Recrutador
+          {t('recruiterMessage')}
         </h3>
         <div className="bg-white p-4 rounded-lg border border-green-300">
           <p className="text-gray-800 italic leading-relaxed">

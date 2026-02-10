@@ -19,20 +19,45 @@ interface LanguageProviderProps {
 }
 
 /**
+ * Get browser language
+ * Detects if browser language is Portuguese or English
+ * Falls back to DEFAULT_LANGUAGE
+ */
+function getBrowserLanguage(): Language {
+  const browserLang = navigator.language.toLowerCase();
+  
+  // Check if browser language starts with 'pt' (Portuguese)
+  if (browserLang.startsWith('pt')) {
+    return 'pt';
+  }
+  
+  // Default to English
+  return DEFAULT_LANGUAGE;
+}
+
+/**
  * LanguageProvider - Wraps the app to provide language context
  * Persists language selection to localStorage
- * Default language from localStorage or DEFAULT_LANGUAGE
+ * Auto-detects browser language on first load
  */
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load language from localStorage on mount
+  // Load language from localStorage on mount, or detect from browser
   useEffect(() => {
     const saved = localStorage.getItem('language');
+    
     if (saved && SUPPORTED_LANGUAGES.includes(saved as Language)) {
+      // Use saved preference
       setLanguageState(saved as Language);
+    } else {
+      // Auto-detect browser language
+      const detected = getBrowserLanguage();
+      setLanguageState(detected);
+      localStorage.setItem('language', detected);
     }
+    
     setIsLoaded(true);
   }, []);
 

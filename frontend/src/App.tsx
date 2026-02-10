@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLanguage } from './hooks/useLanguage';
 import { CVInput } from './components/CVInput';
 import { JobInput } from './components/JobInput';
 import { AnalyzeButton } from './components/AnalyzeButton';
@@ -17,6 +18,7 @@ import type { AnalysisResult, FormattedAnalysisResult } from './types/analysis';
  * Separated from root App to be wrapped with context providers
  */
 function AppContent() {
+  const { t } = useLanguage();
   const [cv, setCv] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,10 +80,10 @@ function AppContent() {
             <div className="card text-center py-12">
               <span className="text-6xl mb-4 block">📋</span>
               <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                Pronto para começar?
+                {t('readyToStart')}
               </h2>
               <p className="text-gray-600">
-                Cole seu CV e a descrição da vaga acima, depois clique em "Analyze Job Fit"
+                {t('emptyStateText')}
               </p>
             </div>
           )}
@@ -90,7 +92,7 @@ function AppContent() {
 
       <footer className="max-w-5xl mx-auto px-4 py-8 mt-12 border-t border-gray-200">
         <p className="text-center text-sm text-gray-600">
-          🔒 Seus dados não são armazenados. Análise feita via Groq API (gratuita, ultra-rápida).
+          {t('dataPrivacy')}
         </p>
       </footer>
     </div>

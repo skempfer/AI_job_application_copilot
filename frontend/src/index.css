@@ -4,7 +4,7 @@
 
 /**
  * Theme CSS Variables
- * Defines color values for neutral and cross themes
+ * Defines color values for neutral, cross, and dark themes
  * Applied via data-theme attribute on root element
  */
 
@@ -49,6 +49,29 @@
   --color-warning: #fbbf24;
   --color-danger: #ff6b6b;
   --color-info: #06b6d4;
+  
+  --color-border: #475569;
+  --color-border-light: #334155;
+}
+
+/* Dark theme - Modern dark mode */
+:root[data-theme="dark"] {
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1a1f3a;
+  --color-bg-tertiary: #2d3748;
+  
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  
+  --color-accent: #60a5fa;
+  --color-accent-light: #93c5fd;
+  --color-accent-dark: #3b82f6;
+  
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #22d3ee;
   
   --color-border: #475569;
   --color-border-light: #334155;

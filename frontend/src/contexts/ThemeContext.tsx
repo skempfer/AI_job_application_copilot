@@ -1,9 +1,9 @@
 import { createContext, ReactNode, useEffect, useState } from 'react';
 
-export type Theme = 'neutral' | 'cross';
+export type Theme = 'neutral' | 'cross' | 'dark';
 
 const DEFAULT_THEME: Theme = 'neutral';
-const SUPPORTED_THEMES: Theme[] = ['neutral', 'cross'];
+const SUPPORTED_THEMES: Theme[] = ['neutral', 'cross', 'dark'];
 
 interface ThemeContextType {
   theme: Theme;
@@ -23,10 +23,27 @@ interface ThemeProviderProps {
 }
 
 /**
+ * Detect system dark mode preference
+ * Returns 'dark' if user prefers dark mode, otherwise DEFAULT_THEME
+ */
+function getSystemThemePreference(): Theme {
+  if (typeof window === 'undefined') {
+    return DEFAULT_THEME;
+  }
+
+  // Check if user prefers dark mode
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+
+  return DEFAULT_THEME;
+}
+
+/**
  * ThemeProvider - Wraps the app to provide theme context
  * Persists theme selection to localStorage
+ * Auto-detects system dark mode preference on first load
  * Applies theme via data-theme attribute on root element
- * CSS variables are updated based on theme selection
  */
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
@@ -35,13 +52,46 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // Load theme from localStorage and apply on mount
   useEffect(() => {
     const saved = localStorage.getItem('theme');
+    
+    let themeToUse: Theme;
+    
     if (saved && SUPPORTED_THEMES.includes(saved as Theme)) {
-      setThemeState(saved as Theme);
-      applyTheme(saved as Theme);
+      // Use saved preference
+      themeToUse = saved as Theme;
     } else {
-      applyTheme(DEFAULT_THEME);
+      // Auto-detect system preference
+      themeToUse = getSystemThemePreference();
+      localStorage.setItem('theme', themeToUse);
     }
+    
+    setThemeState(themeToUse);
+    applyTheme(themeToUse);
     setIsLoaded(true);
+  }, []);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    if (!window.matchMedia) return;
+
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = () => {
+      // Only update if user hasn't manually set a theme
+      const saved = localStorage.getItem('theme');
+      if (!saved) {
+        const newTheme = darkModeQuery.matches ? 'dark' : DEFAULT_THEME;
+        setThemeState(newTheme);
+        applyTheme(newTheme);
+      }
+    };
+
+    // Modern API: addEventListener
+    if (darkModeQuery.addEventListener) {
+      darkModeQuery.addEventListener('change', handleChange);
+      return () => {
+        darkModeQuery.removeEventListener('change', handleChange);
+      };
+    }
   }, []);
 
   // Apply theme to DOM

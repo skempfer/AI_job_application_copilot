@@ -13,7 +13,7 @@ export const en = {
   jobPlaceholder: 'Paste the complete job description here...\n\nInclude:\n- Required skills\n- Responsibilities\n- Experience level\n- Benefits and expectations',
   
   // Buttons
-  analyzeButton: 'Analyze Job Fit',
+  analyzeButton: '🔍 Analyze Job Fit',
   analyzingButton: 'Analyzing...',
   
   // Results section
@@ -45,12 +45,21 @@ export const en = {
   portuguese: 'Português',
   neutral: 'Neutral',
   cross: 'Cross',
+  dark: 'Dark',
   
   // Error messages
   cvError: 'Please provide a valid CV',
   jobError: 'Please provide a valid job description',
   analyzeError: 'Error analyzing job fit. Please try again.',
+  dismissError: 'Dismiss',
   
   // Validation
   characters: 'characters',
+  
+  // Empty state
+  readyToStart: 'Ready to start?',
+  emptyStateText: 'Paste your CV and job description above, then click "Analyze Job Fit"',
+  
+  // Footer
+  dataPrivacy: '🔒 Your data is not stored. Analysis done via Groq API (free, ultra-fast).',
 };

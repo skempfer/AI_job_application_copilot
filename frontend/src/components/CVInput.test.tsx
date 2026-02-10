@@ -1,10 +1,10 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '../test/test-utils';
 import { CVInput } from './CVInput';
 
 describe('CVInput Component', () => {
   it('should render textarea element', () => {
     render(<CVInput value="" onChange={() => {}} />);
-    const textarea = screen.getByPlaceholderText(/cole aqui seu cv/i);
+    const textarea = screen.getByPlaceholderText(/paste your complete cv here/i);
     expect(textarea).toBeInTheDocument();
   });
 
@@ -19,7 +19,7 @@ describe('CVInput Component', () => {
     const handleChange = jest.fn();
     render(<CVInput value="" onChange={handleChange} />);
     
-    const textarea = screen.getByPlaceholderText(/cole aqui seu cv/i);
+    const textarea = screen.getByPlaceholderText(/paste your complete cv here/i);
     fireEvent.change(textarea, { target: { value: 'New CV content' } });
     
     expect(handleChange).toHaveBeenCalledWith('New CV content');
@@ -27,13 +27,13 @@ describe('CVInput Component', () => {
 
   it('should be disabled when disabled prop is true', () => {
     render(<CVInput value="" onChange={() => {}} disabled={true} />);
-    const textarea = screen.getByPlaceholderText(/cole aqui seu cv/i);
+    const textarea = screen.getByPlaceholderText(/paste your complete cv here/i);
     expect(textarea).toBeDisabled();
   });
 
   it('should not be disabled when disabled prop is false', () => {
     render(<CVInput value="" onChange={() => {}} disabled={false} />);
-    const textarea = screen.getByPlaceholderText(/cole aqui seu cv/i);
+    const textarea = screen.getByPlaceholderText(/paste your complete cv here/i);
     expect(textarea).not.toBeDisabled();
   });
 

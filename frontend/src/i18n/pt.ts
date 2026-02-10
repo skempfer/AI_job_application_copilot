@@ -13,7 +13,7 @@ export const pt = {
   jobPlaceholder: 'Cole aqui a descrição completa da vaga...\n\nInclua:\n- Skills necessárias\n- Responsabilidades\n- Nível de experiência\n- Benefícios e expectativas',
   
   // Buttons
-  analyzeButton: 'Analisar Ajuste',
+  analyzeButton: '🔍 Analisar Ajuste',
   analyzingButton: 'Analisando...',
   
   // Results section
@@ -45,12 +45,21 @@ export const pt = {
   portuguese: 'Português',
   neutral: 'Neutral',
   cross: 'Cross',
+  dark: 'Dark',
   
   // Error messages
   cvError: 'Por favor, forneça um CV válido',
   jobError: 'Por favor, forneça uma descrição válida da vaga',
   analyzeError: 'Erro ao analisar ajuste. Tente novamente.',
+  dismissError: 'Descartar',
   
   // Validation
   characters: 'caracteres',
+  
+  // Empty state
+  readyToStart: 'Pronto para começar?',
+  emptyStateText: 'Cole seu CV e a descrição da vaga acima, depois clique em "Analisar Ajuste"',
+  
+  // Footer
+  dataPrivacy: '🔒 Seus dados não são armazenados. Análise feita via Groq API (gratuita, ultra-rápida).',
 };

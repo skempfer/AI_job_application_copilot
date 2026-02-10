@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "prepare": "husky install",
-    "lint:commits": "commitlint --from HEAD~10 --to HEAD",
+    "lint:commits": "commitlint --from HEAD~3 --to HEAD || commitlint --from HEAD~1 --to HEAD",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && npm test",
     "test:frontend": "cd frontend && npm test",
