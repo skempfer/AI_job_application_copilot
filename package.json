@@ -1,0 +1,23 @@
+{
+  "name": "ai-job-application-copilot",
+  "version": "1.1.0",
+  "description": "A decision support system for job applications using AI",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install",
+    "lint:commits": "commitlint --from HEAD~10 --to HEAD"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.4",
+    "@commitlint/config-conventional": "^18.4.4",
+    "husky": "^8.0.3"
+  },
+  "keywords": [
+    "job-application",
+    "ai",
+    "cv-analysis",
+    "hiring"
+  ],
+  "author": "Software Engineer",
+  "license": "MIT"
+}
