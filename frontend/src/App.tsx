@@ -5,11 +5,18 @@ import { AnalyzeButton } from './components/AnalyzeButton';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { Header } from './components/Header';
+import { SettingsToggle } from './components/SettingsToggle';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { analyzeJobFit } from './domain/apiClient';
 import { validateInputs, formatAnalysisResult } from './domain/analyzer';
 import type { AnalysisResult, FormattedAnalysisResult } from './types/analysis';
 
-function App() {
+/**
+ * AppContent - Main application content
+ * Separated from root App to be wrapped with context providers
+ */
+function AppContent() {
   const [cv, setCv] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,6 +53,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SettingsToggle />
       <Header />
 
       <main className="max-w-5xl mx-auto px-4 py-8">
@@ -86,6 +94,21 @@ function App() {
         </p>
       </footer>
     </div>
+  );
+}
+
+/**
+ * App - Root component with providers
+ * Wraps AppContent with ThemeProvider and LanguageProvider
+ * Providers are at the root level to ensure context is available everywhere
+ */
+function App() {
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

@@ -2,6 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Theme CSS Variables
+ * Defines color values for neutral and cross themes
+ * Applied via data-theme attribute on root element
+ */
+
+/* Neutral theme - Sober, professional colors */
+:root[data-theme="neutral"] {
+  --color-bg-primary: #f9fafb;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f3f4f6;
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  
+  --color-accent: #2563eb;
+  --color-accent-light: #dbeafe;
+  --color-accent-dark: #1d4ed8;
+  
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+}
+
+/* Cross theme - Bold, high contrast colors */
+:root[data-theme="cross"] {
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #334155;
+  
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  
+  --color-accent: #22c55e;
+  --color-accent-light: #bbf7d0;
+  --color-accent-dark: #16a34a;
+  
+  --color-success: #10b981;
+  --color-warning: #fbbf24;
+  --color-danger: #ff6b6b;
+  --color-info: #06b6d4;
+  
+  --color-border: #475569;
+  --color-border-light: #334155;
+}
+
+/* Default to neutral theme */
+:root {
+  --color-bg-primary: #f9fafb;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f3f4f6;
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  
+  --color-accent: #2563eb;
+  --color-accent-light: #dbeafe;
+  --color-accent-dark: #1d4ed8;
+  
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+}
+
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900;
