@@ -96,6 +96,15 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // Apply theme to DOM
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
+    
+    // Add/remove 'dark' class for Tailwind CSS
+    if (newTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    
+    // Also set data-theme attribute for CSS variables
     root.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
   };

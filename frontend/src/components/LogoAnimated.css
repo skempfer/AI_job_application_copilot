@@ -1,0 +1,73 @@
+/**
+ * Viora Animated Logo - Styles
+ * Subtle, premium animations for brand identity
+ */
+
+.viora-logo {
+  overflow: visible;
+}
+
+/* Disable animation if not needed */
+.viora-logo-static .viora-ring,
+.viora-logo-static .viora-core {
+  animation: none !important;
+}
+
+.viora-logo-static .viora-ring {
+  stroke-dashoffset: 0 !important;
+}
+
+/* Ring - Smooth stroke draw animation */
+.viora-ring {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 138;
+  stroke-dashoffset: 138;
+  animation: viora-draw 1.2s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+/* Core - Subtle pulse animation */
+.viora-core {
+  transform-origin: center;
+  animation: viora-pulse 1.5s cubic-bezier(0.4, 0.0, 0.6, 1) infinite;
+}
+
+/* Draw animation: ring stroke appears smoothly */
+@keyframes viora-draw {
+  0% {
+    stroke-dashoffset: 138;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* Pulse animation: subtle scale + opacity change */
+@keyframes viora-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.85;
+  }
+}
+
+/* Reduced motion preference respect */
+@media (prefers-reduced-motion: reduce) {
+  .viora-ring,
+  .viora-core {
+    animation: none !important;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .viora-ring {
+    stroke-dashoffset: 0;
+  }
+}

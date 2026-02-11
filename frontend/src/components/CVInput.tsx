@@ -11,7 +11,7 @@ export function CVInput({ value, onChange, disabled = false }: CVInputProps) {
 
   return (
     <div className="space-y-2">
-      <label htmlFor="cv-input" className="block text-sm font-semibold text-gray-700">
+      <label htmlFor="cv-input" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
         {t('cvLabel')}
       </label>
       <textarea
@@ -23,7 +23,7 @@ export function CVInput({ value, onChange, disabled = false }: CVInputProps) {
         disabled={disabled}
         placeholder={t('cvPlaceholder')}
       />
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         {value.trim().length} {t('characters')}
       </p>
     </div>

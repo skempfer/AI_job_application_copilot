@@ -11,7 +11,7 @@ export function JobInput({ value, onChange, disabled = false }: JobInputProps) {
 
   return (
     <div className="space-y-2">
-      <label htmlFor="job-input" className="block text-sm font-semibold text-gray-700">
+      <label htmlFor="job-input" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
         {t('jobLabel')}
       </label>
       <textarea
@@ -23,7 +23,7 @@ export function JobInput({ value, onChange, disabled = false }: JobInputProps) {
         disabled={disabled}
         placeholder={t('jobPlaceholder')}
       />
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         {value.trim().length} caracteres
       </p>
     </div>

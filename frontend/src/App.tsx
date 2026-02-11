@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from './hooks/useLanguage';
 import { CVInput } from './components/CVInput';
 import { JobInput } from './components/JobInput';
@@ -6,6 +6,9 @@ import { AnalyzeButton } from './components/AnalyzeButton';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { SplashScreen } from './components/SplashScreen';
+import { LoadingSpinner } from './components/LoadingSpinner';
 import { SettingsToggle } from './components/SettingsToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -54,9 +57,12 @@ function AppContent() {
   const canAnalyze = cv.trim().length >= 50 && jobDescription.trim().length >= 50 && !loading;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <SettingsToggle />
       <Header />
+
+      {/* Loading Spinner Overlay */}
+      <LoadingSpinner show={loading} overlay message={t('analyzingButton')} />
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         <div className="space-y-6">
@@ -79,10 +85,10 @@ function AppContent() {
           {!result && !error && !loading && (
             <div className="card text-center py-12">
               <span className="text-6xl mb-4 block">📋</span>
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">
+              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 {t('readyToStart')}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 {t('emptyStateText')}
               </p>
             </div>
@@ -90,11 +96,7 @@ function AppContent() {
         </div>
       </main>
 
-      <footer className="max-w-5xl mx-auto px-4 py-8 mt-12 border-t border-gray-200">
-        <p className="text-center text-sm text-gray-600">
-          {t('dataPrivacy')}
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
@@ -102,13 +104,27 @@ function AppContent() {
 /**
  * App - Root component with providers
  * Wraps AppContent with ThemeProvider and LanguageProvider
- * Providers are at the root level to ensure context is available everywhere
+ * Shows splash screen on first load
  */
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Show splash screen for 4 seconds on app load
+    const timer = setTimeout(() => setShowSplash(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <AppContent />
+        <SplashScreen
+          show={showSplash}
+          message="Viora"
+          subtitle="Clarity for smarter career decisions"
+          duration={4000}
+        />
+        {!showSplash && <AppContent />}
       </LanguageProvider>
     </ThemeProvider>
   );
