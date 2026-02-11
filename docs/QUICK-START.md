@@ -165,7 +165,7 @@ netstat -ano | findstr :3001
 taskkill /PID <PID> /F
 
 # Or change port in .env
-PORT=3002
+PORT=3001
 ```
 
 ### Frontend can't connect to backend

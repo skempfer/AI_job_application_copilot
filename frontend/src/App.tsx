@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useLanguage } from './hooks/useLanguage';
 import { useJobAnalysis } from './hooks/useJobAnalysis';
 import { CVInput } from './components/CVInput';
@@ -14,6 +15,8 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { SettingsToggle } from './components/SettingsToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
 
 const ResultsDisplay = lazy(() => import('./components/ResultsDisplay').then(m => ({ default: m.ResultsDisplay })));
 const GapAnalysisDisplay = lazy(() => import('./components/GapAnalysisDisplay').then(m => ({ default: m.GapAnalysisDisplay })));
@@ -40,13 +43,13 @@ function AppContent() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <SettingsToggle />
       <Header />
 
       <LoadingSpinner show={loading} overlay message={t('analyzingButton')} />
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
         <div className="space-y-6">
           <ResumeUpload onUploadComplete={setResumeUrl} disabled={loading} />
 
@@ -100,26 +103,49 @@ function AppContent() {
 /**
  * App - Root component with providers
  * Wraps AppContent with ThemeProvider and LanguageProvider
- * Shows splash screen on first load
+ * Shows splash screen only on first load (per session)
  */
-function App() {
-  const [showSplash, setShowSplash] = useState(true);
+function AppWithSplash() {
+  const [showSplash, setShowSplash] = useState(() => {
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    return !hasSeenSplash;
+  });
+  const { t } = useLanguage();
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 4000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (showSplash) {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        sessionStorage.setItem('hasSeenSplash', 'true');
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
 
+  return (
+    <>
+      <SplashScreen
+        show={showSplash}
+        message="Viora"
+        subtitle={t('appTagline')}
+        duration={4000}
+      />
+      {!showSplash && <AppContent />}
+    </>
+  );
+}
+
+function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <SplashScreen
-          show={showSplash}
-          message="Viora"
-          subtitle="Clarity for smarter career decisions"
-          duration={4000}
-        />
-        {!showSplash && <AppContent />}
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<AppWithSplash />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+          </Routes>
+        </BrowserRouter>
       </LanguageProvider>
     </ThemeProvider>
   );

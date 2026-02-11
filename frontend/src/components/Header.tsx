@@ -1,6 +1,7 @@
 import { Logo } from './Logo';
 import { LogoDarkTheme } from './LogoDarkTheme';
 import { useTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
 
 /**
  * Header - Application header with Viora branding
@@ -9,6 +10,7 @@ import { useTheme } from '../hooks/useTheme';
  */
 export function Header() {
   const { theme } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700" role="banner">
@@ -21,7 +23,7 @@ export function Header() {
           )}
         </div>
         <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm font-medium">
-          Clarity for smarter career decisions
+          {t('appTagline')}
         </p>
       </div>
     </header>

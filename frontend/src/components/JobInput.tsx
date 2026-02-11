@@ -27,7 +27,7 @@ export const JobInput = memo<JobInputProps>(({ value, onChange, disabled = false
         aria-required="true"
       />
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        {value.trim().length} caracteres
+        {value.trim().length} {t('characters')}
       </p>
     </div>
   );

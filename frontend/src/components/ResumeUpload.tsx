@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface ResumeUploadProps {
   onUploadComplete?: (url: string) => void;
@@ -9,6 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploadProps) {
+  const { t } = useLanguage();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -18,10 +20,10 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
 
   const validateFile = (file: File): string | null => {
     if (file.type !== 'application/pdf') {
-      return 'Only PDF files are allowed';
+      return t('pdfOnlyError');
     }
     if (file.size > MAX_FILE_SIZE) {
-      return 'File must not exceed 5MB';
+      return t('fileSizeError');
     }
     return null;
   };
@@ -42,7 +44,7 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Upload error');
+        throw new Error(data.error || t('uploadError'));
       }
 
       const url = data.fileUrl || data.fileName;
@@ -52,7 +54,7 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         onUploadComplete(url);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Upload error';
+      const errorMessage = err instanceof Error ? err.message : t('uploadError');
       setError(errorMessage);
       setSelectedFile(null);
       setUploadedUrl(null);
@@ -124,7 +126,7 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-        CV Upload (Optional)
+        {t('cvUploadLabel')}
       </label>
       
       <div
@@ -167,7 +169,7 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
             <div className="flex items-center justify-center">
               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('uploadingText')}</p>
           </div>
         ) : uploadedUrl ? (
           <div className="space-y-2">
@@ -176,18 +178,18 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
               {selectedFile?.name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Upload successful • Click to replace
+              {t('uploadSuccess')}
             </p>
           </div>
         ) : (
           <div className="space-y-2">
             <div className="text-gray-400 dark:text-gray-500 text-3xl">📄</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium text-blue-600 dark:text-blue-400">Click to upload</span>
-              {' '}or drag and drop
+              <span className="font-medium text-blue-600 dark:text-blue-400">{t('clickToUpload')}</span>
+              {' '}{t('orDragDrop')}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              PDF only, max 5MB
+              {t('pdfOnlyMaxSize')}
             </p>
           </div>
         )}
@@ -203,7 +205,7 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
 
       {!uploadedUrl && !error && (
         <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-          💡 Uploading your CV improves fit analysis accuracy.
+          {t('uploadHint')}
         </p>
       )}
     </div>
