@@ -6,36 +6,36 @@ export function createHistoryRouter(): Router {
 
   /**
    * GET /api/history
-   * Retorna histórico de análises
+   * Returns analysis history
    */
   router.get("/", async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
 
       if (limit < 1 || limit > 100) {
-        res.status(400).json({ error: "Limit deve estar entre 1 e 100" });
+        res.status(400).json({ error: "Limit must be between 1 and 100" });
         return;
       }
 
       const history = await getAnalysisHistory(limit);
       res.json({ success: true, data: history, count: history.length });
     } catch (error) {
-      console.error("Erro ao buscar histórico:", error);
+      console.error("Error fetching history:", error);
 
       if (error instanceof Error) {
         res.status(500).json({
-          error: "Erro ao buscar histórico",
+          error: "Error fetching history",
           details: error.message,
         });
       } else {
-        res.status(500).json({ error: "Erro desconhecido ao buscar histórico" });
+        res.status(500).json({ error: "Unknown error while fetching history" });
       }
     }
   });
 
   /**
    * GET /api/history/:id
-   * Retorna uma análise específica
+   * Returns a specific analysis
    */
   router.get("/:id", async (req: Request, res: Response) => {
     try {
@@ -43,43 +43,43 @@ export function createHistoryRouter(): Router {
       const analysis = await getAnalysisById(id);
 
       if (!analysis) {
-        res.status(404).json({ error: "Análise não encontrada" });
+        res.status(404).json({ error: "Analysis not found" });
         return;
       }
 
       res.json({ success: true, data: analysis });
     } catch (error) {
-      console.error("Erro ao buscar análise:", error);
+      console.error("Error fetching analysis:", error);
 
       if (error instanceof Error) {
         res.status(500).json({
-          error: "Erro ao buscar análise",
+          error: "Error fetching analysis",
           details: error.message,
         });
       } else {
-        res.status(500).json({ error: "Erro desconhecido ao buscar análise" });
+        res.status(500).json({ error: "Unknown error while fetching analysis" });
       }
     }
   });
 
   /**
    * GET /api/history/analytics/stats
-   * Retorna estatísticas das análises
+   * Returns analysis statistics
    */
   router.get("/analytics/stats", async (_req: Request, res: Response) => {
     try {
       const stats = await getAnalyticsStats();
       res.json({ success: true, data: stats });
     } catch (error) {
-      console.error("Erro ao buscar estatísticas:", error);
+      console.error("Error fetching statistics:", error);
 
       if (error instanceof Error) {
         res.status(500).json({
-          error: "Erro ao buscar estatísticas",
+          error: "Error fetching statistics",
           details: error.message,
         });
       } else {
-        res.status(500).json({ error: "Erro desconhecido ao buscar estatísticas" });
+        res.status(500).json({ error: "Unknown error while fetching statistics" });
       }
     }
   });

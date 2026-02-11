@@ -40,18 +40,15 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
       });
 
       const data = await response.json();
-      console.log('📦 Resposta do servidor:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao fazer upload');
       }
 
       const url = data.fileUrl || data.fileName;
-      console.log('✅ Upload bem-sucedido! URL:', url);
       setUploadedUrl(url);
       
       if (onUploadComplete && url) {
-        console.log('🔄 Propagando URL para componente pai:', url);
         onUploadComplete(url);
       }
     } catch (err) {
@@ -65,11 +62,9 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
   };
 
   const handleFileSelect = async (file: File) => {
-    console.log('📄 Arquivo selecionado:', file.name, file.size, file.type);
     
     const validationError = validateFile(file);
     if (validationError) {
-      console.error('❌ Erro de validação:', validationError);
       setError(validationError);
       setSelectedFile(null);
       return;
@@ -78,7 +73,6 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
     setSelectedFile(file);
     setError(null);
     
-    console.log('⬆️ Iniciando upload automático...');
     await uploadFile(file);
   };
 
@@ -190,7 +184,6 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         )}
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">
@@ -199,7 +192,6 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         </div>
       )}
 
-      {/* Info Note */}
       {!uploadedUrl && !error && (
         <p className="text-xs text-gray-500 dark:text-gray-400 italic">
           💡 Uploading your CV improves fit analysis accuracy.

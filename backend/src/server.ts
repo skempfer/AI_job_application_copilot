@@ -18,8 +18,8 @@ const requiredEnvVars = ["GROQ_API_KEY"];
 const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
-  console.error(`❌ Variáveis de ambiente faltando: ${missingEnvVars.join(", ")}`);
-  console.error("Crie um arquivo .env baseado no .env.example");
+  console.error(`❌ Missing environment variables: ${missingEnvVars.join(", ")}`);
+  console.error("Create a .env file based on .env.example");
   process.exit(1);
 }
 
@@ -30,7 +30,7 @@ if (process.env.USE_FIREBASE === "true") {
   try {
     initializeFirebase();
   } catch (error) {
-    console.error("⚠️  Firebase não pôde ser inicializado. Upload local será usado.");
+    console.error("⚠️  Firebase could not be initialized. Local uploads will be used.");
   }
 }
 
@@ -51,7 +51,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use((_req, res) => {
-  res.status(404).json({ error: "Endpoint não encontrado" });
+  res.status(404).json({ error: "Endpoint not found" });
 });
 
 app.listen(PORT, () => {

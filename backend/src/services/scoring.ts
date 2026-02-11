@@ -1,24 +1,23 @@
 /**
- * Scoring híbrido - Lógica determinística para calcular fitScore
- * 
- * PRINCÍPIO: IA extrai sinais, código calcula score
- * 
- * Mesmo código do frontend/src/domain/scoring.js
- * Mantido duplicado para não criar dependência desnecessária
+ * Hybrid scoring - Deterministic logic to calculate fitScore
+ *
+ * PRINCIPLE: AI extracts signals, code calculates score
+ *
+ * Same code as frontend/src/domain/scoring.js
+ * Kept duplicated to avoid unnecessary dependency
  */
 
 import type { AISignals, ScoreExplanation, Decision } from '../types/analysis.js';
 
 /**
- * Pesos para cada categoria de sinal
+ * Weights for each signal category
  */
 const SCORING_WEIGHTS = {
-  hardSkills: 0.35,           // 35% - Skills técnicas são críticas
-  mandatoryRequirements: 0.30, // 30% - Requisitos obrigatórios
-  seniority: 0.15,            // 15% - Match de senioridade
-  desirableRequirements: 0.10, // 10% - Diferenciais
-  softSkills: 0.05,           // 5% - Soft skills importam menos
-  redFlags: -0.05,            // -5% - Penalidade por red flags
+  hardSkills: 0.35,           
+  mandatoryRequirements: 0.30, 
+  seniority: 0.15,            
+  desirableRequirements: 0.10, 
+  softSkills: 0.05,           
 };
 
 function scoreHardSkills(detected: string[]): number {
@@ -70,7 +69,7 @@ function penaltyRedFlags(redFlags: string[]): number {
 }
 
 /**
- * Calcula fit score baseado em sinais da IA
+ * Calculate fit score based on AI signals
  */
 export function calculateFitScore(signals: AISignals): number {
   const hardSkillsScore = scoreHardSkills(signals.hardSkillsDetected);
@@ -99,58 +98,52 @@ export function calculateFitScore(signals: AISignals): number {
 }
 
 /**
- * Gera explicação detalhada do score
+ * Generate a detailed score explanation
  */
 export function generateExplanation(signals: AISignals, fitScore: number): ScoreExplanation {
   const positives: string[] = [];
   const negatives: string[] = [];
 
-  // Hard skills
   if (signals.hardSkillsDetected.length >= 3) {
-    positives.push(`Forte match técnico: ${signals.hardSkillsDetected.length} hard skills identificadas`);
+    positives.push(`Strong technical match: ${signals.hardSkillsDetected.length} hard skills identified`);
   } else if (signals.hardSkillsDetected.length > 0) {
-    positives.push(`Algumas skills técnicas relevantes detectadas`);
+    positives.push("Some relevant technical skills detected");
   } else {
-    negatives.push('Poucas hard skills técnicas identificadas no CV');
+    negatives.push("Few technical hard skills identified in the CV");
   }
 
-  // Requisitos obrigatórios
   if (signals.mandatoryRequirementsMet.length > 0) {
-    positives.push(`Atende ${signals.mandatoryRequirementsMet.length} requisito(s) obrigatório(s)`);
+    positives.push(`Meets ${signals.mandatoryRequirementsMet.length} mandatory requirement(s)`);
   }
   if (signals.mandatoryRequirementsMissing.length > 0) {
-    negatives.push(`Falta ${signals.mandatoryRequirementsMissing.length} requisito(s) obrigatório(s)`);
+    negatives.push(`Missing ${signals.mandatoryRequirementsMissing.length} mandatory requirement(s)`);
   }
 
-  // Senioridade
   if (signals.seniorityMatch === 'match') {
-    positives.push('Senioridade perfeitamente alinhada com a vaga');
+    positives.push("Seniority perfectly aligned with the role");
   } else if (signals.seniorityMatch === 'above') {
-    positives.push('Senioridade acima do requisitado (overqualified)');
+    positives.push("Seniority above the requirement (overqualified)");
   } else {
-    negatives.push('Senioridade abaixo do esperado para a vaga');
+    negatives.push("Seniority below what is expected for the role");
   }
 
-  // Diferenciais
   if (signals.desirableRequirementsMet.length > 0) {
-    positives.push(`Possui ${signals.desirableRequirementsMet.length} diferencial(is) desejado(s)`);
+    positives.push(`Has ${signals.desirableRequirementsMet.length} desired bonus qualification(s)`);
   }
 
-  // Red flags
   if (signals.redFlags.length > 0) {
-    negatives.push(`${signals.redFlags.length} problema(s) identificado(s): ${signals.redFlags.join(', ')}`);
+    negatives.push(`${signals.redFlags.length} issue(s) identified: ${signals.redFlags.join(', ')}`);
   }
 
-  // Summary
   let summary: string;
   if (fitScore >= 80) {
-    summary = 'Candidato ideal - forte alinhamento técnico e de senioridade';
+    summary = "Ideal candidate - strong technical and seniority alignment";
   } else if (fitScore >= 60) {
-    summary = 'Bom fit - alguns ajustes recomendados antes de aplicar';
+    summary = "Good fit - some adjustments recommended before applying";
   } else if (fitScore >= 40) {
-    summary = 'Fit mediano - gaps significativos a endereçar';
+    summary = "Moderate fit - significant gaps to address";
   } else {
-    summary = 'Fit baixo - perfil não alinhado com requisitos da vaga';
+    summary = "Low fit - profile not aligned with role requirements";
   }
 
   return {
@@ -161,7 +154,7 @@ export function generateExplanation(signals: AISignals, fitScore: number): Score
 }
 
 /**
- * Determina decisão baseada no score
+ * Determine decision based on score
  */
 export function determineDecision(fitScore: number): Decision {
   if (fitScore >= 70) return 'apply';

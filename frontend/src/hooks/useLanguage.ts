@@ -19,7 +19,6 @@ interface UseLanguageReturn {
  *
  * @example
  * const { language, setLanguage, t } = useLanguage();
- * console.log(t('appTitle')); // Prints translated title
  * setLanguage('pt'); // Switch to Portuguese
  */
 export function useLanguage(): UseLanguageReturn {

@@ -171,8 +171,8 @@ describe('Scoring Service', () => {
       const explanation = generateExplanation(signals, 90);
 
       expect(explanation.positives.length).toBeGreaterThan(0);
-      expect(explanation.positives.some((p: string) => p.toLowerCase().includes('hard skills') || p.includes('skills técnicas'))).toBe(true);
-      expect(explanation.positives.some((p: string) => p.includes('requisito') || p.includes('Atende'))).toBe(true);
+      expect(explanation.positives.some((p: string) => p.toLowerCase().includes('hard skills'))).toBe(true);
+      expect(explanation.positives.some((p: string) => p.includes('Meets') || p.includes('mandatory'))).toBe(true);
     });
 
     it('should include negative points for missing requirements', () => {
@@ -193,11 +193,9 @@ describe('Scoring Service', () => {
 
       expect(explanation.negatives.length).toBeGreaterThan(0);
       expect(
-        explanation.negatives.some((n: string) => n.includes('requisito') || n.includes('Falta'))
+        explanation.negatives.some((n: string) => n.includes('Missing') || n.includes('mandatory'))
       ).toBe(true);
-      expect(explanation.negatives.some((n: string) => n.includes('problema') || n.includes('identificado'))).toBe(
-        true
-      );
+      expect(explanation.negatives.some((n: string) => n.includes('issue') || n.includes('identified'))).toBe(true);
     });
 
     it('should generate summary matching the score', () => {

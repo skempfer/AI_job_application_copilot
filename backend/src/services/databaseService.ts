@@ -13,10 +13,10 @@ export interface AnalysisRecord {
 }
 
 /**
- * Salva uma análise no Realtime Database
- * 
- * @param analysis - Dados da análise
- * @returns ID do registro criado
+ * Save an analysis in Realtime Database
+ *
+ * @param analysis - Analysis data
+ * @returns ID of the created record
  */
 export async function saveAnalysis(analysis: Omit<AnalysisRecord, "id">): Promise<string> {
   try {
@@ -30,20 +30,19 @@ export async function saveAnalysis(analysis: Omit<AnalysisRecord, "id">): Promis
     });
 
     const analysisId = newAnalysisRef.key;
-    console.log(`✅ Análise salva no database: ${analysisId}`);
     
     return analysisId!;
   } catch (error) {
-    console.error("❌ Erro ao salvar análise no database:", error);
+    console.error("❌ Error saving analysis to database:", error);
     throw error;
   }
 }
 
 /**
- * Busca histórico de análises
- * 
- * @param limit - Número máximo de registros (padrão: 50)
- * @returns Array de análises ordenadas por timestamp (mais recentes primeiro)
+ * Fetch analysis history
+ *
+ * @param limit - Maximum number of records (default: 50)
+ * @returns Array of analyses ordered by timestamp (most recent first)
  */
 export async function getAnalysisHistory(limit: number = 50): Promise<AnalysisRecord[]> {
   try {
@@ -67,19 +66,18 @@ export async function getAnalysisHistory(limit: number = 50): Promise<AnalysisRe
       });
     });
 
-    // Inverter para ter mais recentes primeiro
     return analyses.reverse();
   } catch (error) {
-    console.error("❌ Erro ao buscar histórico de análises:", error);
+    console.error("❌ Error fetching analysis history:", error);
     throw error;
   }
 }
 
 /**
- * Busca uma análise específica por ID
- * 
- * @param id - ID da análise
- * @returns Dados da análise ou null se não encontrada
+ * Fetch a specific analysis by ID
+ *
+ * @param id - Analysis ID
+ * @returns Analysis data or null if not found
  */
 export async function getAnalysisById(id: string): Promise<AnalysisRecord | null> {
   try {
@@ -97,13 +95,13 @@ export async function getAnalysisById(id: string): Promise<AnalysisRecord | null
       ...snapshot.val(),
     };
   } catch (error) {
-    console.error(`❌ Erro ao buscar análise ${id}:`, error);
+    console.error(`❌ Error fetching analysis ${id}:`, error);
     throw error;
   }
 }
 
 /**
- * Obtém estatísticas das análises
+ * Get analysis statistics
  */
 export async function getAnalyticsStats() {
   try {
@@ -139,7 +137,7 @@ export async function getAnalyticsStats() {
       decisionCounts,
     };
   } catch (error) {
-    console.error("❌ Erro ao obter estatísticas:", error);
+    console.error("❌ Error getting statistics:", error);
     throw error;
   }
 }

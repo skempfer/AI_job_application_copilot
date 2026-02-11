@@ -20,24 +20,7 @@ export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
 
   const normalizedText = normalizeText(coverLetter);
   
-  console.log('📄 CoverLetterDisplay - Raw coverLetter:', {
-    length: coverLetter.length,
-    hasDoubleNewlines: coverLetter.includes('\n\n'),
-    hasSingleNewlines: coverLetter.includes('\n'),
-    firstChars: coverLetter.substring(0, 100),
-    charCodes: coverLetter.substring(0, 50).split('').map(c => `${c}(${c.charCodeAt(0)})`).join(', ')
-  });
-  console.log('📄 CoverLetterDisplay - After normalizeText:', {
-    length: normalizedText.length,
-    preview: normalizedText.substring(0, 100)
-  });
-  
   const paragraphs = normalizedText.split('\n\n').filter(p => p.trim().length > 0);
-  console.log('📄 CoverLetterDisplay - Paragraphs:', {
-    count: paragraphs.length,
-    lengths: paragraphs.map(p => p.length),
-    firstParagraph: paragraphs[0]?.substring(0, 50)
-  });
 
   const firstParagraph = paragraphs[0] || '';
   const hasMoreContent = paragraphs.length > 1 || firstParagraph.length > 250;

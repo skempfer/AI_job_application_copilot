@@ -45,10 +45,20 @@ npm run dev
 Then import and use the component:
 ```tsx
 import { ResumeUpload } from './components/ResumeUpload';
+import { useState } from 'react';
 
-<ResumeUpload 
-  onUploadSuccess={(fileName) => console.log('Uploaded:', fileName)}
-/>
+function App() {
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+  return (
+    <div>
+      <ResumeUpload 
+        onUploadSuccess={(fileName) => setUploadedFileName(fileName)}
+      />
+      {uploadedFileName && <p>Uploaded: {uploadedFileName}</p>}
+    </div>
+  );
+}
 ```
 
 ---
@@ -155,17 +165,32 @@ import { ResumeUpload } from './components/ResumeUpload';
 Frontend integration:
 ```tsx
 import { ResumeUpload } from './components/ResumeUpload';
+import { useState } from 'react';
 
 function MyApp() {
+  const [uploadedFile, setUploadedFile] = useState<{
+    name: string;
+    url?: string;
+  } | null>(null);
+
   const handleUploadSuccess = (fileName: string, fileUrl?: string) => {
-    if (fileUrl) {
-      console.log('Firebase URL:', fileUrl);
-    } else {
-      console.log('Local file:', fileName);
-    }
+    setUploadedFile({
+      name: fileName,
+      url: fileUrl
+    });
   };
 
-  return <ResumeUpload onUploadSuccess={handleUploadSuccess} />;
+  return (
+    <div>
+      <ResumeUpload onUploadSuccess={handleUploadSuccess} />
+      {uploadedFile && (
+        <p>
+          Uploaded: {uploadedFile.name}
+          {uploadedFile.url && ` (stored in Firebase)`}
+        </p>
+      )}
+    </div>
+  );
 }
 ```
 

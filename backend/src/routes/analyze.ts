@@ -13,89 +13,65 @@ export function createAnalyzeRouter(aiService: AIService): Router {
     try {
       const { cv, jobDescription, resumeUrl, language } = req.body as AnalysisRequest & { resumeUrl?: string };
 
-      console.log("\n📥 REQUISIÇÃO RECEBIDA EM /api/analyze:");
-      console.log("   CV recebido:", {
-        length: cv?.length || 0,
-        isEmpty: !cv || cv.trim().length === 0,
-        preview: cv ? (cv.substring(0, 80) + (cv.length > 80 ? "..." : "")) : "[VAZIO]"
-      });
-      console.log("   Job Description recebido:", {
-        length: jobDescription?.length || 0,
-        isEmpty: !jobDescription || jobDescription.trim().length === 0,
-        preview: jobDescription ? (jobDescription.substring(0, 80) + (jobDescription.length > 80 ? "..." : "")) : "[VAZIO]"
-      });
-      console.log("   Resume URL:", resumeUrl ? "Sim" : "Não");
-      console.log("   Language:", language || "default");
-
-      // Validação de input - CV é opcional se houver resumeUrl
       if (!resumeUrl && (!cv || typeof cv !== "string" || cv.trim().length === 0)) {
-        console.log("❌ ERRO: CV vazio e sem resumeUrl");
-        res.status(400).json({ error: "CV ou arquivo PDF é obrigatório" });
+        console.error("❌ ERROR: Empty CV and no resumeUrl");
+        res.status(400).json({ error: "CV or PDF file is required" });
         return;
       }
 
       if (!jobDescription || typeof jobDescription !== "string" || jobDescription.trim().length === 0) {
-        console.log("❌ ERRO: Job Description vazia");
-        res.status(400).json({ error: "Job description é obrigatória" });
+        console.error("❌ ERROR: Job description is empty");
+        res.status(400).json({ error: "Job description is required" });
         return;
       }
 
-      // Input muito curto provavelmente é inválido (apenas se não houver resumeUrl)
       if (!resumeUrl && cv && cv.trim().length < 50) {
-        console.log("❌ ERRO: CV muito curto");
-        res.status(400).json({ error: "CV muito curto. Forneça informações mais detalhadas." });
+        console.error("❌ ERROR: CV too short");
+        res.status(400).json({ error: "CV too short. Provide more details." });
         return;
       }
 
       if (jobDescription.trim().length < 50) {
-        res.status(400).json({ error: "Job description muito curta. Cole a descrição completa da vaga." });
+        res.status(400).json({ error: "Job description too short. Paste the full job description." });
         return;
       }
 
-      // Extract CV text (from input or PDF)
       let cvText = cv?.trim() || "";
 
-      // If CV is empty but resumeUrl provided, extract from PDF
       if (!cvText && resumeUrl) {
         try {
-          console.log(`\n🔄 CV vazio detectado. Tentando extrair do PDF...`);
-          console.log(`   - resumeUrl: ${resumeUrl}`);
-          const uploadDir = path.join(process.cwd(), "tmp", "uploads");
-          const pdfPath = path.join(uploadDir, resumeUrl);
-          console.log(`   - uploadDir: ${uploadDir}`);
-          console.log(`   - pdfPath: ${pdfPath}`);
+          const uploadDir = path.resolve(process.cwd(), "tmp", "uploads");
+          const pdfPath = path.resolve(uploadDir, resumeUrl);
           
-          // Check if file exists
-          try {
-            const stat = await fs.stat(pdfPath);
-            console.log(`   ✅ Arquivo existe (${stat.size} bytes)`);
-          } catch (err) {
-            console.error(`   ❌ Arquivo não encontrado em ${pdfPath}`);
-            throw new Error(`File not found at ${pdfPath}`);
+          if (!pdfPath.startsWith(uploadDir)) {
+            console.error("   ❌ Invalid resume path (outside upload directory)");
+            throw new Error("Invalid resume path");
           }
 
-          console.log(`   🔍 Extraindo texto do PDF...`);
+          if (path.extname(pdfPath).toLowerCase() !== ".pdf") {
+            throw new Error("Invalid resume file type");
+          }
+          
+          await fs.access(pdfPath, fs.constants.F_OK).catch(() => {
+            throw new Error(`File not found: ${resumeUrl}`);
+          });
+
           cvText = await extractTextFromPDF(pdfPath);
-          console.log(`   ✅ Extração bem-sucedida: ${cvText.length} caracteres extraídos`);
         } catch (error) {
-          console.error(`\n❌ Erro na extração do PDF:`, error instanceof Error ? error.message : error);
-          // If extraction fails, continue with empty CV and let validation handle it
+          console.error(`\n❌ Error extracting PDF:`, error instanceof Error ? error.message : error);
           cvText = "";
         }
       }
 
-      // Validação DEPOIS da extração de PDF
       if (!cvText || cvText.trim().length === 0) {
-        console.log("❌ ERRO: CV vazio após extração de PDF");
-        res.status(400).json({ error: "Falha ao extrair CV do PDF. Tente enviar o CV como texto." });
+        console.error("❌ ERROR: CV empty after PDF extraction");
+        res.status(400).json({ error: "Failed to extract CV from PDF. Try sending the CV as text." });
         return;
       }
 
-      // Chamar IA
       const analysisLanguage = (language as "pt" | "en" | undefined) || "en";
       const result = await aiService.analyzeJobFit(cvText, jobDescription.trim(), analysisLanguage);
 
-      // Salvar no Realtime Database (se Firebase estiver habilitado)
       if (process.env.USE_FIREBASE === "true") {
         try {
           await saveAnalysis({
@@ -108,22 +84,21 @@ export function createAnalyzeRouter(aiService: AIService): Router {
             improvements: result.cvSuggestions,
           });
         } catch (dbError) {
-          console.error("⚠️  Erro ao salvar no database (não crítico):", dbError);
-          // Não falhar a requisição se o database falhar
+          console.error("⚠️  Error saving to database (non-critical):", dbError);
         }
       }
 
       res.json(result);
     } catch (error) {
-      console.error("Erro ao analisar job fit:", error);
+      console.error("Error analyzing job fit:", error);
 
       if (error instanceof Error) {
         res.status(500).json({
-          error: "Erro ao processar análise",
+          error: "Error processing analysis",
           details: error.message,
         });
       } else {
-        res.status(500).json({ error: "Erro desconhecido ao processar análise" });
+        res.status(500).json({ error: "Unknown error while processing analysis" });
       }
     }
   });

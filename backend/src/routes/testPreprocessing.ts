@@ -1,14 +1,14 @@
 /**
- * Rota de teste: Valida preprocessamento sem enviar para IA
- * 
+ * Test route: Validate preprocessing without calling the AI
+ *
  * POST /api/test-preprocessing
- * 
- * Retorna:
- * - CV original
- * - CV após preprocessamento
- * - Job Description original
- * - Job Description após preprocessamento
- * - Prompt final que seria enviado à IA
+ *
+ * Returns:
+ * - Raw CV
+ * - Preprocessed CV
+ * - Raw Job Description
+ * - Preprocessed Job Description
+ * - Final prompt that would be sent to the AI
  */
 
 import { Router, Request, Response } from "express";
@@ -23,13 +23,13 @@ export function createTestPreprocessingRouter(): Router {
     try {
       const { cv, jobDescription, language = "pt" } = req.body as AnalysisRequest & { language?: string };
 
-      // Validação básica
+      // Basic validation
       if (!cv || typeof cv !== "string" || cv.trim().length === 0) {
         res.status(400).json({
-          error: "CV é obrigatório e não pode estar vazio",
+          error: "CV is required and cannot be empty",
           received: {
-            cv: cv ? `${cv.length} caracteres` : "VAZIO",
-            jobDescription: jobDescription ? `${jobDescription.length} caracteres` : "VAZIO",
+            cv: cv ? `${cv.length} characters` : "EMPTY",
+            jobDescription: jobDescription ? `${jobDescription.length} characters` : "EMPTY",
           },
         });
         return;
@@ -37,32 +37,22 @@ export function createTestPreprocessingRouter(): Router {
 
       if (!jobDescription || typeof jobDescription !== "string" || jobDescription.trim().length === 0) {
         res.status(400).json({
-          error: "Job Description é obrigatória e não pode estar vazia",
+          error: "Job Description is required and cannot be empty",
           received: {
-            cv: cv ? `${cv.length} caracteres` : "VAZIO",
-            jobDescription: jobDescription ? `${jobDescription.length} caracteres` : "VAZIO",
+            cv: cv ? `${cv.length} characters` : "EMPTY",
+            jobDescription: jobDescription ? `${jobDescription.length} characters` : "EMPTY",
           },
         });
         return;
       }
 
-      // 1. Preprocessar CV
-      console.log("\n🔍 TESTANDO: Preprocessando CV...");
       const processedCV = preprocessCV(cv);
-      console.log("✅ CV preprocessado");
 
-      // 2. Preprocessar Job Description
-      console.log("\n🔍 TESTANDO: Preprocessando Job Description...");
       const processedJob = preprocessJobDescription(jobDescription);
-      console.log("✅ Job Description preprocessada");
 
-      // 3. Construir prompt
-      console.log("\n🔍 TESTANDO: Construindo prompt otimizado...");
       const analyzeLanguage = (language as "pt" | "en") || "pt";
       const prompt = buildOptimizedPrompt(processedCV, processedJob, analyzeLanguage);
-      console.log("✅ Prompt construído");
 
-      // Retornar dados estruturados para o cliente
       res.json({
         success: true,
         input: {
@@ -92,10 +82,10 @@ export function createTestPreprocessingRouter(): Router {
         },
       });
     } catch (error) {
-      console.error("❌ Erro ao testar preprocessamento:", error);
+      console.error("❌ Error testing preprocessing:", error);
       res.status(500).json({
-        error: "Erro ao processar teste",
-        details: error instanceof Error ? error.message : "Desconhecido",
+        error: "Error processing test",
+        details: error instanceof Error ? error.message : "Unknown",
       });
     }
   });

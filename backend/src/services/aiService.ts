@@ -5,17 +5,17 @@ import { preprocessCV, preprocessJobDescription } from "./preprocessing.js";
 import { buildOptimizedPrompt } from "./promptBuilder.js";
 
 /**
- * Versão do prompt
- * (Agora em promptBuilder.ts como PROMPT_VERSION = "v2.0-optimized")
+ * Prompt version
+ * (Now defined in promptBuilder.ts as PROMPT_VERSION = "v2.0-optimized")
  */
 
 /**
- * Serviço de IA usando Groq (API compatível com OpenAI)
- * Groq fornece acesso grátis aos modelos Llama com velocidade ultra-rápida
- * 
- * ARQUITETURA HÍBRIDA:
- * - IA: extrai sinais e classifica requisitos
- * - Código: calcula score final de forma determinística
+ * AI service using Groq (OpenAI-compatible API)
+ * Groq provides free access to Llama models with ultra-fast speed
+ *
+ * HYBRID ARCHITECTURE:
+ * - AI: extracts signals and classifies requirements
+ * - Code: calculates the final score deterministically
  */
 export class AIService {
   private client: OpenAI;
@@ -30,34 +30,29 @@ export class AIService {
   }
 
   /**
-   * Analisa o fit do candidato com a vaga usando preprocessamento estruturado
-   * 
-   * NOVO FLUXO (v2.0):
-   * 1. Preprocessar CV (remover dados pessoais, normalizar, extrair estrutura)
-   * 2. Preprocessar Job Description (remover marketing, extrair requisitos)
-   * 3. Construir prompt otimizado com dados estruturados
-   * 4. Enviar à IA (muito menos tokens)
-   * 5. Extrair sinais e calcular score
+   * Analyze candidate fit using structured preprocessing
+   *
+   * NEW FLOW (v2.0):
+   * 1. Preprocess CV (remove personal data, normalize, extract structure)
+   * 2. Preprocess Job Description (remove marketing, extract requirements)
+   * 3. Build optimized prompt with structured data
+   * 4. Send to AI (far fewer tokens)
+   * 5. Extract signals and compute score
    */
   async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
-    console.log("🔍 Preprocessando CV...");
     const processedCV = preprocessCV(cv);
-    console.log(`✅ CV preprocessado: ${processedCV.skills.length} skills, ${processedCV.companies.length} empresas`);
 
-    console.log("🔍 Preprocessando Job Description...");
     const processedJob = preprocessJobDescription(jobDescription);
-    console.log(`✅ Job preprocessada: ${processedJob.mandatoryRequirements.length} requisitos obrigatórios`);
 
     const prompt = buildOptimizedPrompt(processedCV, processedJob, language);
 
     try {
-      console.log("🤖 Enviando para IA (prompt otimizado)...");
       const completion = await this.client.chat.completions.create({
         model: this.model,
         messages: [
           {
             role: "system",
-            content: "Você é um assistente que retorna APENAS JSON válido, sem markdown ou texto adicional.",
+            content: "You are an assistant that returns ONLY valid JSON, with no markdown or extra text.",
           },
           {
             role: "user",
@@ -70,7 +65,7 @@ export class AIService {
 
       const content = completion.choices[0]?.message?.content;
       if (!content) {
-        throw new Error("AI retornou resposta vazia");
+        throw new Error("AI returned an empty response");
       }
 
       const cleanJson = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -89,12 +84,12 @@ export class AIService {
         decision,
         strengths: [
           ...signals.hardSkillsDetected.map(s => `Hard skill: ${s}`),
-          ...signals.mandatoryRequirementsMet.map(r => `Requisito atendido: ${r}`),
-          ...signals.desirableRequirementsMet.map(d => `Diferencial: ${d}`),
+          ...signals.mandatoryRequirementsMet.map(r => `Requirement met: ${r}`),
+          ...signals.desirableRequirementsMet.map(d => `Bonus qualification: ${d}`),
         ],
         gaps: [
-          ...signals.mandatoryRequirementsMissing.map(r => `Requisito faltando: ${r}`),
-          ...signals.desirableRequirementsMissing.map(d => `Diferencial ausente: ${d}`),
+          ...signals.mandatoryRequirementsMissing.map(r => `Missing requirement: ${r}`),
+          ...signals.desirableRequirementsMissing.map(d => `Missing bonus qualification: ${d}`),
           ...signals.redFlags,
         ],
         cvSuggestions: this.generateCVSuggestions(signals),
@@ -107,45 +102,45 @@ export class AIService {
       return result;
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new Error(`Falha ao parsear resposta da IA: ${error.message}`);
+        throw new Error(`Failed to parse AI response: ${error.message}`);
       }
       throw error;
     }
   }
 
   /**
-   * Gera sugestões de ajustes no CV baseado nos sinais
+   * Generate CV improvement suggestions based on signals
    */
   private generateCVSuggestions(signals: AISignals): string[] {
     const suggestions: string[] = [];
 
     if (signals.mandatoryRequirementsMissing.length > 0) {
       suggestions.push(
-        `Destaque experiências relacionadas a: ${signals.mandatoryRequirementsMissing.slice(0, 2).join(', ')}`
+        `Highlight experience related to: ${signals.mandatoryRequirementsMissing.slice(0, 2).join(', ')}`
       );
     }
 
     if (signals.hardSkillsDetected.length < 3) {
-      suggestions.push('Adicione mais detalhes sobre suas habilidades técnicas');
+      suggestions.push('Add more detail about your technical skills');
     }
 
     if (signals.seniorityMatch === 'below') {
-      suggestions.push('Enfatize projetos complexos e liderança técnica para demonstrar senioridade');
+      suggestions.push('Emphasize complex projects and technical leadership to demonstrate seniority');
     }
 
     if (signals.desirableRequirementsMissing.length > 0 && signals.desirableRequirementsMet.length > 0) {
-      suggestions.push('Destaque seus diferenciais no topo do CV');
+      suggestions.push('Highlight your bonus qualifications near the top of the CV');
     }
 
     if (suggestions.length === 0) {
-      suggestions.push('Seu CV está bem alinhado. Apenas revise formatação e clareza.');
+      suggestions.push('Your CV is well aligned. Just review formatting and clarity.');
     }
 
     return suggestions;
   }
 
   /**
-   * Valida os sinais extraídos pela IA
+  * Validate signals extracted by the AI
    */
   private validateSignals(signals: any): asserts signals is AISignals {
     const required = [
@@ -164,7 +159,7 @@ export class AIService {
     const missing = required.filter((field) => !(field in signals));
 
     if (missing.length > 0) {
-      throw new Error(`Resposta da IA inválida. Campos faltando: ${missing.join(", ")}`);
+      throw new Error(`Invalid AI response. Missing fields: ${missing.join(", ")}`);
     }
 
     const arrayFields = [
@@ -179,20 +174,20 @@ export class AIService {
 
     for (const field of arrayFields) {
       if (!Array.isArray(signals[field])) {
-        throw new Error(`${field} deve ser um array`);
+        throw new Error(`${field} must be an array`);
       }
     }
 
     if (!["below", "match", "above"].includes(signals.seniorityMatch)) {
-      throw new Error("seniorityMatch deve ser 'below', 'match' ou 'above'");
+      throw new Error("seniorityMatch must be 'below', 'match', or 'above'");
     }
 
     if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
-      throw new Error("recruiterMessage deve ser uma string não vazia");
+      throw new Error("recruiterMessage must be a non-empty string");
     }
 
     if (typeof signals.coverLetter !== "string" || signals.coverLetter.length === 0) {
-      throw new Error("coverLetter deve ser uma string não vazia");
+      throw new Error("coverLetter must be a non-empty string");
     }
   }
 }

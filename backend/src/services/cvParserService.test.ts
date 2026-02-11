@@ -8,13 +8,15 @@ jest.mock('pdf-parse');
 
 const mockFs = fs as jest.Mocked<typeof fs>;
 const mockPdf = pdf as jest.MockedFunction<typeof pdf>;
+let createMock: jest.Mock;
 
 describe('CVParserService', () => {
   beforeAll(() => {
+    createMock = jest.fn();
     const mockAIClient = {
       chat: {
         completions: {
-          create: jest.fn(),
+          create: createMock,
         },
       },
     } as unknown as OpenAI;
@@ -82,6 +84,76 @@ describe('CVParserService', () => {
       await expect(parseCVToStructuredData('')).rejects.toThrow(CVParserError);
       await expect(parseCVToStructuredData('')).rejects.toMatchObject({
         code: 'CV_EMPTY_TEXT',
+      });
+    });
+
+    it('should parse structured CV from valid JSON', async () => {
+      createMock.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                skills: ['TypeScript', 'React'],
+                technologies: ['Node.js'],
+                seniorityLevel: 'mid',
+                yearsOfExperience: 4,
+                languages: ['English'],
+                education: ['BSc'],
+                certifications: ['AWS'],
+                strengths: ['Leadership'],
+              }),
+            },
+          },
+        ],
+      });
+
+      const result = await parseCVToStructuredData('cv text');
+
+      expect(result.skills).toEqual(['TypeScript', 'React']);
+      expect(result.technologies).toEqual(['Node.js']);
+      expect(result.seniorityLevel).toBe('mid');
+      expect(result.yearsOfExperience).toBe(4);
+    });
+
+    it('should throw CVParserError on invalid JSON response', async () => {
+      createMock.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: 'not-json',
+            },
+          },
+        ],
+      });
+
+      await expect(parseCVToStructuredData('cv text')).rejects.toThrow(CVParserError);
+      await expect(parseCVToStructuredData('cv text')).rejects.toMatchObject({
+        code: 'AI_INVALID_JSON',
+      });
+    });
+
+    it('should throw CVParserError when required fields are missing', async () => {
+      createMock.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                technologies: [],
+                seniorityLevel: 'unknown',
+                yearsOfExperience: null,
+                languages: [],
+                education: [],
+                certifications: [],
+                strengths: [],
+              }),
+            },
+          },
+        ],
+      });
+
+      await expect(parseCVToStructuredData('cv text')).rejects.toThrow(CVParserError);
+      await expect(parseCVToStructuredData('cv text')).rejects.toMatchObject({
+        code: 'AI_MISSING_FIELDS',
       });
     });
   });

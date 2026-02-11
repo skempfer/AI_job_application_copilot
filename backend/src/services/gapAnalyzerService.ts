@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { StructuredCV, JobRequirements, GapAnalysisResult } from "../types/analysis.js";
+import { parseJsonStrict, normalizeStringArray } from "./aiJsonUtils.js";
 
 let aiClientInstance: OpenAI | null = null;
 
@@ -52,36 +53,17 @@ Rules:
 - Do not add explanations.`;
 }
 
-function parseJsonStrict(content: string): unknown {
-  const trimmed = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
-    throw new GapAnalyzerError("Resposta da IA nao esta em JSON", "AI_INVALID_JSON");
-  }
-
-  try {
-    return JSON.parse(trimmed);
-  } catch (error) {
-    const details = error instanceof Error ? error.message : "Erro desconhecido";
-    throw new GapAnalyzerError("Falha ao parsear JSON da IA", "AI_INVALID_JSON", details);
-  }
+function parseJson(content: string): unknown {
+  return parseJsonStrict(content, (message, details) => new GapAnalyzerError(message, "AI_INVALID_JSON", details));
 }
 
-function normalizeStringArray(value: unknown, fieldName: string): string[] {
-  if (!Array.isArray(value)) {
-    throw new GapAnalyzerError(`Campo ${fieldName} deve ser um array`, "AI_INVALID_SHAPE");
-  }
-
-  const cleaned = value
-    .filter((item) => typeof item === "string")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-
-  return Array.from(new Set(cleaned));
+function normalizeArray(value: unknown, fieldName: string): string[] {
+  return normalizeStringArray(value, fieldName, (message) => new GapAnalyzerError(message, "AI_INVALID_SHAPE"));
 }
 
 function validateJobRequirements(data: unknown): JobRequirements {
   if (!data || typeof data !== "object") {
-    throw new GapAnalyzerError("Resposta da IA invalida", "AI_INVALID_SHAPE");
+    throw new GapAnalyzerError("Invalid AI response", "AI_INVALID_SHAPE");
   }
 
   const record = data as Record<string, unknown>;
@@ -90,20 +72,20 @@ function validateJobRequirements(data: unknown): JobRequirements {
 
   if (missing.length > 0) {
     throw new GapAnalyzerError(
-      `Resposta da IA incompleta: ${missing.join(", ")}`,
+      `Incomplete AI response: ${missing.join(", ")}`,
       "AI_MISSING_FIELDS"
     );
   }
 
   return {
-    skills: normalizeStringArray(record.skills, "skills"),
-    technologies: normalizeStringArray(record.technologies, "technologies"),
+    skills: normalizeArray(record.skills, "skills"),
+    technologies: normalizeArray(record.technologies, "technologies"),
   };
 }
 
 async function extractJobRequirements(jobDescription: string): Promise<JobRequirements> {
   if (!jobDescription || jobDescription.trim().length === 0) {
-    throw new GapAnalyzerError("Descricao da vaga vazia", "JOB_DESCRIPTION_EMPTY");
+    throw new GapAnalyzerError("Job description is empty", "JOB_DESCRIPTION_EMPTY");
   }
 
   const prompt = buildJobRequirementsPrompt(jobDescription);
@@ -128,18 +110,18 @@ async function extractJobRequirements(jobDescription: string): Promise<JobRequir
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
-      throw new GapAnalyzerError("IA retornou resposta vazia", "AI_EMPTY_RESPONSE");
+      throw new GapAnalyzerError("AI returned an empty response", "AI_EMPTY_RESPONSE");
     }
 
-    const parsed = parseJsonStrict(content);
+    const parsed = parseJson(content);
     return validateJobRequirements(parsed);
   } catch (error) {
     if (error instanceof GapAnalyzerError) {
       throw error;
     }
 
-    const details = error instanceof Error ? error.message : "Erro desconhecido";
-    throw new GapAnalyzerError("Falha ao extrair requisitos", "AI_PROCESSING_FAILED", details);
+    const details = error instanceof Error ? error.message : "Unknown error";
+    throw new GapAnalyzerError("Failed to extract requirements", "AI_PROCESSING_FAILED", details);
   }
 }
 
@@ -261,10 +243,7 @@ export async function analyzeGap(
     )
   );
   
-  console.log("📊 CV Skills/Tech:", cvSkillsAndTech);
-  console.log("🔍 CV Tokens (normalized):", cvTokens.slice(0, 20));
-
-  const requiredItems = [
+ const requiredItems = [
     ...requirements.skills.map((skill) => ({ type: "skill", value: skill })),
     ...requirements.technologies.map((tech) => ({ type: "technology", value: tech })),
   ];
@@ -291,20 +270,6 @@ export async function analyzeGap(
 
   const matchScore = totalWeight === 0 ? 0 : Math.round((matchedWeight / totalWeight) * 100);
   
-  console.log("\n📈 Gap Analysis Results:");
-  console.log(`   Match Score: ${matchScore}/100`);
-  console.log(`   Total Weight: ${totalWeight}`);
-  console.log(`   Matched Weight: ${matchedWeight}`);
-  console.log(`   Requirements Found: ${scoredRequirements.filter(r => r.matched).length}/${scoredRequirements.length}`);
-  console.log("\n✅ Matched Skills:");
-  scoredRequirements.filter(r => r.matched).forEach(r => {
-    console.log(`   - ${r.value} (frequency: ${r.frequency}, weight: ${r.weight})`);
-  });
-  console.log("\n❌ Missing Skills:");
-  scoredRequirements.filter(r => !r.matched).forEach(r => {
-    console.log(`   - ${r.value} (frequency: ${r.frequency}, weight: ${r.weight})`);
-  });
-
   const missingCriticalSkills = scoredRequirements
     .filter((item) => !item.matched && item.frequency >= 2)
     .sort((a, b) => b.weight - a.weight)

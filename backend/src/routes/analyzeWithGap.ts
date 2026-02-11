@@ -37,7 +37,7 @@ async function downloadResumeFromUrl(url: string, targetPath: string): Promise<v
 
     const request = client.get(url, (response) => {
       if (response.statusCode && response.statusCode >= 400) {
-        reject(new Error(`Falha ao baixar resume: HTTP ${response.statusCode}`));
+        reject(new Error(`Failed to download resume: HTTP ${response.statusCode}`));
         response.resume();
         return;
       }
@@ -63,17 +63,17 @@ export function createAnalyzeWithGapRouter(): Router {
       const hasCv = cv && typeof cv === "string" && cv.trim().length > 0;
 
       if (!hasResumePath && !hasCv) {
-        res.status(400).json({ error: "Resume path ou CV é obrigatório" });
+        res.status(400).json({ error: "Resume path or CV is required" });
         return;
       }
 
       if (!jobDescription || typeof jobDescription !== "string" || jobDescription.trim().length === 0) {
-        res.status(400).json({ error: "Job description e obrigatoria" });
+        res.status(400).json({ error: "Job description is required" });
         return;
       }
 
       if (jobDescription.trim().length < 50) {
-        res.status(400).json({ error: "Job description muito curta. Cole a descricao completa da vaga." });
+        res.status(400).json({ error: "Job description too short. Paste the full job description." });
         return;
       }
 
@@ -87,7 +87,6 @@ export function createAnalyzeWithGapRouter(): Router {
             uploadDir,
             `remote-${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`
           );
-          console.log("⬇️ Downloading resume from URL:", resumePathToUse);
           await downloadResumeFromUrl(resumePathToUse, downloadedFilePath);
           resumePathToUse = downloadedFilePath;
         }
@@ -98,7 +97,7 @@ export function createAnalyzeWithGapRouter(): Router {
         if (!path.isAbsolute(resumePathToUse)) {
           const normalizedUploadDir = path.resolve(uploadDir);
           if (!normalizedPath.startsWith(normalizedUploadDir)) {
-            res.status(400).json({ error: "Resume path invalido" });
+            res.status(400).json({ error: "Invalid resume path" });
             return;
           }
         }
@@ -106,43 +105,30 @@ export function createAnalyzeWithGapRouter(): Router {
         try {
           const stat = await fs.stat(normalizedPath);
           if (!stat.isFile()) {
-            res.status(400).json({ error: "Resume path nao aponta para um arquivo valido" });
+            res.status(400).json({ error: "Resume path does not point to a valid file" });
             return;
           }
         } catch {
-          res.status(400).json({ error: "Arquivo de resume nao encontrado" });
+          res.status(400).json({ error: "Resume file not found" });
           return;
         }
 
         if (path.extname(normalizedPath).toLowerCase() !== ".pdf") {
-          res.status(400).json({ error: "Apenas arquivos PDF sao permitidos" });
+          res.status(400).json({ error: "Only PDF files are allowed" });
           return;
         }
 
-        console.log("\n🔍 Starting Gap Analysis with PDF Resume...");
-        console.log("📄 Extracting text from PDF:", normalizedPath);
         cvText = await extractTextFromPDF(normalizedPath);
-        console.log(`✅ Extracted ${cvText.length} characters from PDF\n`);
       } else {
-        // Usar CV de texto fornecido
+        // Use provided text CV
         if (!cv || cv.trim().length < 50) {
-          res.status(400).json({ error: "CV muito curto. Forneça informações mais detalhadas." });
+          res.status(400).json({ error: "CV too short. Provide more details." });
           return;
         }
-        console.log("\n🔍 Starting Gap Analysis with text CV...");
-        cvText = cv.trim();
-        console.log(`✅ Using provided CV text (${cvText.length} characters)\n`);
-      }
+        cvText = cv.trim();      }
       
-      console.log("🤖 Parsing CV to structured data...");
       const structuredCV = await parseCVToStructuredData(cvText);
-      console.log("✅ CV parsed successfully:");
-      console.log(`   - Skills: ${structuredCV.skills.length}`);
-      console.log(`   - Technologies: ${structuredCV.technologies.length}`);
-      console.log(`   - Seniority: ${structuredCV.seniorityLevel}`);
-      console.log(`   - Experience: ${structuredCV.yearsOfExperience || 'N/A'} years\n`);
       
-      console.log("⚖️ Running gap analysis...");
       const gapResult = await analyzeGap(structuredCV, jobDescription.trim());
 
       if (process.env.USE_FIREBASE === "true") {
@@ -156,7 +142,6 @@ export function createAnalyzeWithGapRouter(): Router {
             weaknesses: gapResult.missingCriticalSkills,
             improvements: gapResult.suggestedFocusAreas,
           });
-          console.log("✅ Analysis saved to Firebase\n");
         } catch (dbError) {
           console.error("⚠️ Error saving to Firebase (non-critical):", dbError);
         }
@@ -167,7 +152,7 @@ export function createAnalyzeWithGapRouter(): Router {
         structuredCV,
       });
     } catch (error) {
-      console.error("Erro ao analisar gap:", error);
+      console.error("Error running gap analysis:", error);
 
       if (error instanceof CVParserError || error instanceof GapAnalyzerError) {
         res.status(422).json({
@@ -180,18 +165,18 @@ export function createAnalyzeWithGapRouter(): Router {
 
       if (error instanceof Error) {
         res.status(500).json({
-          error: "Erro ao processar analise com gap",
+          error: "Error processing gap analysis",
           details: error.message,
         });
       } else {
-        res.status(500).json({ error: "Erro desconhecido ao processar analise com gap" });
+        res.status(500).json({ error: "Unknown error while processing gap analysis" });
       }
     } finally {
       if (downloadedFilePath) {
         try {
           await fs.unlink(downloadedFilePath);
         } catch (cleanupError) {
-          console.warn("⚠️ Falha ao remover arquivo temporario:", cleanupError);
+          console.warn("⚠️ Failed to remove temporary file:", cleanupError);
         }
       }
     }

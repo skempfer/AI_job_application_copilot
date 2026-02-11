@@ -1,5 +1,5 @@
 /**
- * Tipos centrais do domínio de análise de job fit
+ * Core types for the job fit analysis domain
  */
 
 export type Decision = "apply" | "apply_with_fixes" | "skip";
@@ -11,8 +11,8 @@ export interface AnalysisRequest {
 }
 
 /**
- * Sinais extraídos pela IA (sem cálculo de score)
- * A IA apenas identifica e classifica skills/requisitos
+ * Signals extracted by the AI (no score calculation)
+ * The AI only identifies and classifies skills/requirements
  */
 export interface AISignals {
   hardSkillsDetected: string[];
@@ -28,7 +28,7 @@ export interface AISignals {
 }
 
 /**
- * Explicação detalhada do score calculado
+ * Detailed explanation of the calculated score
  */
 export interface ScoreExplanation {
   positives: string[]; 
@@ -37,7 +37,7 @@ export interface ScoreExplanation {
 }
 
 /**
- * Resultado final da análise (híbrido: IA + cálculo determinístico)
+ * Final analysis result (hybrid: AI + deterministic calculation)
  */
 export interface AnalysisResult {
   fitScore: number; 

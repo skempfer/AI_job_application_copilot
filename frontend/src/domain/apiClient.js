@@ -17,18 +17,9 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
     jobDescription: jobDescription.trim(),
   };
 
-  // Incluir resumeUrl se fornecido
   if (resumeUrl) {
     payload.resumeUrl = resumeUrl;
   }
-
-  console.log('📤 Enviando para API /api/analyze:', {
-    cvLength: payload.cv.length,
-    cvPreview: payload.cv.substring(0, 80) + (payload.cv.length > 80 ? '...' : ''),
-    jobDescriptionLength: payload.jobDescription.length,
-    jobDescriptionPreview: payload.jobDescription.substring(0, 80) + (payload.jobDescription.length > 80 ? '...' : ''),
-    hasResumeUrl: !!resumeUrl
-  });
 
   const response = await fetch(`${API_BASE_URL}/api/analyze`, {
     method: 'POST',
@@ -57,7 +48,6 @@ export async function analyzeWithGap(jobDescription, resumePath = null, cv = nul
     jobDescription: jobDescription.trim(),
   };
 
-  // Usar resumePath se disponível, senão usar CV de texto
   if (resumePath && resumePath.trim()) {
     payload.resumePath = resumePath.trim();
   } else if (cv && cv.trim()) {

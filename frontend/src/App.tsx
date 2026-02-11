@@ -75,7 +75,6 @@ function AppContent() {
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
 
   const handleResumeUrlChange = (url: string) => {
-    console.log('🎯 Resume URL recebida no App:', url);
     setResumeUrl(url);
   };
   const [loading, setLoading] = useState(false);
@@ -106,23 +105,13 @@ function AppContent() {
       return;
     }
 
-    try {
-      console.log('🚀 Iniciando análise com:', { 
-        cvLength: cv.length, 
-        cvPreview: cv.substring(0, 100),
-        jobDescriptionLength: jobDescription.length,
-        jobPreview: jobDescription.substring(0, 100),
-        resumeUrl 
-      });
-      
+    try {      
       const analysisResult: AnalysisResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
-      console.log('✅ Análise concluída. Resposta da IA:', analysisResult);
       const formatted = formatAnalysisResult(analysisResult);
       setResult(formatted);
       
       if (resumeUrl) {
         try {
-          console.log('📊 Executando gap analysis complementar...');
           const gapAnalysis: GapAnalysisResult = await analyzeWithGap(jobDescription, resumeUrl);
           setGapResult(gapAnalysis);
         } catch (gapError) {
@@ -130,7 +119,6 @@ function AppContent() {
         }
       } else if (cv.trim().length >= 50) {
         try {
-          console.log('📊 Executando gap analysis complementar com CV de texto...');
           const gapAnalysis: GapAnalysisResult = await analyzeWithGap(jobDescription, undefined, cv);
           setGapResult(gapAnalysis);
         } catch (gapError) {

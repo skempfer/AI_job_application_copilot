@@ -1,24 +1,24 @@
 /**
- * Serviço de preprocessamento de CV e Job Description
- * Objetivo: Reduzir tokens e melhorar qualidade do parsing de IA
- * 
- * Heurísticas simples: regex + parsing básico (sem bibliotecas pesadas)
+ * CV and Job Description preprocessing service
+ * Goal: Reduce tokens and improve AI parsing quality
+ *
+ * Simple heuristics: regex + basic parsing (no heavy libraries)
  */
 
 /**
- * Dados estruturados de um CV preprocessado
+ * Structured data from a preprocessed CV
  */
 export interface ProcessedCV {
   skills: string[];
   seniority: "junior" | "mid" | "senior" | "unknown";
-  experienceBySkill: Record<string, number>; // skill -> anos
+  experienceBySkill: Record<string, number>; // skill -> years
   companies: string[];
   achievements: string[];
   yearsTotal: number;
 }
 
 /**
- * Dados estruturados de uma Job Description preprocessada
+ * Structured data from a preprocessed Job Description
  */
 export interface ProcessedJobDescription {
   mandatoryRequirements: string[];
@@ -29,7 +29,7 @@ export interface ProcessedJobDescription {
 }
 
 /**
- * Lista de regex patterns para detectar dados pessoais a remover
+ * Regex patterns to detect personal data to remove
  */
 const PERSONAL_DATA_PATTERNS = [
   // CPF, RG, Passport
@@ -47,7 +47,7 @@ const PERSONAL_DATA_PATTERNS = [
 ];
 
 /**
- * Padrões de seções genéricas a remover
+ * Generic sections to remove
  */
 const GENERIC_SECTIONS = [
   /#{0,3}\s*objetivo\s*:?.*/gi,
@@ -61,7 +61,7 @@ const GENERIC_SECTIONS = [
 ];
 
 /**
- * Palavras-chave comuns para agrupar e normalizar skills
+ * Common keywords to group and normalize skills
  */
 const SKILL_SYNONYMS: Record<string, string> = {
   "js": "javascript",
@@ -95,7 +95,7 @@ const SKILL_SYNONYMS: Record<string, string> = {
 };
 
 /**
- * Padrões para detectar senioridade e anos de experiência
+ * Patterns to detect seniority and years of experience
  */
 const SENIORITY_PATTERNS = {
   senior: /\b(senior|lead|principal|staff|architect|principal engineer|engineering manager)\b/gi,
@@ -106,7 +106,7 @@ const SENIORITY_PATTERNS = {
 const YEARS_PATTERN = /(\d{1,2})\s*(?:\+|\s)?(?:years?|anos?|yrs?)\s*(?:of\s+)?(?:experience|experiência|exp\.?)?/gi;
 
 /**
- * Preprocessa um CV bruto e retorna estrutura normalizada
+ * Preprocess raw CV and return normalized structure
  */
 export function preprocessCV(rawCV: string): ProcessedCV {
   let cleaned = rawCV;
@@ -257,7 +257,7 @@ export function preprocessCV(rawCV: string): ProcessedCV {
 }
 
 /**
- * Preprocessa uma Job Description bruta e retorna estrutura normalizada
+ * Preprocess raw Job Description and return normalized structure
  */
 export function preprocessJobDescription(rawJob: string): ProcessedJobDescription {
   let cleaned = rawJob;

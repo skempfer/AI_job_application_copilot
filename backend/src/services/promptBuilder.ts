@@ -1,7 +1,7 @@
 /**
- * Construtor de prompts otimizado
- * Recebe dados estruturados ao invés de texto bruto
- * Objetivo: Reduzir tokens e melhorar qualidade da análise
+ * Optimized prompt builder
+ * Receives structured data instead of raw text
+ * Goal: Reduce tokens and improve analysis quality
  */
 
 import type { ProcessedCV, ProcessedJobDescription } from "./preprocessing.js";
@@ -9,10 +9,10 @@ import type { ProcessedCV, ProcessedJobDescription } from "./preprocessing.js";
 const PROMPT_VERSION = "v2.0-optimized";
 
 /**
- * Constrói um prompt otimizado usando dados estruturados
- * 
- * Input: CV e Job Description JÁ preprocessados
- * Output: Prompt compacto e bem estruturado
+ * Build an optimized prompt using structured data
+ *
+ * Input: CV and Job Description already preprocessed
+ * Output: Compact, well-structured prompt
  */
 export function buildOptimizedPrompt(
   processedCV: ProcessedCV,
@@ -25,178 +25,120 @@ export function buildOptimizedPrompt(
 
   const jobSummary = formatJobSummary(processedJob, isPt);
 
-  return `Você é um senior tech recruiter experiente. Analise objetivamente o perfil estruturado do candidato contra a vaga estruturada.
+  return `You are an experienced senior tech recruiter. Analyze the candidate's structured profile against the structured role.
 
-**VERSÃO DO PROMPT:** ${PROMPT_VERSION}
+**PROMPT VERSION:** ${PROMPT_VERSION}
 
-**SUA TAREFA:** Extrair sinais estruturados (NÃO calcular score).
+**YOUR TASK:** Extract structured signals (do NOT calculate score).
 
-**PERFIL ESTRUTURADO DO CANDIDATO:**
+**STRUCTURED CANDIDATE PROFILE:**
 ${cvSummary}
 
-**VAGA ESTRUTURADA:**
+**STRUCTURED ROLE:**
 ${jobSummary}
 
-**IDIOMA DAS MENSAGENS:** ${isPt ? "Português" : "English"}
-Escreva recruiterMessage e coverLetter no idioma acima.
+**MESSAGE LANGUAGE:** ${isPt ? "Portuguese" : "English"}
+Write recruiterMessage and coverLetter in the language above.
 
-**SINAIS A EXTRAIR:**
+**SIGNALS TO EXTRACT:**
 
-1. **hardSkillsDetected**: Hard skills do perfil que são RELEVANTES para a vaga
-2. **softSkillsEvidence**: Evidências de soft skills (liderança, comunicação, ownership, etc.)
-3. **mandatoryRequirementsMet**: Requisitos obrigatórios da vaga que o candidato ATENDE
-4. **mandatoryRequirementsMissing**: Requisitos obrigatórios que o candidato NÃO atende
-5. **desirableRequirementsMet**: Diferenciais que o candidato POSSUI
-6. **desirableRequirementsMissing**: Diferenciais que o candidato não possui
-7. **seniorityMatch**: "above" (overqualified), "match" (perfeito) ou "below" (underqualified)
-8. **redFlags**: Problemas graves (ex: falta experiência mínima crítica, skill obrigatória ausente, muito junior/senior)
-9. **recruiterMessage**: Mensagem estratégica personalizada (4-6 frases) para enviar ao recrutador
-10. **coverLetter**: Carta de apresentação formal (3-5 parágrafos, 400-500 palavras)
+1. **hardSkillsDetected**: Hard skills from the profile that are RELEVANT to the role
+2. **softSkillsEvidence**: Evidence of soft skills (leadership, communication, ownership, etc.)
+3. **mandatoryRequirementsMet**: Mandatory requirements the candidate MEETS
+4. **mandatoryRequirementsMissing**: Mandatory requirements the candidate DOES NOT MEET
+5. **desirableRequirementsMet**: Desired requirements the candidate HAS
+6. **desirableRequirementsMissing**: Desired requirements the candidate DOES NOT HAVE
+7. **seniorityMatch**: "above" (overqualified), "match" (ideal), or "below" (underqualified)
+8. **redFlags**: Critical issues (e.g., missing minimum experience, missing mandatory skill, too junior/senior)
+9. **recruiterMessage**: Personalized strategic message (4-6 sentences) to send to a recruiter
+10. **coverLetter**: Formal cover letter (3-5 paragraphs, 400-500 words)
 
-**CRITÉRIOS:**
+**CRITERIA:**
 
-🎯 ANÁLISE ESTRUTURADA
+🎯 STRUCTURED ANALYSIS
 
-A análise deve ser baseada APENAS nos dados estruturados fornecidos:
-- Skills disponíveis do candidato
-- Seniority estimado
-- Principais conquistas (achievements)
-- Responsabilidades da vaga
-- Requisitos obrigatórios vs desejáveis
+The analysis must be based ONLY on the structured data provided:
+- Candidate skills
+- Estimated seniority
+- Key achievements
+- Role responsibilities
+- Mandatory vs desirable requirements
 
-📌 LINGUAGEM E TOM
+📌 LANGUAGE AND TONE
 
-${isPt ? `
-1️⃣ Perspectiva
-- Escreva sempre em PRIMEIRA PESSOA no recruiterMessage e coverLetter
-- Nunca use terceira pessoa
-- Nunca fale sobre "o candidato"
-
-2️⃣ Saudação e Encerramento
-- Inicie com saudação profissional natural ("Olá," / "Olá [Nome],")
-- Termine com convite para conversa + despedida simples
-
-3️⃣ Linguagem Natural
-- Nada de clichês vazios ("ambiente dinâmico", "trabalhar com tecnologia de ponta")
-- Nada de buzzwords genéricas
-- Priorize linguagem concreta e intentiva
-- Tom experiente, não "tentando impressionar"
-` : `
 1️⃣ Perspective
-- Write always in FIRST PERSON in recruiterMessage and coverLetter
+- Always write in FIRST PERSON in recruiterMessage and coverLetter
 - Never use third person
-- Never talk about "the candidate"
+- Never refer to "the candidate"
 
 2️⃣ Greeting and Closing
-- Start with natural professional greeting ("Hello," / "Hi [Name],")
-- End with clear call to action + simple farewell
+- Start with a natural professional greeting ("Hello," / "Hi [Name],")
+- End with a clear invitation to talk + simple farewell
 
 3️⃣ Natural Language
-- No empty clichés ("dynamic environment", "cutting-edge technology")
+- No empty cliches ("dynamic environment", "cutting-edge technology")
 - No generic buzzwords
-- Prioritize concrete and intentional language
+- Prioritize concrete, intentional language
 - Tone of someone experienced, not trying to impress
-`}
 
-🛡️ SEGURANÇA CONTRA ALUCINAÇÃO (CRÍTICO):
+🛡️ ANTI-HALLUCINATION SAFETY (CRITICAL):
 
-⛔ ABSOLUTAMENTE PROIBIDO:
-- Inventar skills, tecnologias ou experiências não listadas no perfil
-- Fabricar métricas, percentuais ou resultados não documentados
-- Mencionar empresas ou projetos não listados nos achievements
-- Inferir anos de experiência além do que foi estimado
+⛔ ABSOLUTELY FORBIDDEN:
+- Invent skills, technologies, or experiences not listed in the profile
+- Fabricate metrics, percentages, or undocumented results
+- Mention companies or projects not listed in achievements
+- Infer years of experience beyond what is estimated
 
-✅ REGRA DE OURO:
-"Se não está nos dados estruturados fornecidos, NÃO MENCIONE."
+✅ GOLDEN RULE:
+"If it is not in the structured data provided, DO NOT MENTION IT."
 
-**VERIFICAÇÃO PRÉ-ESCRITA:**
-1. Toda skill mencionada está em hardSkillsDetected?
-2. Todo achievement mencionado está na lista?
-3. Não estou fabricando métricas ou percentuais?
-4. O tom é honesto e realista?
+**PRE-WRITING CHECKLIST:**
+1. Is every mentioned skill in hardSkillsDetected?
+2. Is every mentioned achievement in the list?
+3. Am I fabricating metrics or percentages?
+4. Is the tone honest and realistic?
 
-${isPt ? `
-**ESTRUTURA OBRIGATÓRIA DA COVER LETTER (3-5 parágrafos, 400-500 palavras):**
-
-📍 Parágrafo 1 — Abertura Estratégica:
-- Cumprimento profissional natural
-- Referência direta ao desafio/responsabilidade principal da vaga
-- Conexão rápida com skills relevantes do perfil
-- Demonstre entendimento do contexto
-
-📍 Parágrafos 2-3 — Alinhamento Técnico:
-- Conectar hard skills obrigatórias com experiência real
-- Demonstrar impacto concreto através dos achievements
-- Se houver gaps: RECONHECER COM MATURIDADE
-- Foque em capacidade de aprendizado e adaptação rápida
-- Mencionar arquiteturas, stacks ou projetos relevantes
-
-📍 Parágrafo 3-4 — Diferencial Estratégico:
-- Como VOCÊ RESOLVE O PROBLEMA específico da vaga
-- Falar sobre ownership, responsabilidade pessoal
-- Colaboração efetiva, visão de produto
-- Mentalidade de iteração e melhoria contínua
-- Soft skills como diferencial (se relevante)
-
-📍 Parágrafo Final — Encerramento:
-- Reforço de interesse genuíno
-- Convite claro para conversa
-- Despedida simples
-
-CRITÉRIOS OBRIGATÓRIOS:
-✓ Primeira pessoa ("eu"), NUNCA terceira pessoa
-✓ Português totalmente localizado
-✓ Diferenciar requisitos obrigatórios vs desejáveis
-✓ Ser ESPECÍFICA — nunca vaga
-✓ Nenhum metacomentário
-✓ Máximo 500 palavras
-✓ Sem markdown, apenas texto puro
-✓ Proibidas frases genéricas tais como: "tenho interesse", "meu perfil se encaixa", "ambiente dinâmico"
-✓ Tom confiante, estratégico, específico
-✓ Parecer escrito manualmente por profissional experiente
-` : `
 **REQUIRED COVER LETTER STRUCTURE (3-5 paragraphs, 400-500 words):**
 
 📍 Paragraph 1 — Strategic Opening:
 - Natural professional greeting
-- Direct reference to main challenge/responsibility of the role
-- Quick connection with relevant skills from profile
-- Demonstrate understanding of context
+- Direct reference to the main challenge/responsibility of the role
+- Quick connection to relevant skills from the profile
+- Demonstrate understanding of the context
 
 📍 Paragraphs 2-3 — Technical Alignment:
-- Connect mandatory hard skills with real experience
+- Connect mandatory hard skills to real experience
 - Demonstrate concrete impact through achievements
 - If gaps exist: ACKNOWLEDGE WITH MATURITY
-- Focus on learning capability and rapid adaptation
+- Focus on learning capacity and rapid adaptation
 - Mention relevant architectures, stacks, or projects
 
 📍 Paragraph 3-4 — Strategic Differentiator:
 - How YOU SOLVE the company's specific problem
-- Talk about ownership, personal responsibility
-- Effective collaboration, product vision
-- Iterative thinking and continuous improvement mindset
-- Soft skills as differentiator (if relevant)
+- Talk about ownership and personal responsibility
+- Effective collaboration and product vision
+- Iterative mindset and continuous improvement
+- Soft skills as differentiators (if relevant)
 
 📍 Final Paragraph — Closing:
-- Reinforcement of genuine interest
-- Clear invitation for conversation
+- Reinforce genuine interest
+- Clear invitation to talk
 - Simple farewell
 
 MANDATORY CRITERIA:
 ✓ First person ("I"), NEVER third person
-✓ Fluent English
+✓ Written in the specified message language
 ✓ Differentiate mandatory vs desirable requirements
 ✓ Be SPECIFIC — never vague
 ✓ No meta-commentary
 ✓ Maximum 500 words
 ✓ Plain text only, no markdown
-✓ Forbidden generic phrases: "interested in", "profile fits", "dynamic environment"
+✓ Forbidden generic phrases such as: "interested in", "profile fits", "dynamic environment"
 ✓ Confident, strategic, specific tone
-✓ Sound manually written by experienced professional
-`}
+✓ Sound manually written by an experienced professional
 
-**FORMATO DE RESPOSTA:**
-Retorne APENAS JSON válido (sem markdown, sem explicações adicionais):
+**RESPONSE FORMAT:**
+Return ONLY valid JSON (no markdown, no extra explanations):
 
 {
   "hardSkillsDetected": ["skill1", "skill2", ...],
@@ -207,22 +149,22 @@ Retorne APENAS JSON válido (sem markdown, sem explicações adicionais):
   "desirableRequirementsMissing": ["req1", "req2", ...],
   "seniorityMatch": "match"|"above"|"below",
   "redFlags": ["flag1", "flag2", ...],
-  "recruiterMessage": "mensagem em texto simples",
-  "coverLetter": "carta em texto simples, 3-5 parágrafos"
+  "recruiterMessage": "plain text message",
+  "coverLetter": "plain text cover letter, 3-5 paragraphs"
 }`;
 }
 
 /**
- * Formata o CV estruturado para o prompt (compilado e legível)
+ * Format structured CV for the prompt (compact and readable)
  */
 function formatCVSummary(cv: ProcessedCV, isPt: boolean): string {
-  const header = isPt ? "RESUMO DO PERFIL:" : "PROFILE SUMMARY:";
-  const seniorityLabel = isPt ? "Senioridade" : "Seniority";
-  const yearsLabel = isPt ? "Anos de experiência" : "Years of experience";
-  const skillsLabel = isPt ? "Skills técnicas" : "Technical skills";
-  const companiesLabel = isPt ? "Empresas" : "Companies";
-  const achievementsLabel = isPt ? "Principais conquistas" : "Key achievements";
-  const experienceLabel = isPt ? "Experiência por skill" : "Experience by skill";
+  const header = isPt ? "PROFILE SUMMARY:" : "PROFILE SUMMARY:";
+  const seniorityLabel = isPt ? "Seniority" : "Seniority";
+  const yearsLabel = isPt ? "Years of experience" : "Years of experience";
+  const skillsLabel = isPt ? "Technical skills" : "Technical skills";
+  const companiesLabel = isPt ? "Companies" : "Companies";
+  const achievementsLabel = isPt ? "Key achievements" : "Key achievements";
+  const experienceLabel = isPt ? "Experience by skill" : "Experience by skill";
 
   const experienceStr =
     Object.entries(cv.experienceBySkill).length > 0
@@ -254,15 +196,15 @@ ${achievementsStr}`;
 }
 
 /**
- * Formata a Job Description estruturada para o prompt
+ * Format structured Job Description for the prompt
  */
 function formatJobSummary(job: ProcessedJobDescription, isPt: boolean): string {
-  const header = isPt ? "RESUMO DA VAGA:" : "JOB SUMMARY:";
-  const seniorityLabel = isPt ? "Nível de senioridade" : "Seniority level";
-  const techStackLabel = isPt ? "Stack tecnológico mencionado" : "Mentioned tech stack";
-  const responsibilitiesLabel = isPt ? "Principais responsabilidades" : "Main responsibilities";
-  const mandatoryLabel = isPt ? "Requisitos OBRIGATÓRIOS" : "MANDATORY requirements";
-  const desirableLabel = isPt ? "Requisitos desejáveis" : "DESIRABLE requirements";
+  const header = isPt ? "JOB SUMMARY:" : "JOB SUMMARY:";
+  const seniorityLabel = isPt ? "Seniority level" : "Seniority level";
+  const techStackLabel = isPt ? "Mentioned tech stack" : "Mentioned tech stack";
+  const responsibilitiesLabel = isPt ? "Main responsibilities" : "Main responsibilities";
+  const mandatoryLabel = isPt ? "MANDATORY requirements" : "MANDATORY requirements";
+  const desirableLabel = isPt ? "DESIRABLE requirements" : "DESIRABLE requirements";
 
   const mandatoryStr = job.mandatoryRequirements
     .map((r) => `  - ${r}`)
@@ -271,7 +213,7 @@ function formatJobSummary(job: ProcessedJobDescription, isPt: boolean): string {
   const desirableStr =
     job.desirableRequirements.length > 0
       ? job.desirableRequirements.map((r) => `  - ${r}`).join("\n")
-      : `  (${isPt ? "Nenhum extraído" : "None extracted"})`;
+      : "  (None extracted)";
 
   const responsibilitiesStr = job.mainResponsibilities
     .map((r) => `  - ${r}`)
@@ -280,7 +222,7 @@ function formatJobSummary(job: ProcessedJobDescription, isPt: boolean): string {
   const techStackStr =
     job.techStack.length > 0
       ? job.techStack.map((t) => `  - ${t}`).join("\n")
-      : `  (${isPt ? "Nenhuma mencionada" : "None mentioned"})`;
+      : "  (None mentioned)";
 
   return `${header}
 ${seniorityLabel}: ${job.seniorityLevel}
