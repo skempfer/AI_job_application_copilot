@@ -58,6 +58,14 @@ export const pt = {
   // Empty state
   readyToStart: 'Pronto para começar?',
   emptyStateText: 'Cole seu CV e a descrição da vaga acima, depois clique em "Analisar compatibilidade"',
+
+  // Cover letter
+  coverLetterTitle: 'Carta de Apresentação',
+  copy: 'Copiar',
+  download: 'Baixar',
+  edit: 'Editar',
+  readFull: 'Ler Completa',
+  collapse: 'Resumir',
   
   // Footer
   dataPrivacy: '🔒 Seus dados não são armazenados. Análise feita via Groq API (gratuita, ultra-rápida).',

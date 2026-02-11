@@ -57,10 +57,13 @@ export function createAnalyzeWithGapRouter(): Router {
     let downloadedFilePath: string | null = null;
 
     try {
-      const { jobDescription, resumePath } = req.body as GapAnalysisRequest;
+      const { jobDescription, resumePath, cv } = req.body as GapAnalysisRequest & { cv?: string };
 
-      if (!resumePath || typeof resumePath !== "string" || resumePath.trim().length === 0) {
-        res.status(400).json({ error: "Resume path e obrigatorio" });
+      const hasResumePath = resumePath && typeof resumePath === "string" && resumePath.trim().length > 0;
+      const hasCv = cv && typeof cv === "string" && cv.trim().length > 0;
+
+      if (!hasResumePath && !hasCv) {
+        res.status(400).json({ error: "Resume path ou CV é obrigatório" });
         return;
       }
 
@@ -74,49 +77,62 @@ export function createAnalyzeWithGapRouter(): Router {
         return;
       }
 
-      let resumePathToUse = resumePath.trim();
+      let cvText: string;
 
-      if (isHttpUrl(resumePathToUse)) {
-        downloadedFilePath = path.join(
-          uploadDir,
-          `remote-${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`
-        );
-        console.log("⬇️ Downloading resume from URL:", resumePathToUse);
-        await downloadResumeFromUrl(resumePathToUse, downloadedFilePath);
-        resumePathToUse = downloadedFilePath;
-      }
+      if (hasResumePath) {
+        let resumePathToUse = resumePath.trim();
 
-      const resolvedPath = resolveResumePath(resumePathToUse);
-      const normalizedPath = path.resolve(resolvedPath);
+        if (isHttpUrl(resumePathToUse)) {
+          downloadedFilePath = path.join(
+            uploadDir,
+            `remote-${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`
+          );
+          console.log("⬇️ Downloading resume from URL:", resumePathToUse);
+          await downloadResumeFromUrl(resumePathToUse, downloadedFilePath);
+          resumePathToUse = downloadedFilePath;
+        }
 
-      if (!path.isAbsolute(resumePathToUse)) {
-        const normalizedUploadDir = path.resolve(uploadDir);
-        if (!normalizedPath.startsWith(normalizedUploadDir)) {
-          res.status(400).json({ error: "Resume path invalido" });
+        const resolvedPath = resolveResumePath(resumePathToUse);
+        const normalizedPath = path.resolve(resolvedPath);
+
+        if (!path.isAbsolute(resumePathToUse)) {
+          const normalizedUploadDir = path.resolve(uploadDir);
+          if (!normalizedPath.startsWith(normalizedUploadDir)) {
+            res.status(400).json({ error: "Resume path invalido" });
+            return;
+          }
+        }
+
+        try {
+          const stat = await fs.stat(normalizedPath);
+          if (!stat.isFile()) {
+            res.status(400).json({ error: "Resume path nao aponta para um arquivo valido" });
+            return;
+          }
+        } catch {
+          res.status(400).json({ error: "Arquivo de resume nao encontrado" });
           return;
         }
-      }
 
-      try {
-        const stat = await fs.stat(normalizedPath);
-        if (!stat.isFile()) {
-          res.status(400).json({ error: "Resume path nao aponta para um arquivo valido" });
+        if (path.extname(normalizedPath).toLowerCase() !== ".pdf") {
+          res.status(400).json({ error: "Apenas arquivos PDF sao permitidos" });
           return;
         }
-      } catch {
-        res.status(400).json({ error: "Arquivo de resume nao encontrado" });
-        return;
-      }
 
-      if (path.extname(normalizedPath).toLowerCase() !== ".pdf") {
-        res.status(400).json({ error: "Apenas arquivos PDF sao permitidos" });
-        return;
+        console.log("\n🔍 Starting Gap Analysis with PDF Resume...");
+        console.log("📄 Extracting text from PDF:", normalizedPath);
+        cvText = await extractTextFromPDF(normalizedPath);
+        console.log(`✅ Extracted ${cvText.length} characters from PDF\n`);
+      } else {
+        // Usar CV de texto fornecido
+        if (!cv || cv.trim().length < 50) {
+          res.status(400).json({ error: "CV muito curto. Forneça informações mais detalhadas." });
+          return;
+        }
+        console.log("\n🔍 Starting Gap Analysis with text CV...");
+        cvText = cv.trim();
+        console.log(`✅ Using provided CV text (${cvText.length} characters)\n`);
       }
-
-      console.log("\n🔍 Starting Gap Analysis...");
-      console.log("📄 Extracting text from PDF:", normalizedPath);
-      const cvText = await extractTextFromPDF(normalizedPath);
-      console.log(`✅ Extracted ${cvText.length} characters from PDF\n`);
       
       console.log("🤖 Parsing CV to structured data...");
       const structuredCV = await parseCVToStructuredData(cvText);
@@ -129,14 +145,13 @@ export function createAnalyzeWithGapRouter(): Router {
       console.log("⚖️ Running gap analysis...");
       const gapResult = await analyzeGap(structuredCV, jobDescription.trim());
 
-      // Save to Firebase if enabled
       if (process.env.USE_FIREBASE === "true") {
         try {
           await saveAnalysis({
             timestamp: Date.now(),
             fitScore: gapResult.matchScore,
             decision: gapResult.matchScore >= 70 ? "apply" : gapResult.matchScore >= 50 ? "apply_with_fixes" : "skip",
-            resumeFileName: resumePath,
+            resumeFileName: hasResumePath ? resumePath : "[CV Text]",
             strengths: gapResult.strongMatches,
             weaknesses: gapResult.missingCriticalSkills,
             improvements: gapResult.suggestedFocusAreas,

@@ -42,12 +42,21 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
  * Realiza analise com gap via novo endpoint
  * @param {string} jobDescription - A descricao da vaga
  * @param {string} resumePath - Caminho/local do CV em PDF
+ * @param {string} cv - CV em texto como fallback se resume não disponível
  */
-export async function analyzeWithGap(jobDescription, resumePath) {
+export async function analyzeWithGap(jobDescription, resumePath = null, cv = null) {
   const payload = {
     jobDescription: jobDescription.trim(),
-    resumePath: resumePath.trim(),
   };
+
+  // Usar resumePath se disponível, senão usar CV de texto
+  if (resumePath && resumePath.trim()) {
+    payload.resumePath = resumePath.trim();
+  } else if (cv && cv.trim()) {
+    payload.cv = cv.trim();
+  } else {
+    throw new Error('Resume path ou CV é obrigatório para análise técnica');
+  }
 
   const response = await fetch(`${API_BASE_URL}/api/analyze-with-gap`, {
     method: 'POST',

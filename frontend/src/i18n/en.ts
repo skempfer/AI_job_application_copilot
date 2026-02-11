@@ -58,6 +58,14 @@ export const en = {
   // Empty state
   readyToStart: 'Ready to start?',
   emptyStateText: 'Paste your CV and job description above, then click "Analyze Job Fit"',
+
+  // Cover letter
+  coverLetterTitle: 'Cover Letter',
+  copy: 'Copy',
+  download: 'Download',
+  edit: 'Edit',
+  readFull: 'Read Full',
+  collapse: 'Collapse',
   
   // Footer
   dataPrivacy: '🔒 Your data is not stored. Analysis done via Groq API (free, ultra-fast).',

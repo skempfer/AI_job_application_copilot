@@ -7,6 +7,7 @@ import { AnalyzeButton } from './components/AnalyzeButton';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { GapAnalysisDisplay } from './components/GapAnalysisDisplay';
 import { ConsolidatedAnalysis } from './components/ConsolidatedAnalysis';
+import { CoverLetterDisplay } from './components/CoverLetterDisplay';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -71,6 +72,15 @@ function AppContent() {
         } catch (gapError) {
           console.warn('⚠️ Gap analysis falhou (não crítico):', gapError);
         }
+      } else if (cv.trim().length >= 50) {
+        // Se não tem resumeUrl, tenta fazer gap analysis com CV de texto
+        try {
+          console.log('📊 Executando gap analysis complementar com CV de texto...');
+          const gapAnalysis: GapAnalysisResult = await analyzeWithGap(jobDescription, undefined, cv);
+          setGapResult(gapAnalysis);
+        } catch (gapError) {
+          console.warn('⚠️ Gap analysis com CV falhou (não crítico):', gapError);
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao analisar';
@@ -116,6 +126,8 @@ function AppContent() {
           {gapResult && !result && <GapAnalysisDisplay result={gapResult} />}
           
           {result && gapResult && <ConsolidatedAnalysis result={result} gapResult={gapResult} />}
+
+          {result && <CoverLetterDisplay coverLetter={result.coverLetter} />}
 
           {!result && !error && !loading && (
             <div className="card text-center py-12">

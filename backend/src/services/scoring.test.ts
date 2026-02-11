@@ -18,6 +18,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test message',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -35,6 +36,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: ['Job hopping'],
         recruiterMessage: 'Not a fit',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -52,6 +54,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Good fit',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -70,6 +73,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const withFlags: AISignals = {
@@ -95,6 +99,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -113,6 +118,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const match: AISignals = { ...below, seniorityMatch: 'match' };
@@ -159,6 +165,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const explanation = generateExplanation(signals, 90);
@@ -179,6 +186,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: ['Job hopping'],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const explanation = generateExplanation(signals, 30);
@@ -203,6 +211,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const lowScore: AISignals = {
@@ -215,6 +224,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: ['Issues'],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const highExplanation = generateExplanation(highScore, 85);

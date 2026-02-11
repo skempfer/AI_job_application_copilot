@@ -8,7 +8,7 @@ export function createAnalyzeRouter(aiService: AIService): Router {
 
   router.post("/", async (req: Request, res: Response) => {
     try {
-      const { cv, jobDescription, resumeUrl } = req.body as AnalysisRequest & { resumeUrl?: string };
+      const { cv, jobDescription, resumeUrl, language } = req.body as AnalysisRequest & { resumeUrl?: string };
 
       // Validação de input - CV é opcional se houver resumeUrl
       if (!resumeUrl && (!cv || typeof cv !== "string" || cv.trim().length === 0)) {
@@ -34,7 +34,8 @@ export function createAnalyzeRouter(aiService: AIService): Router {
 
       // Chamar IA
       const cvText = cv?.trim() || "[CV fornecido via PDF]";
-      const result = await aiService.analyzeJobFit(cvText, jobDescription.trim());
+      const analysisLanguage = (language as "pt" | "en" | undefined) || "en";
+      const result = await aiService.analyzeJobFit(cvText, jobDescription.trim(), analysisLanguage);
 
       // Salvar no Realtime Database (se Firebase estiver habilitado)
       if (process.env.USE_FIREBASE === "true") {

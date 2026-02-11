@@ -33,7 +33,7 @@ export class AIService {
    * MUDANÇA: IA não calcula score, apenas identifica e classifica
    * Score é calculado deterministicamente pelo código
    */
-  private buildPrompt(cv: string, jobDescription: string): string {
+  private buildPrompt(cv: string, jobDescription: string, language: "pt" | "en"): string {
     return `Você é um senior tech recruiter experiente. Analise objetivamente o CV do candidato e a vaga.
 
 **VERSÃO DO PROMPT:** ${PROMPT_VERSION}
@@ -46,6 +46,9 @@ ${cv}
 **DESCRIÇÃO DA VAGA:**
 ${jobDescription}
 
+**IDIOMA DAS MENSAGENS:** ${language === "pt" ? "Português" : "English"}
+Escreva recruiterMessage e coverLetter no idioma acima.
+
 **SINAIS A EXTRAIR:**
 
 1. **hardSkillsDetected**: Lista de hard skills técnicas do CV que são relevantes para a vaga
@@ -56,7 +59,8 @@ ${jobDescription}
 6. **desirableRequirementsMissing**: Diferenciais que o candidato não possui
 7. **seniorityMatch**: "above" (overqualified), "match" (perfeito) ou "below" (underqualified)
 8. **redFlags**: Problemas graves (ex: falta experiência mínima, skill crítica ausente, etc.)
-      9. **recruiterMessage**: Mensagem estrategica personalizada (4-6 frases) para enviar ao recrutador, escrita em primeira pessoa, com saudacao e despedida
+9. **recruiterMessage**: Mensagem estrategica personalizada (4-6 frases) para enviar ao recrutador, escrita em primeira pessoa, com saudacao e despedida
+10. **coverLetter**: Carta de apresentacao formal para envio junto com CV, 3-5 paragrafos, estrutura: abertura, alinhamento tecnico, diferencial estrategico, encerramento
 
 **CRITÉRIOS:**
 
@@ -261,10 +265,146 @@ Quarta frase: despedida simples
 
 "Write the message in a natural and realistic tone, as if written manually by an experienced professional. Avoid exaggerated enthusiasm, generic corporate phrases, and overconfident statements. Prefer calm, intentional language that suggests collaboration and contribution. The message must feel grounded, thoughtful, and human — not promotional or AI-generated."
 
+**COVER LETTER — ESPECIFICACOES DETALHADAS**
+
+A cover letter deve ser formal, profissional, natural e estrategica. Ela é o primeiro contato escrito que mostra nao apenas aderencia tecnica, mas tambem entendimento do problema do negocio.
+
+🛡️ SEGURANCA CONTRA ALUCINACAO (ANTI-FABRICACAO DE DADOS) — OBRIGATORIO:
+
+⛔ ABSOLUTAMENTE PROIBIDO:
+- Inventar que o candidato "acompanhou", "trabalhou com", "desenvolveu" ou "usou" algo NAO PRESENTE NO CV
+- Fabricar metricas, numeros, percentuais, resultados (ex: "reduzi latencia em 80%", "processava 1M requisicoes/dia")
+- Mencionar empresas especificas ou clientes NAO listados no CV (ex: "Google", "Spotify", "Teachable" se nao estao no CV)
+- Inferir anos de experiencia alem do que esta documentado (ex: "5 anos em React" se o CV nao especifica)
+- Descrever projetos, responsabilidades ou decisoes tecnicas nao documentadas
+- Mencionar linguagens, frameworks, stacks ou tecnologias nao citadas no CV
+- Criar datas, periodos de trabalho ou timelines nao explicitas
+- Mencionar certificacoes, diplomas, cursos nao listados formalmente
+
+⚠️ REGRA DE OURO ANTI-ALUCINACAO:
+
+"Se uma experiencia, skill, tecnologia ou resultado NAO ESTA EXPLICITAMENTE ESCRITO NO CV FORNECIDO, NAO MENCIONE. Nao ha execoes. Nao infira, nao suponha, nao generalize."
+
+EXEMPLOS DO QUE NAO FAZER:
+
+❌ ERRADO: "Acompanhei o desenvolvimento de plataformas de educacao online..." (CV nao menciona isto)
+❌ ERRADO: "Com minha experiencia em React..." (Se React nao esta no CV)
+❌ ERRADO: "Tenho 10 anos em desenvolvimento..." (Se CV nao especifica)
+❌ ERRADO: "Implementei solucoes de ML que aumentaram conversao em 45%..." (Metrica inventada)
+
+✅ CORRETO: "Tenho experiencia em [SKILL MENCIONADO NO CV]..."
+✅ CORRETO: "Trabalho com [TECNOLOGIA DO CV] e vejo aplicacao direta em [REQUISITO DA VAGA]..."
+✅ CORRETO: "No meu ultimo projeto, [DESCRICAO EXATA DO CV]..."
+
+✅ Se dados insuficientes:
+- Ser honestamente generico: "Tenho interesse em desenvolver nessa area"
+- Reconhecer o gap: "Nao tenho experiencia direta, mas meu background em [CV EXATO] me prepara"
+- Focar em transferencia de skills: "Minhas experiencias em [CV] podem se aplicar a [VAGA]"
+- NUNCA fingir expertise nao mencionada
+
+VERIFICACAO PRE-ESCRITA (OBRIGATORIO):
+
+Antes de escrever cada paragrafo:
+1. VERIFIQUE: Toda skill/tecnologia mencionada esta no CV?
+2. VERIFIQUE: Todo resultado/metrica esta documentado?
+3. VERIFIQUE: Toda empresa/projeto esta listado?
+4. VERIFIQUE: Nao estou inferindo anos de experiencia?
+5. VERIFIQUE: O paragrafo so usa FATOS DO CV?
+
+Se responder NAO a qualquer pergunta, REESCREVA SEM INVENTAR.
+
+ESTRUTURA OBRIGATORIA (3-5 paragrafos, 400-500 palavras):
+
+📍 Paragrafo 1 — Abertura Estrategica:
+- Cumprimento profissional natural (ex: "Ola,")
+- Referencia DIRETA a vaga/projeto (mencione o titulo ou desafio principal)
+- Conexao rapida com experiencia relevante
+- Demonstre entendimento do contexto (que problema a empresa esta resolvendo?)
+
+📍 Paragrafo 2-3 — Alinhamento Tecnico:
+- Conectar hard skills obrigatorias COM experiencias reais (nao apenas listar)
+- Demonstrar impacto concreto (numeros, responsabilidades, decisoes tecnicas importantes)
+- Se ha gaps criticos: RECONHECER COM MATURIDADE (nao fingir expertise inexistente)
+- Foque em capacidade de aprendizado, velocidade de adaptacao, mentalidade de crescimento
+- Mencionar arquiteturas, stacks, ou projetos relevantes
+
+📍 Paragrafo 3-4 — Diferencial Estrategico (a parte que diferencia):
+- Mostrar como VOCE RESOLVE O PROBLEMA especifico da empresa
+- Falar sobre:
+  - Ownership e responsabilidade pessoal
+  - Colaboracao efetiva
+  - Visao de produto
+  - Lideranca tecnica ou mentoria (se relevante)
+  - Mentalidade de iteracao/melhoria continua
+- Demonstrar entendimento de tradeoffs e pragmatismo
+- Se ha soft skills forte (comunicacao, pensamento critico): posicione como diferencial
+
+📍 Paragrafo Final — Encerramento (1-2 frases):
+- Reforco de interesse genuino (nao generica)
+- Convite claro para conversa (ex: "Fico a disposicao para uma conversa sobre...")
+- Despedida formal simples (ex: "Atenciosamente,")
+
+CRITERIOS OBRIGATORIOS:
+
+✓ Escrita em primeira pessoa ("eu"), NUNCA terceira pessoa
+✓ Idioma correto: ${language === "pt" ? "Português totalmente localizado" : "English fluent"}
+✓ Diferenciar claramente requisitos obrigatorios vs desejáveis
+✓ Se fit tecnico NAO for alto: incluir soft skills como compensador
+✓ Posicionar candidato como SOLUCAO do problema, nao como "interessado na vaga"
+✓ SER ESPECIFICA — nunca vaga (ex: "Typescript e arquitetura de microservicos" > "tecnologia")
+✓ Nenhum metacomentario ou explicacoes sobre analise
+✓ Maximo 400-500 palavras
+✓ NAO usar markdown (apenas texto puro)
+✓ Proibido usar frases genericas:
+  × "Tenho interesse na vaga"
+  × "Acredito que meu perfil se encaixa"
+  × "Estou particularmente interessado"
+  × "Fazer uma diferenca significativa"
+  × "Empresa dinamica e inovadora"
+  × "Ambiente colaborativo"
+
+✓ Tom confiante, estrategico e especifico
+✓ Parecer como algo escrito manualmente por um profissional experiente (nao como IA)
+✓ Preferir linguagem de intencao concreta: "Gostaria de conversar...", "Vejo que posso contribuir...", "Acredito que minha experiencia em X pode ajudar em Y"
+
+📝 FORMATACAO OBRIGATORIA DO TEXTO:
+
+- Cada parágrafo deve ser separado por UMA linha em branco (\n\n)
+- Nenhuma linha vazia no início ou final do texto (usar .trim())
+- Máximo de 2 quebras de linha consecutivas
+- Sem pontuação duplicada ou espaços extra
+- Sem aspas ou caracteres desnecessários no início/fim
+- Parágrafos curtos (3-5 linhas cada máximo)
+- Primeira linha de cada parágrafo SEM indentação
+
+EXEMPLOS DE BOA ESTRUTURA (SEGURA CONTRA ALUCINACAO):
+
+[PT EXAMPLE - CORRETO]
+Ola,
+
+Vi que a empresa precisa reforçar sua equipe em machine learning e infraestrutura de dados. Tenho experiencia em pipelines de dados e fiz arquitetura de streaming em projetos anteriores, onde trabalhei com otimizacao de latencia e processamento em larga escala.
+
+O que me atrai nao é apenas o stack tecnologico, mas a oportunidade de colaborar em um desafio real: escalar sistemas de ML sem comprometer consistencia de dados. No meu ultimo projeto, abordei exatamente esse tradeoff ao implementar features de processing distribuido.
+
+Apesar de nao ter experiencia comercial direta em Python, meu background em systems design me permite aprender rapidamente novas linguagens. O que realmente importa: entender problema tecnico profundamente e entregar producao estavel.
+
+Gostaria de conversar sobre como posso contribuir no projeto. Fico a disposicao para uma conversa detalhada.
+
+Atenciosamente,
+
+[NOTAS SOBRE ESSE EXEMPLO]
+- NAO menciona empresa especifica nem plataforma (evita alucinacao)
+- Primeiro paragrafo conecta o que está NA VAGA com skills gerais DO CV
+- Segundo paragrafo é honesto sobre o que foi feito (sem fabricar metricas especificas)
+- Terceiro reconhece gap mas mostra capacidade de aprendizado
+- Encerramento simples e profissional
+- NUNCA diz "tenho X anos em Y" a menos que EXPLICITAMENTE no CV
+- NUNCA menciona clientes, empresas ou metricas inventadas
+
 **IMPORTANTE:** 
 - Retorne APENAS JSON válido (sem markdown)
 - NÃO calcule fitScore nem decision (o código fará isso)
-- NÃO invente skills que não estão no CV
+- NÃO invente skills ou experiencias que não estão explicitamente no CV
 
 **FORMATO DE RESPOSTA:**
 {
@@ -276,12 +416,13 @@ Quarta frase: despedida simples
   "desirableRequirementsMissing": ["req1", "req2", ...],
   "seniorityMatch": "match"|"above"|"below",
   "redFlags": ["flag1", "flag2", ...],
-  "recruiterMessage": "mensagem em texto simples, profissional e em primeira pessoa"
+  "recruiterMessage": "mensagem em texto simples, profissional e em primeira pessoa",
+  "coverLetter": "carta de apresentacao em texto simples, 3-5 paragrafos, 400-500 palavras, estrutura: abertura + alinhamento tecnico + diferencial + encerramento. OBRIGATORIO: Use APENAS fatos do CV, nao invente experiencias, empresas, metricas ou skills nao documentadas"
 }`;
   }
 
-  async analyzeJobFit(cv: string, jobDescription: string): Promise<AnalysisResult> {
-    const prompt = this.buildPrompt(cv, jobDescription);
+  async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
+    const prompt = this.buildPrompt(cv, jobDescription, language);
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -331,6 +472,7 @@ Quarta frase: despedida simples
         ],
         cvSuggestions: this.generateCVSuggestions(signals),
         recruiterMessage: signals.recruiterMessage,
+        coverLetter: signals.coverLetter,
         explanation,
         promptVersion: PROMPT_VERSION,
       };
@@ -388,7 +530,8 @@ Quarta frase: despedida simples
       "softSkillsEvidence",
       "seniorityMatch",
       "redFlags",
-      "recruiterMessage"
+      "recruiterMessage",
+      "coverLetter"
     ];
     
     const missing = required.filter((field) => !(field in signals));
@@ -417,8 +560,12 @@ Quarta frase: despedida simples
       throw new Error("seniorityMatch deve ser 'below', 'match' ou 'above'");
     }
 
-      if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
+    if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
       throw new Error("recruiterMessage deve ser uma string não vazia");
+    }
+
+    if (typeof signals.coverLetter !== "string" || signals.coverLetter.length === 0) {
+      throw new Error("coverLetter deve ser uma string não vazia");
     }
   }
 }

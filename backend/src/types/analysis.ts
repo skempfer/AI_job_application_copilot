@@ -7,6 +7,7 @@ export type Decision = "apply" | "apply_with_fixes" | "skip";
 export interface AnalysisRequest {
   cv: string;
   jobDescription: string;
+  language?: "pt" | "en";
 }
 
 /**
@@ -23,6 +24,7 @@ export interface AISignals {
   seniorityMatch: "above" | "match" | "below"; // Senioridade do candidato vs vaga
   redFlags: string[]; // Problemas graves identificados
   recruiterMessage: string; // Mensagem personalizada
+  coverLetter: string; // Carta de apresentacao
 }
 
 /**
@@ -44,6 +46,7 @@ export interface AnalysisResult {
   gaps: string[]; // Gaps a endereçar
   cvSuggestions: string[]; // Sugestões de ajustes
   recruiterMessage: string; // Mensagem personalizada
+  coverLetter: string; // Carta de apresentacao
   explanation: ScoreExplanation; // NOVO: explica como o score foi calculado
   promptVersion: string; // NOVO: versão do prompt usado
 }

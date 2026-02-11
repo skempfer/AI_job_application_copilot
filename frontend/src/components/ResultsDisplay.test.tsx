@@ -10,6 +10,7 @@ describe('ResultsDisplay Component', () => {
     gaps: ['Kubernetes knowledge'],
     cvSuggestions: ['Add cloud experience', 'Highlight leadership'],
     recruiterMessage: 'Great fit for this role',
+    coverLetter: 'Professional cover letter text here',
     scoreColor: 'green',
     scoreBadgeClass: 'bg-green-500',
     decisionText: 'Strong match - Apply now!',

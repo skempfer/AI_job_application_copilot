@@ -14,6 +14,7 @@ export interface AnalysisResult {
   gaps: string[];
   cvSuggestions: string[];
   recruiterMessage: string;
+  coverLetter: string;
   explanation?: ScoreExplanation;
   promptVersion?: string;
 }
