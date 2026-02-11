@@ -5,6 +5,7 @@ import { AIService } from "./services/aiService.js";
 import { createAnalyzeRouter } from "./routes/analyze.js";
 import { createUploadRouter } from "./routes/upload.js";
 import { createHistoryRouter } from "./routes/history.js";
+import { createAnalyzeWithGapRouter } from "./routes/analyzeWithGap.js";
 import { initializeFirebase } from "./config/firebase.js";
 
 dotenv.config();
@@ -44,6 +45,7 @@ const aiService = new AIService({
 
 // Routes
 app.use("/api/analyze", createAnalyzeRouter(aiService));
+app.use("/api/analyze-with-gap", createAnalyzeWithGapRouter());
 app.use("/api/upload", createUploadRouter());
 app.use("/api/history", createHistoryRouter());
 

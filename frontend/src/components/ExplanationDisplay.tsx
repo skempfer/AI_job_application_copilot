@@ -14,7 +14,7 @@ export const ExplanationDisplay: React.FC<ExplanationDisplayProps> = ({
   const { t } = useLanguage();
 
   return (
-    <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+    <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {t('scoreExplanation')}

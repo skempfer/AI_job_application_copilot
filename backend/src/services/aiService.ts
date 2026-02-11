@@ -56,13 +56,210 @@ ${jobDescription}
 6. **desirableRequirementsMissing**: Diferenciais que o candidato não possui
 7. **seniorityMatch**: "above" (overqualified), "match" (perfeito) ou "below" (underqualified)
 8. **redFlags**: Problemas graves (ex: falta experiência mínima, skill crítica ausente, etc.)
-9. **recruiterMessage**: Mensagem personalizada em 2-3 frases para enviar ao recrutador
+      9. **recruiterMessage**: Mensagem estrategica personalizada (4-6 frases) para enviar ao recrutador, escrita em primeira pessoa, com saudacao e despedida
 
 **CRITÉRIOS:**
-- Seja OBJETIVO ao classificar hard skills vs soft skills
-- Diferencie claramente requisitos obrigatórios vs desejáveis
-- Red flags devem ser problemas GRAVES, não pequenos gaps
-- Mensagem ao recrutador deve ser profissional e específica
+
+A mensagem deve se adaptar ao contexto da vaga e ao nivel tecnico de aderencia.
+
+🎯 INTELIGENCIA CONTEXTUAL OBRIGATORIA
+
+Antes de escrever, o modelo deve avaliar:
+
+- Nivel de senioridade da vaga (junior, mid, senior)
+- Tipo de empresa (startup dinamica vs empresa estruturada/corporativa)
+- Nivel de fit tecnico (alto, medio, baixo)
+- Se ha gaps criticos obrigatorios
+
+A linguagem deve se adaptar automaticamente a isso.
+
+📌 DIRETRIZES ESTRATEGICAS
+
+1️⃣ Perspectiva
+
+Escreva sempre em primeira pessoa.
+
+Nunca use terceira pessoa.
+
+Nunca fale sobre "o candidato".
+
+2️⃣ Saudacao e Encerramento
+
+Inicie com saudacao profissional natural:
+
+"Ola,"
+
+"Ola [Nome]," (se disponivel)
+
+Termine com:
+
+Convite objetivo para conversa
+
+Despedida simples (ex: "Atenciosamente," ou "Abracos,")
+
+3️⃣ Estrutura Inteligente da Mensagem
+
+A mensagem deve:
+
+Demonstrar entendimento real do desafio da vaga
+
+Conectar minhas hard skills diretamente as necessidades do cargo
+
+Posicionar-me explicitamente como alguem que pode gerar impacto
+
+Se houver gaps relevantes:
+
+Reconhecer com maturidade
+
+Compensar com soft skills fortes e aprendizado continuo
+
+Encerrar com convite profissional claro para conversa
+
+4️⃣ Adaptacao por Nivel de Fit
+
+Se o fit tecnico for alto:
+
+Linguagem mais assertiva
+
+Foco em impacto imediato
+
+Se o fit for medio:
+
+Linguagem equilibrada
+
+Destacar capacidade de adaptacao e evolucao rapida
+
+Se o fit for baixo (mas aplicavel):
+
+Focar mais em:
+
+Capacidade de aprendizado
+
+Colaboracao
+
+Mentalidade de crescimento
+
+Nao fingir aderencia tecnica inexistente
+
+5️⃣ Tom por Tipo de Empresa
+
+Startup:
+
+Mais direto
+
+Orientado a impacto
+
+Linguagem dinamica
+
+Corporativa:
+
+Mais estruturado
+
+Enfase em consistencia e colaboracao
+
+Tom ligeiramente mais formal
+
+6️⃣ Restricoes
+
+Nada de frases genericas como:
+
+"Tenho interesse na vaga"
+
+"Acredito que meu perfil se encaixa"
+
+Nada de buzzwords vazias
+
+Nada de exageros
+
+Nada de metacomentarios
+
+Sem markdown
+
+Retornar apenas texto puro
+
+🔎 8️⃣ Identificacao da Empresa (Regra de Fallback)
+
+Antes de escrever a mensagem:
+
+Verifique se o nome da empresa esta claramente identificado na descricao da vaga.
+
+Se estiver explicito, mencione o nome da empresa naturalmente na mensagem.
+
+Se NAO estiver claramente identificado:
+
+NAO invente nome.
+
+NAO use placeholders.
+
+Utilize termos neutros como:
+
+"projeto"
+
+"plataforma"
+
+"produto"
+
+"equipe"
+
+"organizacao"
+
+Escolha o termo mais coerente com o contexto da vaga.
+
+Nunca escreva frases vagas como:
+
+"na empresa"
+
+"na sua empresa"
+
+"na companhia"
+
+Sempre adapte o substantivo ao contexto da vaga.
+
+🔄 Ajustes de Linguagem Natural
+
+1️⃣ Evitar tom exageradamente entusiasmado
+
+Nao usar expressoes como:
+
+"Estou ansioso"
+
+"Estou particularmente interessado"
+
+"Fazer uma diferenca significativa"
+
+"Startup dinamica e colaborativa"
+
+2️⃣ Preferir linguagem de intencao concreta, no futuro simples ou imperfeito:
+
+"Gostaria de conversar..."
+
+"Vejo que posso contribuir..."
+
+"Posso apoiar o projeto em..."
+
+"Seria interessante discutir..."
+
+"Acredito que minha experiencia em X pode ajudar em Y"
+
+"Fico a disposicao para uma conversa"
+
+3️⃣ Evitar linguagem performatica ou emocional exagerada.
+
+4️⃣ Soar como alguem experiente, nao como alguem tentando impressionar.
+
+🎯 Estrutura Mais Natural (preferida)
+
+Primeira frase: referencia direta ao desafio da vaga
+
+Segunda frase: conexao objetiva com experiencia
+
+Terceira frase: proposta de conversa
+
+Quarta frase: despedida simples
+
+7️⃣ Instrucao explicita ao modelo
+
+"Write the message in a natural and realistic tone, as if written manually by an experienced professional. Avoid exaggerated enthusiasm, generic corporate phrases, and overconfident statements. Prefer calm, intentional language that suggests collaboration and contribution. The message must feel grounded, thoughtful, and human — not promotional or AI-generated."
 
 **IMPORTANTE:** 
 - Retorne APENAS JSON válido (sem markdown)
@@ -79,7 +276,7 @@ ${jobDescription}
   "desirableRequirementsMissing": ["req1", "req2", ...],
   "seniorityMatch": "match"|"above"|"below",
   "redFlags": ["flag1", "flag2", ...],
-  "recruiterMessage": "mensagem curta e humana"
+  "recruiterMessage": "mensagem em texto simples, profissional e em primeira pessoa"
 }`;
   }
 
@@ -87,7 +284,6 @@ ${jobDescription}
     const prompt = this.buildPrompt(cv, jobDescription);
 
     try {
-      // 1️⃣ IA extrai sinais estruturados
       const completion = await this.client.chat.completions.create({
         model: this.model,
         messages: [
@@ -109,23 +305,17 @@ ${jobDescription}
         throw new Error("AI retornou resposta vazia");
       }
 
-      // Parse JSON da IA
       const cleanJson = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       const signals = JSON.parse(cleanJson) as AISignals;
 
-      // Validar sinais da IA
       this.validateSignals(signals);
 
-      // 2️⃣ Código calcula score de forma determinística
       const fitScore = calculateFitScore(signals);
       
-      // 3️⃣ Gerar explicação do score
       const explanation = generateExplanation(signals, fitScore);
       
-      // 4️⃣ Determinar decisão baseada no score
       const decision = determineDecision(fitScore);
 
-      // 5️⃣ Montar resultado final
       const result: AnalysisResult = {
         fitScore,
         decision,
@@ -207,7 +397,6 @@ ${jobDescription}
       throw new Error(`Resposta da IA inválida. Campos faltando: ${missing.join(", ")}`);
     }
 
-    // Valida arrays
     const arrayFields = [
       "hardSkillsDetected",
       "mandatoryRequirementsMet",
@@ -224,13 +413,11 @@ ${jobDescription}
       }
     }
 
-    // Valida seniorityMatch
     if (!["below", "match", "above"].includes(signals.seniorityMatch)) {
       throw new Error("seniorityMatch deve ser 'below', 'match' ou 'above'");
     }
 
-    // Valida recruiterMessage
-    if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
+      if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
       throw new Error("recruiterMessage deve ser uma string não vazia");
     }
   }

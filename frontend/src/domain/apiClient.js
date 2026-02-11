@@ -39,6 +39,33 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
 }
 
 /**
+ * Realiza analise com gap via novo endpoint
+ * @param {string} jobDescription - A descricao da vaga
+ * @param {string} resumePath - Caminho/local do CV em PDF
+ */
+export async function analyzeWithGap(jobDescription, resumePath) {
+  const payload = {
+    jobDescription: jobDescription.trim(),
+    resumePath: resumePath.trim(),
+  };
+
+  const response = await fetch(`${API_BASE_URL}/api/analyze-with-gap`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
  * Verifica se o backend está online
  */
 export async function checkHealth() {

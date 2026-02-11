@@ -5,6 +5,8 @@ import { JobInput } from './components/JobInput';
 import { ResumeUpload } from './components/ResumeUpload';
 import { AnalyzeButton } from './components/AnalyzeButton';
 import { ResultsDisplay } from './components/ResultsDisplay';
+import { GapAnalysisDisplay } from './components/GapAnalysisDisplay';
+import { ConsolidatedAnalysis } from './components/ConsolidatedAnalysis';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -13,9 +15,9 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { SettingsToggle } from './components/SettingsToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { analyzeJobFit } from './domain/apiClient';
+import { analyzeJobFit, analyzeWithGap } from './domain/apiClient';
 import { validateInputs, formatAnalysisResult } from './domain/analyzer';
-import type { AnalysisResult, FormattedAnalysisResult } from './types/analysis';
+import type { AnalysisResult, FormattedAnalysisResult, GapAnalysisResult } from './types/analysis';
 
 /**
  * AppContent - Main application content
@@ -27,21 +29,20 @@ function AppContent() {
   const [jobDescription, setJobDescription] = useState('');
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
 
-  // Log quando resumeUrl muda
   const handleResumeUrlChange = (url: string) => {
     console.log('🎯 Resume URL recebida no App:', url);
     setResumeUrl(url);
   };
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<FormattedAnalysisResult | null>(null);
+  const [gapResult, setGapResult] = useState<GapAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
-    // Limpar estado anterior
     setResult(null);
+    setGapResult(null);
     setError(null);
 
-    // Validar inputs usando lógica de domínio
     const validation = validateInputs(cv, jobDescription, resumeUrl);
     if (!validation.valid) {
       setError(validation.error || 'Erro de validação');
@@ -56,9 +57,21 @@ function AppContent() {
         jobDescriptionLength: jobDescription.length, 
         resumeUrl 
       });
+      
       const analysisResult: AnalysisResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
+      console.log('🧠 Resposta da analise da IA:', analysisResult);
       const formatted = formatAnalysisResult(analysisResult);
       setResult(formatted);
+      
+      if (resumeUrl) {
+        try {
+          console.log('📊 Executando gap analysis complementar...');
+          const gapAnalysis: GapAnalysisResult = await analyzeWithGap(jobDescription, resumeUrl);
+          setGapResult(gapAnalysis);
+        } catch (gapError) {
+          console.warn('⚠️ Gap analysis falhou (não crítico):', gapError);
+        }
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao analisar';
       setError(errorMessage);
@@ -74,30 +87,36 @@ function AppContent() {
       <SettingsToggle />
       <Header />
 
-      {/* Loading Spinner Overlay */}
       <LoadingSpinner show={loading} overlay message={t('analyzingButton')} />
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         <div className="space-y-6">
-          {/* Resume Upload - Optional Feature */}
           <ResumeUpload onUploadComplete={handleResumeUrlChange} disabled={loading} />
 
-          {/* Inputs */}
           <div className="grid md:grid-cols-2 gap-6">
             <CVInput value={cv} onChange={setCv} disabled={loading} />
             <JobInput value={jobDescription} onChange={setJobDescription} disabled={loading} />
           </div>
 
-          {/* Botão Analyze */}
           <AnalyzeButton onClick={handleAnalyze} disabled={!canAnalyze} loading={loading} />
 
-          {/* Error Display */}
           {error && <ErrorDisplay message={error} onDismiss={() => setError(null)} />}
 
-          {/* Results */}
-          {result && <ResultsDisplay result={result} />}
+          {result && gapResult && (
+            <div className="grid md:grid-cols-2 gap-6 divide-x divide-gray-300 dark:divide-gray-600">
+              <div>
+                <ResultsDisplay result={result} />
+              </div>
+              <div>
+                <GapAnalysisDisplay result={gapResult} />
+              </div>
+            </div>
+          )}
+          {result && !gapResult && <ResultsDisplay result={result} />}
+          {gapResult && !result && <GapAnalysisDisplay result={gapResult} />}
+          
+          {result && gapResult && <ConsolidatedAnalysis result={result} gapResult={gapResult} />}
 
-          {/* Empty State */}
           {!result && !error && !loading && (
             <div className="card text-center py-12">
               <span className="text-6xl mb-4 block">📋</span>
@@ -126,7 +145,6 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // Show splash screen for 4 seconds on app load
     const timer = setTimeout(() => setShowSplash(false), 4000);
     return () => clearTimeout(timer);
   }, []);

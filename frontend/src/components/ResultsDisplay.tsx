@@ -8,40 +8,46 @@ interface ResultsDisplayProps {
 
 export function ResultsDisplay({ result }: ResultsDisplayProps) {
   const { t } = useLanguage();
+  const clampedScore = Math.max(0, Math.min(100, result.fitScore));
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Score e Decisão */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('completeAnalysis')}</h2>
-          <div className={`px-4 py-2 rounded-full border-2 font-bold text-2xl ${result.scoreBadgeClass}`}>
-            {result.fitScore}/100
+      <div className="card bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-700">
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg font-semibold text-gray-800 dark:text-purple-400">📊 Alinhamento Geral</span>
+            <span className="text-xs px-2 py-1 rounded bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 font-semibold">
+              Visão holística
+            </span>
           </div>
+          <p className="text-sm text-gray-800 dark:text-purple-300">
+            Analisa seu perfil completo, experiência, senioridade e alinhamento geral com a vaga.
+          </p>
         </div>
         
-        <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <span className="text-3xl">{result.decisionIcon}</span>
-          <div>
-            <p className="font-semibold text-lg text-gray-800 dark:text-gray-100">{result.decisionText}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {result.decision === 'apply' && t('applyText')}
-              {result.decision === 'apply_with_fixes' && t('applyWithFixesText')}
-              {result.decision === 'skip' && t('skipText')}
-            </p>
+        <div className="flex items-center justify-between mb-3 pt-2 border-t border-purple-200 dark:border-purple-700">
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Alinhamento Geral</h3>
+          <div className={`px-4 py-2 rounded-full border-2 font-bold text-lg ${result.scoreBadgeClass}`}>
+            {clampedScore}%
           </div>
         </div>
-
-        {/* Explicação do Score (se disponível) */}
-        {result.explanation && (
+        <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+          <div
+            className="h-full bg-purple-500 transition-all duration-500"
+            style={{ width: `${clampedScore}%` }}
+          />
+        </div>
+      </div>
+      
+      {result.explanation && (
+        <div className="card">
           <ExplanationDisplay 
             explanation={result.explanation} 
             promptVersion={result.promptVersion}
           />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Pontos Fortes */}
       {result.strengths.length > 0 && (
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
@@ -59,7 +65,6 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
         </div>
       )}
 
-      {/* Gaps */}
       {result.gaps.length > 0 && (
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
@@ -77,39 +82,7 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
         </div>
       )}
 
-      {/* Sugestões de CV */}
-      {result.cvSuggestions.length > 0 && (
-        <div className="card bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-            <span className="text-blue-600 dark:text-blue-400">📝</span>
-            {t('suggestions')}
-          </h3>
-          <ul className="space-y-3">
-            {result.cvSuggestions.map((suggestion, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                <span className="text-blue-600 dark:text-blue-400 font-bold mt-1">{idx + 1}.</span>
-                <span>{suggestion}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
-      {/* Mensagem ao Recrutador */}
-      <div className="card bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-          <span className="text-green-600 dark:text-green-400">💬</span>
-          {t('recruiterMessage')}
-        </h3>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-green-300 dark:border-green-700">
-          <p className="text-gray-800 dark:text-gray-200 italic leading-relaxed">
-            "{result.recruiterMessage}"
-          </p>
-        </div>
-        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-          💡 Personalize esta mensagem antes de enviar
-        </p>
-      </div>
     </div>
   );
 }
