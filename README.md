@@ -2,12 +2,12 @@
 
 ## Overview
 
-Applying for jobs is not a volume game — it's a **decision-making problem**.
+Applying for jobs is not a volume game; it's a **decision-making problem**.
 
 Most tools either spam applications or blindly optimize keywords, which leads to poor results, wasted time, and sometimes account restrictions.  
 **Viora** takes a different approach.
 
-This project helps candidates decide whether they should apply to a job and how to improve their application, using AI as a **decision support system** — not as an automation bot.
+This project helps candidates decide whether they should apply to a job and how to improve their application, using AI as a **decision support system**; not as an automation bot.
 
 > **No auto-apply. No scraping. No ToS violations.**  
 > **Just better decisions.**
@@ -235,7 +235,7 @@ bash test-husky.sh
 
 ⚠️ **This tool does not guarantee interviews or job offers.**
 
-It is designed to improve decision-making and application quality — nothing more, nothing less.
+It is designed to improve decision-making and application quality, nothing more, nothing less.
 
 ---
 
