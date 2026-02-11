@@ -314,48 +314,31 @@ Related issues, screenshots, examples.
 ### TypeScript
 
 ```typescript
-// ✅ Good
 export interface AISignals {
   hardSkillsDetected: string[];
   mandatoryRequirementsMet: string[];
 }
 
-// Be explicit with types
 const fitScore: number = calculateFitScore(signals);
 
-// Use meaningful variable names
 const hardSkillsWeight = 0.35;
 ```
 
 ### React Components
 
 ```typescript
-// ✅ Good component structure
 interface ExplanationDisplayProps {
   explanation: ScoreExplanation;
   promptVersion?: string;
 }
 
-export const ExplanationDisplay: React.FC<ExplanationDisplayProps> = ({
-  explanation,
-  promptVersion,
-}) => {
-  // Implementation
-};
-
-// Avoid prop drilling - use contexts when appropriate
-// Keep components pure (no side effects)
 ```
 
 ### Comments
 
 ```typescript
-// ✅ Good - explains WHY
-// Score weighted toward hard skills due to technical role requirements
 const features = signals.hardSkillsDetected;
 
-// ❌ Bad - explains WHAT (obvious from code)
-// Loop through hard skills
 for (const skill of hardSkillsDetected) {
 ```
 

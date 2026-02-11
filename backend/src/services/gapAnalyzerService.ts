@@ -136,18 +136,15 @@ function normalizeToken(value: string): string {
 function generateTokenVariants(token: string): string[] {
   const variants = [token];
   
-  // React.js -> react, reactjs
   if (token.includes(".")) {
     variants.push(token.replace(/\./g, ""));
     variants.push(token.split(".")[0]);
   }
   
-  // node.js -> node, nodejs
   if (token.includes(" ")) {
     variants.push(token.replace(/\s/g, ""));
   }
   
-  // Common abbreviations and variants
   const abbrevMap: Record<string, string[]> = {
     "typescript": ["ts"],
     "javascript": ["js", "ecmascript"],
@@ -202,17 +199,14 @@ function hasMatch(term: string, cvTokens: string[]): boolean {
 
   for (const variant of termVariants) {
     for (const token of cvTokens) {
-      // Exact match
       if (token === variant) return true;
       
-      // Partial match (both ways)
       if (variant.length > 2 && token.length > 2) {
         if (token.includes(variant) || variant.includes(token)) {
           return true;
         }
       }
       
-      // Word boundary match (e.g., "react" in "react native")
       const tokenWords = token.split(" ");
       if (tokenWords.some(word => word === variant)) {
         return true;
@@ -230,7 +224,6 @@ export async function analyzeGap(
   const requirements = await extractJobRequirements(jobDescription);
   const normalizedText = jobDescription.toLowerCase();
 
-  // Create more comprehensive CV tokens including variants
   const cvSkillsAndTech = [...structuredCV.skills, ...structuredCV.technologies];
   const cvTokens = Array.from(
     new Set(

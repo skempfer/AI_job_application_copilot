@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface CVInputProps {
@@ -6,7 +7,7 @@ interface CVInputProps {
   disabled?: boolean;
 }
 
-export function CVInput({ value, onChange, disabled = false }: CVInputProps) {
+export const CVInput = memo<CVInputProps>(({ value, onChange, disabled = false }) => {
   const { t } = useLanguage();
 
   return (
@@ -22,10 +23,14 @@ export function CVInput({ value, onChange, disabled = false }: CVInputProps) {
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         placeholder={t('cvPlaceholder')}
+        aria-label={t('cvLabel')}
+        aria-required="true"
       />
       <p className="text-xs text-gray-500 dark:text-gray-400">
         {value.trim().length} {t('characters')}
       </p>
     </div>
   );
-}
+});
+
+CVInput.displayName = 'CVInput';

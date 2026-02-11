@@ -1,32 +1,34 @@
+import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 import type { FormattedAnalysisResult } from '../types/analysis';
 import { ExplanationDisplay } from './ExplanationDisplay';
+import { clampScore } from '../utils/scoreHelpers';
 
 interface ResultsDisplayProps {
   result: FormattedAnalysisResult;
 }
 
-export function ResultsDisplay({ result }: ResultsDisplayProps) {
+export const ResultsDisplay = memo<ResultsDisplayProps>(({ result }) => {
   const { t } = useLanguage();
-  const clampedScore = Math.max(0, Math.min(100, result.fitScore));
+  const clampedScore = clampScore(result.fitScore);
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="card bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-700">
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg font-semibold text-gray-800 dark:text-purple-400">📊 Alinhamento Geral</span>
+            <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">📊 Overall Alignment</span>
             <span className="text-xs px-2 py-1 rounded bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 font-semibold">
-              Visão holística
+              Holistic view
             </span>
           </div>
           <p className="text-sm text-gray-800 dark:text-purple-300">
-            Analisa seu perfil completo, experiência, senioridade e alinhamento geral com a vaga.
+            Analyzes your complete profile, experience, seniority, and overall alignment with the job.
           </p>
         </div>
         
         <div className="flex items-center justify-between mb-3 pt-2 border-t border-purple-200 dark:border-purple-700">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Alinhamento Geral</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Overall Alignment</h3>
           <div className={`px-4 py-2 rounded-full border-2 font-bold text-lg ${result.scoreBadgeClass}`}>
             {clampedScore}%
           </div>
@@ -85,4 +87,6 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
 
     </div>
   );
-}
+});
+
+ResultsDisplay.displayName = 'ResultsDisplay';

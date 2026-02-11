@@ -48,11 +48,11 @@ export const APP_METADATA = {
  * Control feature availability without code changes
  */
 export const FEATURES = {
-  i18n: true, // Internationalization (en, pt)
-  themes: true, // Theme switching (light, dark)
-  accessibility: true, // WCAG 2.1 AA compliance
-  analytics: false, // User analytics (disabled by default)
-  beta: false, // Beta features
+  i18n: true, 
+  themes: true, 
+  accessibility: true, 
+  analytics: false, 
+  beta: false, 
 };
 
 /**

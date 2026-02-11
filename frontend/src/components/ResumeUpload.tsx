@@ -6,7 +6,7 @@ interface ResumeUploadProps {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -18,10 +18,10 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
 
   const validateFile = (file: File): string | null => {
     if (file.type !== 'application/pdf') {
-      return 'Apenas arquivos PDF são permitidos';
+      return 'Only PDF files are allowed';
     }
     if (file.size > MAX_FILE_SIZE) {
-      return 'O arquivo deve ter no máximo 5MB';
+      return 'File must not exceed 5MB';
     }
     return null;
   };
@@ -42,7 +42,7 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao fazer upload');
+        throw new Error(data.error || 'Upload error');
       }
 
       const url = data.fileUrl || data.fileName;
@@ -52,7 +52,7 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         onUploadComplete(url);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao fazer upload';
+      const errorMessage = err instanceof Error ? err.message : 'Upload error';
       setError(errorMessage);
       setSelectedFile(null);
       setUploadedUrl(null);
@@ -133,14 +133,23 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isUploading) {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
+        role="button"
+        tabIndex={disabled || isUploading ? -1 : 0}
+        aria-label="Upload resume file, drag and drop or click to select"
+        aria-disabled={disabled || isUploading}
         className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
-          transition-all duration-200
+          relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200
           ${isDragging 
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           }
-          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${uploadedUrl ? 'bg-green-50 dark:bg-green-900/10 border-green-300 dark:border-green-700' : 'bg-gray-50 dark:bg-gray-800'}
         `}
       >

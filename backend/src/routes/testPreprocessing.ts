@@ -23,7 +23,6 @@ export function createTestPreprocessingRouter(): Router {
     try {
       const { cv, jobDescription, language = "pt" } = req.body as AnalysisRequest & { language?: string };
 
-      // Basic validation
       if (!cv || typeof cv !== "string" || cv.trim().length === 0) {
         res.status(400).json({
           error: "CV is required and cannot be empty",

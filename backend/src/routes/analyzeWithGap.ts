@@ -120,7 +120,6 @@ export function createAnalyzeWithGapRouter(): Router {
 
         cvText = await extractTextFromPDF(normalizedPath);
       } else {
-        // Use provided text CV
         if (!cv || cv.trim().length < 50) {
           res.status(400).json({ error: "CV too short. Provide more details." });
           return;

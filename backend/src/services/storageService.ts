@@ -39,7 +39,7 @@ export async function uploadResumeToFirebase(
 
     const [signedUrl] = await file.getSignedUrl({
       action: "read",
-      expires: Date.now() + 60 * 60 * 1000, // 1 hour
+      expires: Date.now() + 60 * 60 * 1000,
     });
 
     return signedUrl;

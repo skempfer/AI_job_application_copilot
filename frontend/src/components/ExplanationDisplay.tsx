@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 import type { ScoreExplanation } from '../types/analysis';
 
@@ -7,10 +7,7 @@ interface ExplanationDisplayProps {
   promptVersion?: string;
 }
 
-export const ExplanationDisplay: React.FC<ExplanationDisplayProps> = ({ 
-  explanation,
-  promptVersion 
-}) => {
+export const ExplanationDisplay = memo<ExplanationDisplayProps>(({ explanation, promptVersion }) => {
   const { t } = useLanguage();
 
   return (
@@ -26,13 +23,11 @@ export const ExplanationDisplay: React.FC<ExplanationDisplayProps> = ({
         )}
       </div>
 
-      {/* Summary */}
       <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md">
         <p className="text-sm text-gray-700 dark:text-gray-300">{explanation.summary}</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {/* Positives */}
         <div>
           <h4 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center">
             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -50,7 +45,6 @@ export const ExplanationDisplay: React.FC<ExplanationDisplayProps> = ({
           </ul>
         </div>
 
-        {/* Negatives */}
         <div>
           <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-400 mb-2 flex items-center">
             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -69,20 +63,21 @@ export const ExplanationDisplay: React.FC<ExplanationDisplayProps> = ({
             ) : (
               <li className="text-sm text-gray-500 dark:text-gray-400 italic flex items-start">
                 <span className="mr-2">✓</span>
-                <span>Nenhum ponto crítico identificado</span>
+                <span>No critical issues identified</span>
               </li>
             )}
           </ul>
         </div>
       </div>
 
-      {/* Info footer */}
       <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          💡 <strong>Scoring híbrido:</strong> A IA extrai sinais do seu CV, e nosso algoritmo 
-          calcula o score de forma determinística e transparente.
+          💡 <strong>Hybrid scoring:</strong> AI extracts signals from your CV, and our algorithm 
+          calculates the score deterministically and transparently.
         </p>
       </div>
     </div>
   );
-};
+});
+
+ExplanationDisplay.displayName = 'ExplanationDisplay';

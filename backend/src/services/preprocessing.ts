@@ -11,7 +11,7 @@
 export interface ProcessedCV {
   skills: string[];
   seniority: "junior" | "mid" | "senior" | "unknown";
-  experienceBySkill: Record<string, number>; // skill -> years
+  experienceBySkill: Record<string, number>; 
   companies: string[];
   achievements: string[];
   yearsTotal: number;
@@ -32,7 +32,6 @@ export interface ProcessedJobDescription {
  * Regex patterns to detect personal data to remove
  */
 const PERSONAL_DATA_PATTERNS = [
-  // CPF, RG, Passport
   /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g, 
   /\b\d{1,2}\.\d{3}\.\d{3}-?\d{1}\b/g,
   

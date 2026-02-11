@@ -1,7 +1,3 @@
-/**
- * English language dictionary
- * Simple, explicit key-value pairs for UI translations
- */
 export const en = {
   // Header
   appTitle: 'Viora',

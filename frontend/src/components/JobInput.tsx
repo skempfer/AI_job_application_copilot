@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface JobInputProps {
@@ -6,7 +7,7 @@ interface JobInputProps {
   disabled?: boolean;
 }
 
-export function JobInput({ value, onChange, disabled = false }: JobInputProps) {
+export const JobInput = memo<JobInputProps>(({ value, onChange, disabled = false }) => {
   const { t } = useLanguage();
 
   return (
@@ -22,10 +23,14 @@ export function JobInput({ value, onChange, disabled = false }: JobInputProps) {
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         placeholder={t('jobPlaceholder')}
+        aria-label={t('jobLabel')}
+        aria-required="true"
       />
       <p className="text-xs text-gray-500 dark:text-gray-400">
         {value.trim().length} caracteres
       </p>
     </div>
   );
-}
+});
+
+JobInput.displayName = 'JobInput';

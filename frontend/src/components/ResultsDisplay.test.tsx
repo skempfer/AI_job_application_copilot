@@ -25,12 +25,7 @@ describe('ResultsDisplay Component', () => {
 
   it('should render fit score', () => {
     render(<ResultsDisplay result={mockResult} />);
-    expect(screen.getByText(/85\/100/)).toBeInTheDocument();
-  });
-
-  it('should render decision text', () => {
-    render(<ResultsDisplay result={mockResult} />);
-    expect(screen.getByText(/Strong match - Apply now!/i)).toBeInTheDocument();
+    expect(screen.getByText(/85%/)).toBeInTheDocument();
   });
 
   it('should render strengths', () => {
@@ -44,17 +39,6 @@ describe('ResultsDisplay Component', () => {
     expect(screen.getByText(/Kubernetes knowledge/i)).toBeInTheDocument();
   });
 
-  it('should render CV suggestions', () => {
-    render(<ResultsDisplay result={mockResult} />);
-    expect(screen.getByText(/Add cloud experience/i)).toBeInTheDocument();
-    expect(screen.getByText(/Highlight leadership/i)).toBeInTheDocument();
-  });
-
-  it('should render recruiter message', () => {
-    render(<ResultsDisplay result={mockResult} />);
-    expect(screen.getByText(/Great fit for this role/i)).toBeInTheDocument();
-  });
-
   it('should render score explanation when available', () => {
     render(<ResultsDisplay result={mockResult} />);
     expect(screen.getByText(/Hard Skills: \+35\/35 points/i)).toBeInTheDocument();
@@ -65,9 +49,9 @@ describe('ResultsDisplay Component', () => {
     const lowScoreResult = { ...mockResult, fitScore: 30, scoreColor: 'red' };
     const { rerender } = render(<ResultsDisplay result={mockResult} />);
     
-    expect(screen.getByText(/85\/100/)).toBeInTheDocument();
+    expect(screen.getByText(/85%/)).toBeInTheDocument();
     
     rerender(<ResultsDisplay result={lowScoreResult} />);
-    expect(screen.getByText(/30\/100/)).toBeInTheDocument();
+    expect(screen.getByText(/30%/)).toBeInTheDocument();
   });
 });

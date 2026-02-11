@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface AnalyzeButtonProps {
@@ -6,7 +7,7 @@ interface AnalyzeButtonProps {
   loading: boolean;
 }
 
-export function AnalyzeButton({ onClick, disabled, loading }: AnalyzeButtonProps) {
+export const AnalyzeButton = memo<AnalyzeButtonProps>(({ onClick, disabled, loading }) => {
   const { t } = useLanguage();
 
   return (
@@ -14,6 +15,8 @@ export function AnalyzeButton({ onClick, disabled, loading }: AnalyzeButtonProps
       onClick={onClick}
       disabled={disabled || loading}
       className="btn-primary w-full"
+      aria-live="polite"
+      aria-busy={loading}
     >
       {loading ? (
         <span className="flex items-center justify-center gap-2">
@@ -40,4 +43,6 @@ export function AnalyzeButton({ onClick, disabled, loading }: AnalyzeButtonProps
       )}
     </button>
   );
-}
+});
+
+AnalyzeButton.displayName = 'AnalyzeButton';

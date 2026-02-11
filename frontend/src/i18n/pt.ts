@@ -1,7 +1,3 @@
-/**
- * Dicionário em Português
- * Pares chave-valor simples e explícitos para traduções da UI
- */
 export const pt = {
   // Header
   appTitle: 'Viora',

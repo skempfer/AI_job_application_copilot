@@ -1,15 +1,10 @@
-/**
- * Cliente HTTP para comunicação com o backend
- * JavaScript puro, sem dependências
- */
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
- * Realiza análise de job fit via API
- * @param {string} cv - O currículo do candidato
- * @param {string} jobDescription - A descrição da vaga
- * @param {string|null} resumeUrl - URL do CV em PDF (opcional)
+ * Analyzes job fit via API
+ * @param {string} cv - Candidate's resume text
+ * @param {string} jobDescription - Job description
+ * @param {string|null} resumeUrl - PDF resume URL (optional)
  */
 export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
   const payload = {
@@ -31,17 +26,17 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+    throw new Error(errorData.error || `HTTP Error: ${response.status}`);
   }
 
   return response.json();
 }
 
 /**
- * Realiza analise com gap via novo endpoint
- * @param {string} jobDescription - A descricao da vaga
- * @param {string} resumePath - Caminho/local do CV em PDF
- * @param {string} cv - CV em texto como fallback se resume não disponível
+ * Analyzes gap via gap analysis endpoint
+ * @param {string} jobDescription - Job description
+ * @param {string} resumePath - Path to PDF resume
+ * @param {string} cv - CV text as fallback if resume unavailable
  */
 export async function analyzeWithGap(jobDescription, resumePath = null, cv = null) {
   const payload = {
@@ -53,7 +48,7 @@ export async function analyzeWithGap(jobDescription, resumePath = null, cv = nul
   } else if (cv && cv.trim()) {
     payload.cv = cv.trim();
   } else {
-    throw new Error('Resume path ou CV é obrigatório para análise técnica');
+    throw new Error('Resume path or CV is required for technical analysis');
   }
 
   const response = await fetch(`${API_BASE_URL}/api/analyze-with-gap`, {
@@ -66,14 +61,14 @@ export async function analyzeWithGap(jobDescription, resumePath = null, cv = nul
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+    throw new Error(errorData.error || `HTTP Error: ${response.status}`);
   }
 
   return response.json();
 }
 
 /**
- * Verifica se o backend está online
+ * Checks if backend is online
  */
 export async function checkHealth() {
   try {

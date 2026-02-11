@@ -1,71 +1,54 @@
-/**
- * Camada de domínio em JavaScript puro
- * Sem dependências do React ou qualquer framework
- * 
- * Responsabilidades:
- * - Validação de inputs
- * - Cálculos de score
- * - Formatação de dados
- * - Lógica de decisão
- */
-
-/**
- * Valida se o CV fornecido tem conteúdo mínimo
- */
 export function validateCV(cv) {
   if (!cv || typeof cv !== 'string') {
-    return { valid: false, error: 'CV é obrigatório' };
+    return { valid: false, error: 'CV is required' };
   }
 
   const trimmed = cv.trim();
   
   if (trimmed.length < 50) {
-    return { valid: false, error: 'CV muito curto. Forneça mais detalhes sobre sua experiência.' };
+    return { valid: false, error: 'CV too short. Please provide more details about your experience.' };
   }
 
   if (trimmed.length > 20000) {
-    return { valid: false, error: 'CV muito longo. Máximo de 20.000 caracteres.' };
+    return { valid: false, error: 'CV too long. Maximum 20,000 characters.' };
   }
 
   return { valid: true, error: null };
 }
 
-/**
- * Valida se a job description tem conteúdo mínimo
- */
 export function validateJobDescription(jobDescription) {
   if (!jobDescription || typeof jobDescription !== 'string') {
-    return { valid: false, error: 'Descrição da vaga é obrigatória' };
+    return { valid: false, error: 'Job description is required' };
   }
 
   const trimmed = jobDescription.trim();
   
   if (trimmed.length < 50) {
-    return { valid: false, error: 'Descrição muito curta. Cole a descrição completa da vaga.' };
+    return { valid: false, error: 'Job description too short. Please paste the complete job description.' };
   }
 
   if (trimmed.length > 50000) {
-    return { valid: false, error: 'Descrição muito longa. Máximo de 50.000 caracteres.' };
+    return { valid: false, error: 'Job description too long. Maximum 50,000 characters.' };
   }
 
   return { valid: true, error: null };
 }
 
 /**
- * Valida ambos os inputs juntos
- * @param {string} cv - Texto do CV
- * @param {string} jobDescription - Descrição da vaga
- * @param {string|null} resumeUrl - URL do CV em PDF (opcional)
+ * Validates both CV and job description inputs
+ * @param {string} cv - CV text
+ * @param {string} jobDescription - Job description
+ * @param {string|null} resumeUrl - PDF resume URL (optional)
  */
 export function validateInputs(cv, jobDescription, resumeUrl = null) {
-  // Se há um resumeUrl, o CV texto é opcional
+  // If there is a resumeUrl, the CV text is optional
   if (!resumeUrl) {
     const cvValidation = validateCV(cv);
     if (!cvValidation.valid) {
       return cvValidation;
     }
   } else if (cv && cv.trim().length > 0) {
-    // Se há resumeUrl E cv, validar o cv também
+    // If there is resumeUrl AND cv, validate cv too
     const cvValidation = validateCV(cv);
     if (!cvValidation.valid) {
       return cvValidation;
@@ -80,41 +63,15 @@ export function validateInputs(cv, jobDescription, resumeUrl = null) {
   return { valid: true, error: null };
 }
 
-/**
- * Determina a cor do score baseado no valor
- */
-export function getScoreColor(score) {
-  if (score >= 80) return 'green';
-  if (score >= 60) return 'yellow';
-  if (score >= 40) return 'orange';
-  return 'red';
-}
-
-/**
- * Retorna classe Tailwind para o score
- */
-export function getScoreBadgeClass(score) {
-  if (score >= 80) return 'bg-green-100 text-green-800 border-green-300';
-  if (score >= 60) return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-  if (score >= 40) return 'bg-orange-100 text-orange-800 border-orange-300';
-  return 'bg-red-100 text-red-800 border-red-300';
-}
-
-/**
- * Mapeia decisão para texto em português
- */
 export function getDecisionText(decision) {
   const map = {
-    'apply': 'Aplique para esta vaga',
-    'apply_with_fixes': 'Aplique após ajustes no CV',
-    'skip': 'Pule esta vaga',
+    'apply': 'Apply to this job',
+    'apply_with_fixes': 'Apply after CV adjustments',
+    'skip': 'Skip this job',
   };
-  return map[decision] || 'Decisão desconhecida';
+  return map[decision] || 'Unknown decision';
 }
 
-/**
- * Mapeia decisão para ícone emoji
- */
 export function getDecisionIcon(decision) {
   const map = {
     'apply': '✅',
@@ -124,10 +81,22 @@ export function getDecisionIcon(decision) {
   return map[decision] || '❓';
 }
 
-/**
- * Formata o resultado da análise para exibição
- */
 export function formatAnalysisResult(result) {
+  // Import helpers from utils for consistency
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'green';
+    if (score >= 60) return 'yellow';
+    if (score >= 40) return 'orange';
+    return 'red';
+  };
+  
+  const getScoreBadgeClass = (score) => {
+    if (score >= 80) return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/20 dark:text-green-200 dark:border-green-700';
+    if (score >= 60) return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-200 dark:border-yellow-700';
+    if (score >= 40) return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/20 dark:text-orange-200 dark:border-orange-700';
+    return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/20 dark:text-red-200 dark:border-red-700';
+  };
+
   return {
     ...result,
     scoreColor: getScoreColor(result.fitScore),
@@ -137,23 +106,14 @@ export function formatAnalysisResult(result) {
   };
 }
 
-/**
- * Verifica se uma análise resultou em decisão positiva
- */
 export function shouldApply(decision) {
   return decision === 'apply' || decision === 'apply_with_fixes';
 }
 
-/**
- * Conta palavras em um texto
- */
 export function countWords(text) {
   return text.trim().split(/\s+/).length;
 }
 
-/**
- * Estima tempo de leitura em minutos
- */
 export function estimateReadingTime(text) {
   const words = countWords(text);
   const wordsPerMinute = 200;

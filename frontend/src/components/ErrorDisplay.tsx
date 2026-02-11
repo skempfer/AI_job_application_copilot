@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface ErrorDisplayProps {
@@ -5,7 +6,7 @@ interface ErrorDisplayProps {
   onDismiss: () => void;
 }
 
-export function ErrorDisplay({ message, onDismiss }: ErrorDisplayProps) {
+export const ErrorDisplay = memo<ErrorDisplayProps>(({ message, onDismiss }) => {
   const { t } = useLanguage();
 
   return (
@@ -14,7 +15,7 @@ export function ErrorDisplay({ message, onDismiss }: ErrorDisplayProps) {
         <div className="flex items-start gap-3">
           <span className="text-2xl">❌</span>
           <div>
-            <h3 className="font-semibold text-red-800 dark:text-red-300 mb-1">Erro na Análise</h3>
+            <h3 className="font-semibold text-red-800 dark:text-red-300 mb-1">Analysis Error</h3>
             <p className="text-red-700 dark:text-red-200">{message}</p>
           </div>
         </div>
@@ -28,4 +29,6 @@ export function ErrorDisplay({ message, onDismiss }: ErrorDisplayProps) {
       </div>
     </div>
   );
-}
+});
+
+ErrorDisplay.displayName = 'ErrorDisplay';
