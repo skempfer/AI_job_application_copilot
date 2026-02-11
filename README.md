@@ -1,11 +1,11 @@
-# AI Job Application Copilot
+# Viora — Clarity for Smarter Career Decisions
 
 ## Overview
 
 Applying for jobs is not a volume game — it's a **decision-making problem**.
 
 Most tools either spam applications or blindly optimize keywords, which leads to poor results, wasted time, and sometimes account restrictions.  
-**AI Job Application Copilot** takes a different approach.
+**Viora** takes a different approach.
 
 This project helps candidates decide whether they should apply to a job and how to improve their application, using AI as a **decision support system** — not as an automation bot.
 
@@ -28,7 +28,7 @@ Blind automation solves none of these problems.
 
 ## Solution
 
-**AI Job Application Copilot** acts as a pre-application intelligence layer.
+**Viora** acts as a pre-application intelligence layer.
 
 Given:
 - A candidate CV
@@ -109,6 +109,8 @@ The system:
 - React
 - TypeScript
 - Tailwind CSS
+
+> The UI supports runtime language and theme switching without external i18n or theming libraries.
 
 ### Backend
 - Node.js

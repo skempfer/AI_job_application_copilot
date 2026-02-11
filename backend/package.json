@@ -1,7 +1,7 @@
 {
   "name": "ai-job-copilot-backend",
   "version": "1.0.0",
-  "description": "Backend API para AI Job Application Copilot",
+  "description": "Backend API for Viora - Career Intelligence Platform",
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
@@ -24,12 +24,15 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "firebase-admin": "^13.6.1",
+    "multer": "^2.0.2",
     "openai": "^4.28.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^20.11.5",
     "@types/supertest": "^6.0.3",
     "jest": "^30.2.0",

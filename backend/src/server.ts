@@ -3,6 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { AIService } from "./services/aiService.js";
 import { createAnalyzeRouter } from "./routes/analyze.js";
+import { createUploadRouter } from "./routes/upload.js";
+import { createHistoryRouter } from "./routes/history.js";
+import { initializeFirebase } from "./config/firebase.js";
 
 dotenv.config();
 
@@ -23,6 +26,15 @@ if (missingEnvVars.length > 0) {
 app.use(cors());
 app.use(express.json({ limit: "10mb" })); // Permitir CVs grandes
 
+// Inicializar Firebase (se habilitado)
+if (process.env.USE_FIREBASE === "true") {
+  try {
+    initializeFirebase();
+  } catch (error) {
+    console.error("⚠️  Firebase não pôde ser inicializado. Upload local será usado.");
+  }
+}
+
 // Inicializar AI Service
 const aiService = new AIService({
   apiKey: process.env.GROQ_API_KEY!,
@@ -32,6 +44,8 @@ const aiService = new AIService({
 
 // Routes
 app.use("/api/analyze", createAnalyzeRouter(aiService));
+app.use("/api/upload", createUploadRouter());
+app.use("/api/history", createHistoryRouter());
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -44,6 +58,6 @@ app.use((_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 AI Job Copilot Backend rodando em http://localhost:${PORT}`);
-  console.log(`⚡ Usando Groq: ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"}`);
+  console.log(`🚀 Viora Backend running on http://localhost:${PORT}`);
+  console.log(`⚡ Using Groq: ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"}`);
 });

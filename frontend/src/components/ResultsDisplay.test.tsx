@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '../test/test-utils';
 import { ResultsDisplay } from './ResultsDisplay';
 import type { FormattedAnalysisResult } from '../types/analysis';
 

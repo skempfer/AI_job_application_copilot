@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '../test/test-utils';
 import { AnalyzeButton } from './AnalyzeButton';
 
 describe('AnalyzeButton Component', () => {
@@ -31,7 +31,7 @@ describe('AnalyzeButton Component', () => {
 
   it('should show loading text when loading', () => {
     render(<AnalyzeButton onClick={() => {}} disabled={false} loading={true} />);
-    expect(screen.getByText(/analisando/i)).toBeInTheDocument();
+    expect(screen.getByText(/analyzing/i)).toBeInTheDocument();
   });
 
   it('should not call onClick when disabled', () => {

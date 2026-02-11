@@ -53,11 +53,23 @@ export function validateJobDescription(jobDescription) {
 
 /**
  * Valida ambos os inputs juntos
+ * @param {string} cv - Texto do CV
+ * @param {string} jobDescription - Descrição da vaga
+ * @param {string|null} resumeUrl - URL do CV em PDF (opcional)
  */
-export function validateInputs(cv, jobDescription) {
-  const cvValidation = validateCV(cv);
-  if (!cvValidation.valid) {
-    return cvValidation;
+export function validateInputs(cv, jobDescription, resumeUrl = null) {
+  // Se há um resumeUrl, o CV texto é opcional
+  if (!resumeUrl) {
+    const cvValidation = validateCV(cv);
+    if (!cvValidation.valid) {
+      return cvValidation;
+    }
+  } else if (cv && cv.trim().length > 0) {
+    // Se há resumeUrl E cv, validar o cv também
+    const cvValidation = validateCV(cv);
+    if (!cvValidation.valid) {
+      return cvValidation;
+    }
   }
 
   const jobValidation = validateJobDescription(jobDescription);
