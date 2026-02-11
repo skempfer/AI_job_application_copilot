@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from './hooks/useLanguage';
 import { CVInput } from './components/CVInput';
 import { JobInput } from './components/JobInput';
+import { ResumeUpload } from './components/ResumeUpload';
 import { AnalyzeButton } from './components/AnalyzeButton';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { ErrorDisplay } from './components/ErrorDisplay';
@@ -24,6 +25,13 @@ function AppContent() {
   const { t } = useLanguage();
   const [cv, setCv] = useState('');
   const [jobDescription, setJobDescription] = useState('');
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+
+  // Log quando resumeUrl muda
+  const handleResumeUrlChange = (url: string) => {
+    console.log('🎯 Resume URL recebida no App:', url);
+    setResumeUrl(url);
+  };
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<FormattedAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +42,7 @@ function AppContent() {
     setError(null);
 
     // Validar inputs usando lógica de domínio
-    const validation = validateInputs(cv, jobDescription);
+    const validation = validateInputs(cv, jobDescription, resumeUrl);
     if (!validation.valid) {
       setError(validation.error || 'Erro de validação');
       return;
@@ -43,7 +51,12 @@ function AppContent() {
     setLoading(true);
 
     try {
-      const analysisResult: AnalysisResult = await analyzeJobFit(cv, jobDescription);
+      console.log('🚀 Iniciando análise com:', { 
+        cvLength: cv.length, 
+        jobDescriptionLength: jobDescription.length, 
+        resumeUrl 
+      });
+      const analysisResult: AnalysisResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
       const formatted = formatAnalysisResult(analysisResult);
       setResult(formatted);
     } catch (err) {
@@ -54,7 +67,7 @@ function AppContent() {
     }
   };
 
-  const canAnalyze = cv.trim().length >= 50 && jobDescription.trim().length >= 50 && !loading;
+  const canAnalyze = (cv.trim().length >= 50 || resumeUrl !== null) && jobDescription.trim().length >= 50 && !loading;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -66,6 +79,9 @@ function AppContent() {
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         <div className="space-y-6">
+          {/* Resume Upload - Optional Feature */}
+          <ResumeUpload onUploadComplete={handleResumeUrlChange} disabled={loading} />
+
           {/* Inputs */}
           <div className="grid md:grid-cols-2 gap-6">
             <CVInput value={cv} onChange={setCv} disabled={loading} />
