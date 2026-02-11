@@ -78,7 +78,6 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
     setSelectedFile(file);
     setError(null);
     
-    // Auto upload on selection
     console.log('⬆️ Iniciando upload automático...');
     await uploadFile(file);
   };
@@ -134,7 +133,6 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         CV Upload (Optional)
       </label>
       
-      {/* Drag & Drop Area */}
       <div
         onClick={handleClick}
         onDragEnter={handleDragEnter}

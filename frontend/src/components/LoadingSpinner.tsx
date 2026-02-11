@@ -12,10 +12,10 @@ import { LogoAnimated } from './LogoAnimated';
 import './LoadingSpinner.css';
 
 interface LoadingSpinnerProps {
-  show: boolean; // Control visibility
-  size?: 'small' | 'medium' | 'large'; // Spinner size
-  message?: string; // Optional loading message
-  overlay?: boolean; // Show fullscreen overlay (default: false)
+  show: boolean; 
+  size?: 'small' | 'medium' | 'large'; 
+  message?: string; 
+  overlay?: boolean; 
 }
 
 const sizeMap = {

@@ -20,6 +20,50 @@ import { analyzeJobFit, analyzeWithGap } from './domain/apiClient';
 import { validateInputs, formatAnalysisResult } from './domain/analyzer';
 import type { AnalysisResult, FormattedAnalysisResult, GapAnalysisResult } from './types/analysis';
 
+const MOCK_ANALYSIS_RESULT: AnalysisResult = {
+  fitScore: 72,
+  decision: 'apply_with_fixes',
+  strengths: [
+    'Hard skill: TypeScript',
+    'Hard skill: React',
+    'Requisito atendido: Node.js',
+    'Diferencial: AWS'
+  ],
+  gaps: [
+    'Requisito faltando: GraphQL',
+    'Diferencial ausente: Kubernetes'
+  ],
+  cvSuggestions: [
+    'Destaque projetos com React e TypeScript no topo do CV.',
+    'Inclua exemplos de APIs Node.js em producao.'
+  ],
+  recruiterMessage: 'Seu perfil esta proximo do que buscamos. Ajuste alguns pontos tecnicos e sua aplicacao ficara ainda mais forte.',
+  coverLetter: 'Prezados, tenho experiencia em desenvolvimento full-stack com foco em React e Node.js. Estou animado para contribuir com o time.',
+  explanation: {
+    positives: ['Experiencia relevante em front-end moderno.', 'Stack alinhada com a vaga.'],
+    negatives: ['Faltam mencoes a GraphQL e Kubernetes.'],
+    summary: 'Bom alinhamento geral com alguns gaps tecnicos especificos.'
+  },
+  promptVersion: 'mock-ui'
+};
+
+const MOCK_GAP_RESULT: GapAnalysisResult = {
+  matchScore: 68,
+  missingCriticalSkills: ['GraphQL', 'Kubernetes'],
+  strongMatches: ['React', 'TypeScript', 'Node.js', 'AWS'],
+  suggestedFocusAreas: ['GraphQL', 'Kubernetes', 'Observability'],
+  structuredCV: {
+    skills: ['React', 'TypeScript', 'Node.js', 'AWS'],
+    technologies: ['React', 'TypeScript', 'Node.js', 'AWS'],
+    seniorityLevel: 'mid',
+    yearsOfExperience: 4,
+    languages: ['Portuguese', 'English'],
+    education: ['BSc Computer Science'],
+    certifications: ['AWS Cloud Practitioner'],
+    strengths: ['Front-end architecture', 'API development']
+  }
+};
+
 /**
  * AppContent - Main application content
  * Separated from root App to be wrapped with context providers
@@ -50,17 +94,29 @@ function AppContent() {
       return;
     }
 
+    const useMockAnalysis = import.meta.env.VITE_MOCK_ANALYSIS === 'true';
+
     setLoading(true);
+
+    if (useMockAnalysis) {
+      const formatted = formatAnalysisResult(MOCK_ANALYSIS_RESULT);
+      setResult(formatted);
+      setGapResult(MOCK_GAP_RESULT);
+      setLoading(false);
+      return;
+    }
 
     try {
       console.log('🚀 Iniciando análise com:', { 
         cvLength: cv.length, 
-        jobDescriptionLength: jobDescription.length, 
+        cvPreview: cv.substring(0, 100),
+        jobDescriptionLength: jobDescription.length,
+        jobPreview: jobDescription.substring(0, 100),
         resumeUrl 
       });
       
       const analysisResult: AnalysisResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
-      console.log('🧠 Resposta da analise da IA:', analysisResult);
+      console.log('✅ Análise concluída. Resposta da IA:', analysisResult);
       const formatted = formatAnalysisResult(analysisResult);
       setResult(formatted);
       
@@ -73,7 +129,6 @@ function AppContent() {
           console.warn('⚠️ Gap analysis falhou (não crítico):', gapError);
         }
       } else if (cv.trim().length >= 50) {
-        // Se não tem resumeUrl, tenta fazer gap analysis com CV de texto
         try {
           console.log('📊 Executando gap analysis complementar com CV de texto...');
           const gapAnalysis: GapAnalysisResult = await analyzeWithGap(jobDescription, undefined, cv);

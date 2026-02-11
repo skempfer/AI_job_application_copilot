@@ -13,7 +13,7 @@ interface LogoMonoProps {
   width?: number;
   height?: number;
   className?: string;
-  isDark?: boolean; // If true, light variant for dark backgrounds (white text, dark inner circle)
+  isDark?: boolean;
 }
 
 export function LogoMono({
@@ -22,7 +22,6 @@ export function LogoMono({
   className = '',
   isDark = false,
 }: LogoMonoProps) {
-  // Color scheme based on background
   const outerColor = isDark ? '#ffffff' : '#0f172a';
   const innerColor = isDark ? '#0f172a' : '#ffffff';
 
@@ -37,16 +36,11 @@ export function LogoMono({
       role="img"
       className={className}
     >
-      {/* Icon */}
       <g transform="translate(0, 4)">
-        {/* Outer circle (vision) */}
         <circle cx="24" cy="24" r="24" fill={outerColor} />
-
-        {/* Inner focus (clarity point) */}
         <circle cx="24" cy="24" r="6" fill={innerColor} />
       </g>
 
-      {/* Wordmark */}
       <text
         x="64"
         y="40"

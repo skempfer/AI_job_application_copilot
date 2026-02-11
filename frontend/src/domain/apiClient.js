@@ -22,6 +22,14 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
     payload.resumeUrl = resumeUrl;
   }
 
+  console.log('📤 Enviando para API /api/analyze:', {
+    cvLength: payload.cv.length,
+    cvPreview: payload.cv.substring(0, 80) + (payload.cv.length > 80 ? '...' : ''),
+    jobDescriptionLength: payload.jobDescription.length,
+    jobDescriptionPreview: payload.jobDescription.substring(0, 80) + (payload.jobDescription.length > 80 ? '...' : ''),
+    hasResumeUrl: !!resumeUrl
+  });
+
   const response = await fetch(`${API_BASE_URL}/api/analyze`, {
     method: 'POST',
     headers: {

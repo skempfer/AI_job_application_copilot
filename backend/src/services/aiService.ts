@@ -40,7 +40,6 @@ export class AIService {
    * 5. Extrair sinais e calcular score
    */
   async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
-    // 1. Preprocessar inputs
     console.log("🔍 Preprocessando CV...");
     const processedCV = preprocessCV(cv);
     console.log(`✅ CV preprocessado: ${processedCV.skills.length} skills, ${processedCV.companies.length} empresas`);
@@ -49,7 +48,6 @@ export class AIService {
     const processedJob = preprocessJobDescription(jobDescription);
     console.log(`✅ Job preprocessada: ${processedJob.mandatoryRequirements.length} requisitos obrigatórios`);
 
-    // 2. Construir prompt otimizado
     const prompt = buildOptimizedPrompt(processedCV, processedJob, language);
 
     try {

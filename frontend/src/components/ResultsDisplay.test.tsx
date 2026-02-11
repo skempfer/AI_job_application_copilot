@@ -65,7 +65,6 @@ describe('ResultsDisplay Component', () => {
     const lowScoreResult = { ...mockResult, fitScore: 30, scoreColor: 'red' };
     const { rerender } = render(<ResultsDisplay result={mockResult} />);
     
-    // Should render without errors
     expect(screen.getByText(/85\/100/)).toBeInTheDocument();
     
     rerender(<ResultsDisplay result={lowScoreResult} />);

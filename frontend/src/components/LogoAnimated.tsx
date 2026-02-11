@@ -15,10 +15,10 @@
 import './LogoAnimated.css';
 
 interface LogoAnimatedProps {
-  size?: number; // SVG size (default: 64px)
-  strokeColor?: string; // Ring color (default: #2563eb)
-  coreColor?: string; // Core color (default: #2563eb)
-  showAnimation?: boolean; // Enable animation (default: true)
+  size?: number; 
+  strokeColor?: string; 
+  coreColor?: string; 
+  showAnimation?: boolean;
   className?: string;
 }
 
@@ -39,7 +39,6 @@ export function LogoAnimated({
       aria-label="Viora animated logo"
       role="img"
     >
-      {/* Ring - Drawn animation */}
       <circle
         cx="24"
         cy="24"
@@ -48,7 +47,6 @@ export function LogoAnimated({
         style={{ stroke: strokeColor }}
       />
 
-      {/* Core - Pulse animation */}
       <circle
         cx="24"
         cy="24"

@@ -160,10 +160,8 @@ function MyApp() {
   const handleUploadSuccess = (fileName: string, fileUrl?: string) => {
     if (fileUrl) {
       console.log('Firebase URL:', fileUrl);
-      // Use signed URL for processing
     } else {
       console.log('Local file:', fileName);
-      // Phase 1: local testing
     }
   };
 

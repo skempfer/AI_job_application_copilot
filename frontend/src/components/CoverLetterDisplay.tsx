@@ -20,7 +20,6 @@ export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
 
   const normalizedText = normalizeText(coverLetter);
   
-  // DEBUG: Log what we're receiving
   console.log('📄 CoverLetterDisplay - Raw coverLetter:', {
     length: coverLetter.length,
     hasDoubleNewlines: coverLetter.includes('\n\n'),
@@ -90,7 +89,7 @@ export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
         <div className="space-y-4">
           <div className="relative">
             <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-slate-300 dark:border-slate-700 leading-relaxed">
-              <p className="text-gray-800 dark:text-gray-150 font-serif text-sm whitespace-pre-wrap">
+              <p className="text-gray-800 dark:text-gray-200 font-serif text-sm whitespace-pre-wrap">
                 {firstParagraph}
               </p>
               {hasMoreContent && (
@@ -128,7 +127,7 @@ export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-slate-300 dark:border-slate-700 max-h-[500px] overflow-y-auto">
             <div className="space-y-4">
               {paragraphs.map((paragraph, idx) => (
-                <p 
+                <p
                   key={idx}
                   className="text-gray-800 dark:text-gray-200 font-serif text-sm leading-relaxed whitespace-pre-wrap"
                 >
