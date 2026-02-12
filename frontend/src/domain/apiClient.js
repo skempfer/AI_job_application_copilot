@@ -26,7 +26,9 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+    const error = new Error(errorData.error || `HTTP Error: ${response.status}`);
+    error.status = response.status;
+    throw error;
   }
 
   return response.json();
@@ -61,7 +63,9 @@ export async function analyzeWithGap(jobDescription, resumePath = null, cv = nul
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+    const error = new Error(errorData.error || `HTTP Error: ${response.status}`);
+    error.status = response.status;
+    throw error;
   }
 
   return response.json();

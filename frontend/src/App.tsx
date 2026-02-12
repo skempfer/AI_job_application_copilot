@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useLanguage } from './hooks/useLanguage';
 import { useJobAnalysis } from './hooks/useJobAnalysis';
@@ -12,11 +12,11 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { SplashScreen } from './components/SplashScreen';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { SettingsToggle } from './components/SettingsToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { Terms } from './pages/Terms';
 import { Privacy } from './pages/Privacy';
+import { trackEvent } from './lib/analytics';
 
 const ResultsDisplay = lazy(() => import('./components/ResultsDisplay').then(m => ({ default: m.ResultsDisplay })));
 const GapAnalysisDisplay = lazy(() => import('./components/GapAnalysisDisplay').then(m => ({ default: m.GapAnalysisDisplay })));
@@ -32,19 +32,44 @@ function AppContent() {
   const [cv, setCv] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const jobDescriptionTracked = useRef(false);
 
   const { loading, result, gapResult, error, analyze, clearError } = useJobAnalysis();
 
-  const handleAnalyze = () => analyze(cv, jobDescription, resumeUrl);
+  const handleAnalyze = () => {
+    if (!canAnalyze || loading) return;
+
+    trackEvent('analyze_clicked', {
+      has_resume_url: Boolean(resumeUrl),
+      job_length: jobDescription.trim().length,
+      cv_length: cv.trim().length,
+    });
+
+    analyze(cv, jobDescription, resumeUrl);
+  };
 
   const canAnalyze = useMemo(
     () => (cv.trim().length >= 50 || resumeUrl !== null) && jobDescription.trim().length >= 50 && !loading,
     [cv, jobDescription, resumeUrl, loading]
   );
 
+  useEffect(() => {
+    trackEvent('page_view', {
+      page_path: window.location.pathname,
+      page_title: document.title,
+    });
+  }, []);
+
+  useEffect(() => {
+    const trimmed = jobDescription.trim();
+    if (!jobDescriptionTracked.current && trimmed.length >= 50) {
+      trackEvent('job_description_filled', { length: trimmed.length });
+      jobDescriptionTracked.current = true;
+    }
+  }, [jobDescription]);
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <SettingsToggle />
       <Header />
 
       <LoadingSpinner show={loading} overlay message={t('analyzingButton')} />

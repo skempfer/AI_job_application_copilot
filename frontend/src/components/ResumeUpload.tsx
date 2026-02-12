@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import { trackEvent } from '../lib/analytics';
 
 interface ResumeUploadProps {
   onUploadComplete?: (url: string) => void;
@@ -49,6 +50,11 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
 
       const url = data.fileUrl || data.fileName;
       setUploadedUrl(url);
+
+      trackEvent('cv_uploaded', {
+        file_size: file.size,
+        file_type: file.type,
+      });
       
       if (onUploadComplete && url) {
         onUploadComplete(url);

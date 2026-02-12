@@ -51,7 +51,7 @@ export const FEATURES = {
   i18n: true, // Internationalization (en, pt)
   themes: true, // Theme switching (light, dark)
   accessibility: true, // WCAG 2.1 AA compliance
-  analytics: false, // User analytics (disabled by default)
+  analytics: true, // User analytics (Firebase Analytics)
   beta: false, // Beta features
 };
 
