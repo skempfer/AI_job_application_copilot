@@ -1,7 +1,6 @@
 import { AIService } from './aiService';
 import type { AIServiceConfig } from '../types/analysis';
 
-// Mock Groq SDK
 jest.mock('groq-sdk', () => {
   return {
     __esModule: true,
@@ -29,7 +28,6 @@ describe('AIService', () => {
     jest.clearAllMocks();
     aiService = new AIService(config);
     
-    // Get mocked create function
     const Groq = require('groq-sdk').default;
     const groqInstance = new Groq();
     mockCreate = groqInstance.chat.completions.create as jest.Mock;
@@ -129,7 +127,6 @@ describe('AIService', () => {
             message: {
               content: JSON.stringify({
                 hardSkillsDetected: ['React'],
-                // Missing required fields
               }),
             },
           },

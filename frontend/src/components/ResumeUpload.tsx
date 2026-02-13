@@ -1,4 +1,7 @@
 import { useState, useRef } from 'react';
+import { useLanguage } from '../hooks/useLanguage';
+import { trackEvent } from '../lib/analytics';
+import './ResumeUpload.css';
 
 interface ResumeUploadProps {
   onUploadComplete?: (url: string) => void;
@@ -6,9 +9,10 @@ interface ResumeUploadProps {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploadProps) {
+  const { t } = useLanguage();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -18,10 +22,10 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
 
   const validateFile = (file: File): string | null => {
     if (file.type !== 'application/pdf') {
-      return 'Apenas arquivos PDF são permitidos';
+      return t('pdfOnlyError');
     }
     if (file.size > MAX_FILE_SIZE) {
-      return 'O arquivo deve ter no máximo 5MB';
+      return t('fileSizeError');
     }
     return null;
   };
@@ -40,22 +44,24 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
       });
 
       const data = await response.json();
-      console.log('📦 Resposta do servidor:', data);
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao fazer upload');
+        throw new Error(data.error || t('uploadError'));
       }
 
       const url = data.fileUrl || data.fileName;
-      console.log('✅ Upload bem-sucedido! URL:', url);
       setUploadedUrl(url);
+
+      trackEvent('cv_uploaded', {
+        file_size: file.size,
+        file_type: file.type,
+      });
       
       if (onUploadComplete && url) {
-        console.log('🔄 Propagando URL para componente pai:', url);
         onUploadComplete(url);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao fazer upload';
+      const errorMessage = err instanceof Error ? err.message : t('uploadError');
       setError(errorMessage);
       setSelectedFile(null);
       setUploadedUrl(null);
@@ -65,11 +71,9 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
   };
 
   const handleFileSelect = async (file: File) => {
-    console.log('📄 Arquivo selecionado:', file.name, file.size, file.type);
     
     const validationError = validateFile(file);
     if (validationError) {
-      console.error('❌ Erro de validação:', validationError);
       setError(validationError);
       setSelectedFile(null);
       return;
@@ -78,8 +82,6 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
     setSelectedFile(file);
     setError(null);
     
-    // Auto upload on selection
-    console.log('⬆️ Iniciando upload automático...');
     await uploadFile(file);
   };
 
@@ -129,28 +131,33 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-        CV Upload (Optional)
+    <div className="resume-upload">
+      <label className="resume-upload__label">
+        {t('cvUploadLabel')}
       </label>
       
-      {/* Drag & Drop Area */}
       <div
         onClick={handleClick}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
-          transition-all duration-200
-          ${isDragging 
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isUploading) {
+            e.preventDefault();
+            fileInputRef.current?.click();
           }
-          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : ''}
-          ${uploadedUrl ? 'bg-green-50 dark:bg-green-900/10 border-green-300 dark:border-green-700' : 'bg-gray-50 dark:bg-gray-800'}
-        `}
+        }}
+        role="button"
+        tabIndex={disabled || isUploading ? -1 : 0}
+        aria-label="Upload resume file, drag and drop or click to select"
+        aria-disabled={disabled || isUploading}
+        className={[
+          'resume-upload__dropzone',
+          isDragging ? 'resume-upload__dropzone--dragging' : 'resume-upload__dropzone--default',
+          (disabled || isUploading) ? 'resume-upload__dropzone--disabled' : '',
+          uploadedUrl ? 'resume-upload__dropzone--success' : '',
+        ].join(' ')}
       >
         <input
           ref={fileInputRef}
@@ -158,53 +165,51 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
           accept=".pdf,application/pdf"
           onChange={handleFileChange}
           disabled={disabled || isUploading}
-          className="hidden"
+          className="resume-upload__input"
         />
 
         {isUploading ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="resume-upload__uploading">
+            <div className="resume-upload__spinner-wrapper">
+              <div className="resume-upload__spinner"></div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
+            <p className="resume-upload__uploading-text">{t('uploadingText')}</p>
           </div>
         ) : uploadedUrl ? (
-          <div className="space-y-2">
-            <div className="text-green-600 dark:text-green-400 text-2xl">✓</div>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div className="resume-upload__success">
+            <div className="resume-upload__success-icon">✓</div>
+            <p className="resume-upload__success-filename">
               {selectedFile?.name}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Upload successful • Click to replace
+            <p className="resume-upload__success-text">
+              {t('uploadSuccess')}
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
-            <div className="text-gray-400 dark:text-gray-500 text-3xl">📄</div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium text-blue-600 dark:text-blue-400">Click to upload</span>
-              {' '}or drag and drop
+          <div className="resume-upload__default">
+            <div className="resume-upload__default-icon">📄</div>
+            <p className="resume-upload__default-text">
+              <span className="resume-upload__default-link">{t('clickToUpload')}</span>
+              {' '}{t('orDragDrop')}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              PDF only, max 5MB
+            <p className="resume-upload__default-hint">
+              {t('pdfOnlyMaxSize')}
             </p>
           </div>
         )}
       </div>
 
-      {/* Error Message */}
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400">
+        <div className="resume-upload__error">
+          <p className="resume-upload__error-text">
             {error}
           </p>
         </div>
       )}
 
-      {/* Info Note */}
       {!uploadedUrl && !error && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-          💡 Uploading your CV improves fit analysis accuracy.
+        <p className="resume-upload__info">
+          {t('uploadHint')}
         </p>
       )}
     </div>

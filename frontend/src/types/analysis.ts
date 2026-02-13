@@ -14,8 +14,28 @@ export interface AnalysisResult {
   gaps: string[];
   cvSuggestions: string[];
   recruiterMessage: string;
+  coverLetter: string;
   explanation?: ScoreExplanation;
   promptVersion?: string;
+}
+
+export interface StructuredCV {
+  skills: string[];
+  technologies: string[];
+  seniorityLevel: "junior" | "mid" | "senior" | "unknown";
+  yearsOfExperience: number | null;
+  languages: string[];
+  education: string[];
+  certifications: string[];
+  strengths: string[];
+}
+
+export interface GapAnalysisResult {
+  matchScore: number;
+  missingCriticalSkills: string[];
+  strongMatches: string[];
+  suggestedFocusAreas: string[];
+  structuredCV: StructuredCV;
 }
 
 export interface FormattedAnalysisResult extends AnalysisResult {
@@ -23,4 +43,5 @@ export interface FormattedAnalysisResult extends AnalysisResult {
   scoreBadgeClass: string;
   decisionText: string;
   decisionIcon: string;
+  detectedLanguage?: 'pt' | 'en';
 }

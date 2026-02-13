@@ -1,23 +1,22 @@
-/**
- * Cliente HTTP para comunicação com o backend
- * JavaScript puro, sem dependências
- */
+import { detectLanguage } from '../utils/languageDetection';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
- * Realiza análise de job fit via API
- * @param {string} cv - O currículo do candidato
- * @param {string} jobDescription - A descrição da vaga
- * @param {string|null} resumeUrl - URL do CV em PDF (opcional)
+ * Analyzes job fit via API
+ * @param {string} cv - Candidate's resume text
+ * @param {string} jobDescription - Job description
+ * @param {string|null} resumeUrl - PDF resume URL (optional)
  */
 export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
+  const detectedLanguage = detectLanguage(jobDescription);
+
   const payload = {
     cv: cv.trim(),
     jobDescription: jobDescription.trim(),
+    language: detectedLanguage,
   };
 
-  // Incluir resumeUrl se fornecido
   if (resumeUrl) {
     payload.resumeUrl = resumeUrl;
   }
@@ -32,14 +31,58 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+    const error = new Error(errorData.error || `HTTP Error: ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  const response_data = await response.json();
+  // Return detected language along with response
+  return {
+    ...response_data,
+    detectedLanguage
+  };
+}
+
+/**
+ * Analyzes gap via gap analysis endpoint
+ * @param {string} jobDescription - Job description
+ * @param {string} resumePath - Path to PDF resume
+ * @param {string} cv - CV text as fallback if resume unavailable
+ */
+export async function analyzeWithGap(jobDescription, resumePath = null, cv = null) {
+  const payload = {
+    jobDescription: jobDescription.trim(),
+  };
+
+  if (resumePath && resumePath.trim()) {
+    payload.resumePath = resumePath.trim();
+  } else if (cv && cv.trim()) {
+    payload.cv = cv.trim();
+  } else {
+    throw new Error('Resume path or CV is required for technical analysis');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/analyze-with-gap`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const error = new Error(errorData.error || `HTTP Error: ${response.status}`);
+    error.status = response.status;
+    throw error;
   }
 
   return response.json();
 }
 
 /**
- * Verifica se o backend está online
+ * Checks if backend is online
  */
 export async function checkHealth() {
   try {

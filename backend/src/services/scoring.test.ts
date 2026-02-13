@@ -18,6 +18,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test message',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -35,6 +36,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: ['Job hopping'],
         recruiterMessage: 'Not a fit',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -52,6 +54,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Good fit',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -70,6 +73,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const withFlags: AISignals = {
@@ -95,6 +99,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const score = calculateFitScore(signals);
@@ -113,6 +118,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const match: AISignals = { ...below, seniorityMatch: 'match' };
@@ -159,13 +165,14 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const explanation = generateExplanation(signals, 90);
 
       expect(explanation.positives.length).toBeGreaterThan(0);
-      expect(explanation.positives.some((p: string) => p.toLowerCase().includes('hard skills') || p.includes('skills técnicas'))).toBe(true);
-      expect(explanation.positives.some((p: string) => p.includes('requisito') || p.includes('Atende'))).toBe(true);
+      expect(explanation.positives.some((p: string) => p.toLowerCase().includes('hard skills'))).toBe(true);
+      expect(explanation.positives.some((p: string) => p.includes('Meets') || p.includes('mandatory'))).toBe(true);
     });
 
     it('should include negative points for missing requirements', () => {
@@ -179,17 +186,16 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: ['Job hopping'],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const explanation = generateExplanation(signals, 30);
 
       expect(explanation.negatives.length).toBeGreaterThan(0);
       expect(
-        explanation.negatives.some((n: string) => n.includes('requisito') || n.includes('Falta'))
+        explanation.negatives.some((n: string) => n.includes('Missing') || n.includes('mandatory'))
       ).toBe(true);
-      expect(explanation.negatives.some((n: string) => n.includes('problema') || n.includes('identificado'))).toBe(
-        true
-      );
+      expect(explanation.negatives.some((n: string) => n.includes('issue') || n.includes('identified'))).toBe(true);
     });
 
     it('should generate summary matching the score', () => {
@@ -203,6 +209,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'match',
         redFlags: [],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const lowScore: AISignals = {
@@ -215,6 +222,7 @@ describe('Scoring Service', () => {
         seniorityMatch: 'below',
         redFlags: ['Issues'],
         recruiterMessage: 'Test',
+        coverLetter: 'Test cover letter',
       };
 
       const highExplanation = generateExplanation(highScore, 85);

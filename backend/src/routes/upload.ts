@@ -4,13 +4,11 @@ import path from "path";
 import fs from "fs";
 import { uploadResumeToFirebase, cleanupLocalFile } from "../services/storageService.js";
 
-// Criar diretório de uploads se não existir
 const uploadDir = path.join(process.cwd(), "tmp", "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configurar multer para armazenamento local temporário
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, uploadDir);
@@ -22,21 +20,19 @@ const storage = multer.diskStorage({
   },
 });
 
-// Filtro para aceitar apenas PDFs
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   if (file.mimetype === "application/pdf") {
     cb(null, true);
   } else {
-    cb(new Error("Apenas arquivos PDF são permitidos"));
+    cb(new Error("Only PDF files are allowed"));
   }
 };
 
-// Configurar multer com limite de 5MB
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB em bytes
+    fileSize: 5 * 1024 * 1024, 
   },
 });
 
@@ -45,48 +41,37 @@ export function createUploadRouter(): Router {
 
   router.post("/", upload.single("resume"), async (req: Request, res: Response) => {
     try {
-      // Verificar se arquivo foi enviado
       if (!req.file) {
-        res.status(400).json({ error: "Nenhum arquivo foi enviado" });
+        res.status(400).json({ error: "No file was uploaded" });
         return;
       }
 
-      // Validação adicional de tipo de arquivo pela extensão
       const fileExtension = path.extname(req.file.originalname).toLowerCase();
       if (fileExtension !== ".pdf") {
-        // Remover arquivo inválido
         fs.unlinkSync(req.file.path);
-        res.status(400).json({ error: "Apenas arquivos PDF são permitidos" });
+        res.status(400).json({ error: "Only PDF files are allowed" });
         return;
       }
 
-      // Verificar se Firebase Storage está habilitado
       const useFirebaseStorage = process.env.USE_FIREBASE_STORAGE === "true";
 
       if (useFirebaseStorage) {
-        // PHASE 2: Upload para Firebase Storage
         try {
-          // Gerar userId (pode ser obtido de autenticação no futuro)
           const userId = req.body.userId || "anonymous";
 
-          // Fazer upload para Firebase
           const fileUrl = await uploadResumeToFirebase(req.file.path, userId);
 
-          // Remover arquivo local temporário
           await cleanupLocalFile(req.file.path);
 
-          // Retornar URL do Firebase
           res.json({
             success: true,
             fileUrl,
           });
         } catch (firebaseError) {
-          // Em caso de erro no Firebase, remover arquivo local
           await cleanupLocalFile(req.file.path);
           throw firebaseError;
         }
       } else {
-        // PHASE 1: Armazenamento local temporário
         res.json({
           success: true,
           fileName: req.file.filename,
@@ -94,15 +79,15 @@ export function createUploadRouter(): Router {
         });
       }
     } catch (error) {
-      console.error("Erro ao fazer upload:", error);
+      console.error("Error uploading file:", error);
 
       if (error instanceof Error) {
         res.status(500).json({
-          error: "Erro ao processar upload",
+          error: "Error processing upload",
           details: error.message,
         });
       } else {
-        res.status(500).json({ error: "Erro desconhecido ao processar upload" });
+        res.status(500).json({ error: "Unknown error while processing upload" });
       }
     }
   });

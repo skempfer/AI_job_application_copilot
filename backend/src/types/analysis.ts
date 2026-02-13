@@ -1,5 +1,5 @@
 /**
- * Tipos centrais do domínio de análise de job fit
+ * Core types for the job fit analysis domain
  */
 
 export type Decision = "apply" | "apply_with_fixes" | "skip";
@@ -7,45 +7,78 @@ export type Decision = "apply" | "apply_with_fixes" | "skip";
 export interface AnalysisRequest {
   cv: string;
   jobDescription: string;
+  language?: "pt" | "en";
 }
 
 /**
- * Sinais extraídos pela IA (sem cálculo de score)
- * A IA apenas identifica e classifica skills/requisitos
+ * Signals extracted by the AI (no score calculation)
+ * The AI only identifies and classifies skills/requirements
  */
 export interface AISignals {
-  hardSkillsDetected: string[]; // Skills técnicas encontradas no CV
-  softSkillsEvidence: string[]; // Evidências de soft skills
-  mandatoryRequirementsMet: string[]; // Requisitos obrigatórios atendidos
-  mandatoryRequirementsMissing: string[]; // Requisitos obrigatórios faltando
-  desirableRequirementsMet: string[]; // Diferenciais atendidos
-  desirableRequirementsMissing: string[]; // Diferenciais faltando
-  seniorityMatch: "above" | "match" | "below"; // Senioridade do candidato vs vaga
-  redFlags: string[]; // Problemas graves identificados
-  recruiterMessage: string; // Mensagem personalizada
+  hardSkillsDetected: string[];
+  softSkillsEvidence: string[]; 
+  mandatoryRequirementsMet: string[];
+  mandatoryRequirementsMissing: string[]; 
+  desirableRequirementsMet: string[]; 
+  desirableRequirementsMissing: string[]; 
+  seniorityMatch: "above" | "match" | "below"; 
+  redFlags: string[]; 
+  recruiterMessage: string; 
+  coverLetter: string; 
 }
 
 /**
- * Explicação detalhada do score calculado
+ * Detailed explanation of the calculated score
  */
 export interface ScoreExplanation {
-  positives: string[]; // Fatores que aumentaram o score
-  negatives: string[]; // Fatores que reduziram o score
-  summary: string; // Resumo em uma frase
+  positives: string[]; 
+  negatives: string[]; 
+  summary: string; 
 }
 
 /**
- * Resultado final da análise (híbrido: IA + cálculo determinístico)
+ * Final analysis result (hybrid: AI + deterministic calculation)
  */
 export interface AnalysisResult {
-  fitScore: number; // 0-100 (calculado por função determinística)
-  decision: Decision; // Baseado no fitScore
-  strengths: string[]; // Pontos fortes do candidato
-  gaps: string[]; // Gaps a endereçar
-  cvSuggestions: string[]; // Sugestões de ajustes
-  recruiterMessage: string; // Mensagem personalizada
-  explanation: ScoreExplanation; // NOVO: explica como o score foi calculado
-  promptVersion: string; // NOVO: versão do prompt usado
+  fitScore: number; 
+  decision: Decision;
+  strengths: string[]; 
+  gaps: string[]; 
+  cvSuggestions: string[]; 
+  recruiterMessage: string; 
+  coverLetter: string; 
+  explanation: ScoreExplanation; 
+  promptVersion: string;
+  detectedLanguage?: 'pt' | 'en';
+}
+
+export interface StructuredCV {
+  skills: string[];
+  technologies: string[];
+  seniorityLevel: "junior" | "mid" | "senior" | "unknown";
+  yearsOfExperience: number | null;
+  languages: string[];
+  education: string[];
+  certifications: string[];
+  strengths: string[];
+}
+
+export interface JobRequirements {
+  skills: string[];
+  technologies: string[];
+}
+
+export interface GapAnalysisRequest {
+  jobDescription: string;
+  resumePath: string;
+}
+
+export interface GapAnalysisResult {
+  matchScore: number;
+  missingCriticalSkills: string[];
+  strongMatches: string[];
+  suggestedFocusAreas: string[];
+  structuredCV?: StructuredCV;
 }
 
 export interface AIServiceConfig {

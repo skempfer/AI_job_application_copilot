@@ -1,4 +1,6 @@
+import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import './CVInput.css';
 
 interface CVInputProps {
   value: string;
@@ -6,12 +8,12 @@ interface CVInputProps {
   disabled?: boolean;
 }
 
-export function CVInput({ value, onChange, disabled = false }: CVInputProps) {
+export const CVInput = memo<CVInputProps>(({ value, onChange, disabled = false }) => {
   const { t } = useLanguage();
 
   return (
-    <div className="space-y-2">
-      <label htmlFor="cv-input" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+    <div className="cv-input">
+      <label htmlFor="cv-input" className="cv-input__label">
         {t('cvLabel')}
       </label>
       <textarea
@@ -22,10 +24,14 @@ export function CVInput({ value, onChange, disabled = false }: CVInputProps) {
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         placeholder={t('cvPlaceholder')}
+        aria-label={t('cvLabel')}
+        aria-required="true"
       />
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="cv-input__char-count">
         {value.trim().length} {t('characters')}
       </p>
     </div>
   );
-}
+});
+
+CVInput.displayName = 'CVInput';

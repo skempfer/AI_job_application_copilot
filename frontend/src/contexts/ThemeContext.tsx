@@ -84,13 +84,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       }
     };
 
-    // Modern API: addEventListener
-    if (darkModeQuery.addEventListener) {
-      darkModeQuery.addEventListener('change', handleChange);
-      return () => {
-        darkModeQuery.removeEventListener('change', handleChange);
-      };
-    }
+    // Always set up listener and cleanup
+    darkModeQuery.addEventListener('change', handleChange);
+    return () => {
+      darkModeQuery.removeEventListener('change', handleChange);
+    };
   }, []);
 
   // Apply theme to DOM

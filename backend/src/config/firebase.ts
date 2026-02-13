@@ -13,7 +13,7 @@ export function initializeFirebase(): void {
     
     if (!serviceAccountKey) {
       throw new Error(
-        "FIREBASE_SERVICE_ACCOUNT não está definida nas variáveis de ambiente"
+        "FIREBASE_SERVICE_ACCOUNT is not defined in environment variables"
       );
     }
 
@@ -26,19 +26,19 @@ export function initializeFirebase(): void {
     });
 
     firebaseInitialized = true;
-    console.log("✅ Firebase Admin SDK inicializado com sucesso");
+    console.log("✅ Firebase Admin SDK initialized successfully");
     if (process.env.FIREBASE_DATABASE_URL) {
-      console.log("✅ Realtime Database conectado:", process.env.FIREBASE_DATABASE_URL);
+      console.log("✅ Realtime Database connected:", process.env.FIREBASE_DATABASE_URL);
     }
   } catch (error) {
-    console.error("❌ Erro ao inicializar Firebase Admin SDK:", error);
+    console.error("❌ Error initializing Firebase Admin SDK:", error);
     throw error;
   }
 }
 
 export function getStorageBucket() {
   if (!firebaseInitialized) {
-    throw new Error("Firebase não foi inicializado. Chame initializeFirebase() primeiro");
+    throw new Error("Firebase has not been initialized. Call initializeFirebase() first");
   }
 
   return admin.storage().bucket();
@@ -51,7 +51,7 @@ export function getFirebaseAdmin() {
 
 export function getDatabase() {
   if (!firebaseInitialized) {
-    throw new Error("Firebase não foi inicializado. Chame initializeFirebase() primeiro");
+    throw new Error("Firebase has not been initialized. Call initializeFirebase() first");
   }
 
   return admin.database();

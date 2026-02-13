@@ -3,9 +3,9 @@ import {
   validateCV,
   validateJobDescription,
   formatAnalysisResult,
-  getScoreColor,
   getDecisionText,
 } from './analyzer';
+import { getScoreColor, getScoreBadgeClass } from '../utils/scoreHelpers';
 
 describe('Analyzer Domain Layer', () => {
   describe('validateCV', () => {
@@ -30,7 +30,7 @@ describe('Analyzer Domain Layer', () => {
     it('should return invalid for very short CV', () => {
       const result = validateCV('Hi');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('CV muito curto');
+      expect(result.error).toContain('CV too short');
     });
   });
 
@@ -52,7 +52,7 @@ describe('Analyzer Domain Layer', () => {
     it('should return invalid for very short job description', () => {
       const result = validateJobDescription('Dev');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('Descrição muito curta');
+      expect(result.error).toContain('Job description too short');
     });
   });
 
@@ -84,19 +84,19 @@ describe('Analyzer Domain Layer', () => {
   describe('getDecisionText', () => {
     it('should return correct text for "apply" decision', () => {
       const text = getDecisionText('apply');
-      expect(text).toContain('Aplique');
-      expect(text.toLowerCase()).toContain('vaga');
+      expect(text).toContain('Apply');
+      expect(text.toLowerCase()).toContain('job');
     });
 
     it('should return correct text for "apply_with_fixes" decision', () => {
       const text = getDecisionText('apply_with_fixes');
-      expect(text).toContain('Aplique');
-      expect(text.toLowerCase()).toContain('ajuste');
+      expect(text).toContain('Apply');
+      expect(text.toLowerCase()).toContain('adjust');
     });
 
     it('should return correct text for "skip" decision', () => {
       const text = getDecisionText('skip');
-      expect(text).toContain('Pule');
+      expect(text).toContain('Skip');
     });
   });
 

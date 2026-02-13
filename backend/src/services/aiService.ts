@@ -1,19 +1,21 @@
 import OpenAI from "openai";
 import type { AnalysisResult, AIServiceConfig, AISignals } from "../types/analysis.js";
 import { calculateFitScore, generateExplanation, determineDecision } from "./scoring.js";
+import { preprocessCV, preprocessJobDescription } from "./preprocessing.js";
+import { buildOptimizedPrompt } from "./promptBuilder.js";
 
 /**
- * Versão do prompt (atualizar quando houver mudanças significativas)
+ * Prompt version
+ * (Now defined in promptBuilder.ts as PROMPT_VERSION = "v2.0-optimized")
  */
-const PROMPT_VERSION = "v1.1";
 
 /**
- * Serviço de IA usando Groq (API compatível com OpenAI)
- * Groq fornece acesso grátis aos modelos Llama com velocidade ultra-rápida
- * 
- * ARQUITETURA HÍBRIDA:
- * - IA: extrai sinais e classifica requisitos
- * - Código: calcula score final de forma determinística
+ * AI service using Groq (OpenAI-compatible API)
+ * Groq provides free access to Llama models with ultra-fast speed
+ *
+ * HYBRID ARCHITECTURE:
+ * - AI: extracts signals and classifies requirements
+ * - Code: calculates the final score deterministically
  */
 export class AIService {
   private client: OpenAI;
@@ -28,72 +30,29 @@ export class AIService {
   }
 
   /**
-   * Prompt engineering V1.1 - Focado em extrair sinais estruturados
-   * 
-   * MUDANÇA: IA não calcula score, apenas identifica e classifica
-   * Score é calculado deterministicamente pelo código
+   * Analyze candidate fit using structured preprocessing
+   *
+   * NEW FLOW (v2.0):
+   * 1. Preprocess CV (remove personal data, normalize, extract structure)
+   * 2. Preprocess Job Description (remove marketing, extract requirements)
+   * 3. Build optimized prompt with structured data
+   * 4. Send to AI (far fewer tokens)
+   * 5. Extract signals and compute score
    */
-  private buildPrompt(cv: string, jobDescription: string): string {
-    return `Você é um senior tech recruiter experiente. Analise objetivamente o CV do candidato e a vaga.
+  async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
+    const processedCV = preprocessCV(cv);
 
-**VERSÃO DO PROMPT:** ${PROMPT_VERSION}
+    const processedJob = preprocessJobDescription(jobDescription);
 
-**SUA TAREFA:** Extrair sinais estruturados (NÃO calcular score).
-
-**CV DO CANDIDATO:**
-${cv}
-
-**DESCRIÇÃO DA VAGA:**
-${jobDescription}
-
-**SINAIS A EXTRAIR:**
-
-1. **hardSkillsDetected**: Lista de hard skills técnicas do CV que são relevantes para a vaga
-2. **softSkillsDetected**: Lista de soft skills identificadas (liderança, comunicação, etc.)
-3. **mandatoryRequirementsMet**: Requisitos obrigatórios da vaga que o candidato atende
-4. **mandatoryRequirementsMissing**: Requisitos obrigatórios que o candidato NÃO atende
-5. **desirableRequirementsMet**: Diferenciais/requisitos desejáveis que o candidato possui
-6. **desirableRequirementsMissing**: Diferenciais que o candidato não possui
-7. **seniorityMatch**: "above" (overqualified), "match" (perfeito) ou "below" (underqualified)
-8. **redFlags**: Problemas graves (ex: falta experiência mínima, skill crítica ausente, etc.)
-9. **recruiterMessage**: Mensagem personalizada em 2-3 frases para enviar ao recrutador
-
-**CRITÉRIOS:**
-- Seja OBJETIVO ao classificar hard skills vs soft skills
-- Diferencie claramente requisitos obrigatórios vs desejáveis
-- Red flags devem ser problemas GRAVES, não pequenos gaps
-- Mensagem ao recrutador deve ser profissional e específica
-
-**IMPORTANTE:** 
-- Retorne APENAS JSON válido (sem markdown)
-- NÃO calcule fitScore nem decision (o código fará isso)
-- NÃO invente skills que não estão no CV
-
-**FORMATO DE RESPOSTA:**
-{
-  "hardSkillsDetected": ["skill1", "skill2", ...],
-  "softSkillsEvidence": ["evidência1", "evidência2", ...],
-  "mandatoryRequirementsMet": ["req1", "req2", ...],
-  "mandatoryRequirementsMissing": ["req1", "req2", ...],
-  "desirableRequirementsMet": ["req1", "req2", ...],
-  "desirableRequirementsMissing": ["req1", "req2", ...],
-  "seniorityMatch": "match"|"above"|"below",
-  "redFlags": ["flag1", "flag2", ...],
-  "recruiterMessage": "mensagem curta e humana"
-}`;
-  }
-
-  async analyzeJobFit(cv: string, jobDescription: string): Promise<AnalysisResult> {
-    const prompt = this.buildPrompt(cv, jobDescription);
+    const prompt = buildOptimizedPrompt(processedCV, processedJob, language);
 
     try {
-      // 1️⃣ IA extrai sinais estruturados
       const completion = await this.client.chat.completions.create({
         model: this.model,
         messages: [
           {
             role: "system",
-            content: "Você é um assistente que retorna APENAS JSON válido, sem markdown ou texto adicional.",
+            content: "You are an assistant that returns ONLY valid JSON, with no markdown or extra text.",
           },
           {
             role: "user",
@@ -106,87 +65,83 @@ ${jobDescription}
 
       const content = completion.choices[0]?.message?.content;
       if (!content) {
-        throw new Error("AI retornou resposta vazia");
+        throw new Error("AI returned an empty response");
       }
 
-      // Parse JSON da IA
       const cleanJson = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       const signals = JSON.parse(cleanJson) as AISignals;
 
-      // Validar sinais da IA
       this.validateSignals(signals);
 
-      // 2️⃣ Código calcula score de forma determinística
       const fitScore = calculateFitScore(signals);
       
-      // 3️⃣ Gerar explicação do score
       const explanation = generateExplanation(signals, fitScore);
       
-      // 4️⃣ Determinar decisão baseada no score
       const decision = determineDecision(fitScore);
 
-      // 5️⃣ Montar resultado final
       const result: AnalysisResult = {
         fitScore,
         decision,
         strengths: [
           ...signals.hardSkillsDetected.map(s => `Hard skill: ${s}`),
-          ...signals.mandatoryRequirementsMet.map(r => `Requisito atendido: ${r}`),
-          ...signals.desirableRequirementsMet.map(d => `Diferencial: ${d}`),
+          ...signals.mandatoryRequirementsMet.map(r => `Requirement met: ${r}`),
+          ...signals.desirableRequirementsMet.map(d => `Bonus qualification: ${d}`),
         ],
         gaps: [
-          ...signals.mandatoryRequirementsMissing.map(r => `Requisito faltando: ${r}`),
-          ...signals.desirableRequirementsMissing.map(d => `Diferencial ausente: ${d}`),
+          ...signals.mandatoryRequirementsMissing.map(r => `Missing requirement: ${r}`),
+          ...signals.desirableRequirementsMissing.map(d => `Missing bonus qualification: ${d}`),
           ...signals.redFlags,
         ],
         cvSuggestions: this.generateCVSuggestions(signals),
         recruiterMessage: signals.recruiterMessage,
+        coverLetter: signals.coverLetter,
         explanation,
-        promptVersion: PROMPT_VERSION,
+        promptVersion: "v2.0-optimized",
+        detectedLanguage: language,
       };
 
       return result;
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new Error(`Falha ao parsear resposta da IA: ${error.message}`);
+        throw new Error(`Failed to parse AI response: ${error.message}`);
       }
       throw error;
     }
   }
 
   /**
-   * Gera sugestões de ajustes no CV baseado nos sinais
+   * Generate CV improvement suggestions based on signals
    */
   private generateCVSuggestions(signals: AISignals): string[] {
     const suggestions: string[] = [];
 
     if (signals.mandatoryRequirementsMissing.length > 0) {
       suggestions.push(
-        `Destaque experiências relacionadas a: ${signals.mandatoryRequirementsMissing.slice(0, 2).join(', ')}`
+        `Highlight experience related to: ${signals.mandatoryRequirementsMissing.slice(0, 2).join(', ')}`
       );
     }
 
     if (signals.hardSkillsDetected.length < 3) {
-      suggestions.push('Adicione mais detalhes sobre suas habilidades técnicas');
+      suggestions.push('Add more detail about your technical skills');
     }
 
     if (signals.seniorityMatch === 'below') {
-      suggestions.push('Enfatize projetos complexos e liderança técnica para demonstrar senioridade');
+      suggestions.push('Emphasize complex projects and technical leadership to demonstrate seniority');
     }
 
     if (signals.desirableRequirementsMissing.length > 0 && signals.desirableRequirementsMet.length > 0) {
-      suggestions.push('Destaque seus diferenciais no topo do CV');
+      suggestions.push('Highlight your bonus qualifications near the top of the CV');
     }
 
     if (suggestions.length === 0) {
-      suggestions.push('Seu CV está bem alinhado. Apenas revise formatação e clareza.');
+      suggestions.push('Your CV is well aligned. Just review formatting and clarity.');
     }
 
     return suggestions;
   }
 
   /**
-   * Valida os sinais extraídos pela IA
+  * Validate signals extracted by the AI
    */
   private validateSignals(signals: any): asserts signals is AISignals {
     const required = [
@@ -198,16 +153,16 @@ ${jobDescription}
       "softSkillsEvidence",
       "seniorityMatch",
       "redFlags",
-      "recruiterMessage"
+      "recruiterMessage",
+      "coverLetter"
     ];
     
     const missing = required.filter((field) => !(field in signals));
 
     if (missing.length > 0) {
-      throw new Error(`Resposta da IA inválida. Campos faltando: ${missing.join(", ")}`);
+      throw new Error(`Invalid AI response. Missing fields: ${missing.join(", ")}`);
     }
 
-    // Valida arrays
     const arrayFields = [
       "hardSkillsDetected",
       "mandatoryRequirementsMet",
@@ -220,18 +175,20 @@ ${jobDescription}
 
     for (const field of arrayFields) {
       if (!Array.isArray(signals[field])) {
-        throw new Error(`${field} deve ser um array`);
+        throw new Error(`${field} must be an array`);
       }
     }
 
-    // Valida seniorityMatch
     if (!["below", "match", "above"].includes(signals.seniorityMatch)) {
-      throw new Error("seniorityMatch deve ser 'below', 'match' ou 'above'");
+      throw new Error("seniorityMatch must be 'below', 'match', or 'above'");
     }
 
-    // Valida recruiterMessage
     if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
-      throw new Error("recruiterMessage deve ser uma string não vazia");
+      throw new Error("recruiterMessage must be a non-empty string");
+    }
+
+    if (typeof signals.coverLetter !== "string" || signals.coverLetter.length === 0) {
+      throw new Error("coverLetter must be a non-empty string");
     }
   }
 }

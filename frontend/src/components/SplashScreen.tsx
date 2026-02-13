@@ -27,7 +27,7 @@ export function SplashScreen({
   if (!show) return null;
 
   return (
-    <div className="splash-screen">
+    <div className="splash-screen" role="status" aria-label={message || 'Loading application'}>
       {/* Fade out animation after duration */}
       {duration > 0 && (
         <style>{`

@@ -1,21 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useLanguage } from './hooks/useLanguage';
+import { useJobAnalysis } from './hooks/useJobAnalysis';
 import { CVInput } from './components/CVInput';
 import { JobInput } from './components/JobInput';
 import { ResumeUpload } from './components/ResumeUpload';
 import { AnalyzeButton } from './components/AnalyzeButton';
-import { ResultsDisplay } from './components/ResultsDisplay';
 import { ErrorDisplay } from './components/ErrorDisplay';
+import { ResultsLoadingFallback } from './components/ResultsLoadingFallback';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { SplashScreen } from './components/SplashScreen';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { SettingsToggle } from './components/SettingsToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { analyzeJobFit } from './domain/apiClient';
-import { validateInputs, formatAnalysisResult } from './domain/analyzer';
-import type { AnalysisResult, FormattedAnalysisResult } from './types/analysis';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
+import { trackEvent } from './lib/analytics';
+import './App.css';
+
+const ResultsDisplay = lazy(() => import('./components/ResultsDisplay').then(m => ({ default: m.ResultsDisplay })));
+const GapAnalysisDisplay = lazy(() => import('./components/GapAnalysisDisplay').then(m => ({ default: m.GapAnalysisDisplay })));
+const ConsolidatedAnalysis = lazy(() => import('./components/ConsolidatedAnalysis').then(m => ({ default: m.ConsolidatedAnalysis })));
+const CoverLetterDisplay = lazy(() => import('./components/CoverLetterDisplay').then(m => ({ default: m.CoverLetterDisplay })));
 
 /**
  * AppContent - Main application content
@@ -26,85 +33,87 @@ function AppContent() {
   const [cv, setCv] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const jobDescriptionTracked = useRef(false);
 
-  // Log quando resumeUrl muda
-  const handleResumeUrlChange = (url: string) => {
-    console.log('🎯 Resume URL recebida no App:', url);
-    setResumeUrl(url);
-  };
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<FormattedAnalysisResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { loading, result, gapResult, error, analyze, clearError } = useJobAnalysis();
 
-  const handleAnalyze = async () => {
-    // Limpar estado anterior
-    setResult(null);
-    setError(null);
+  const handleAnalyze = () => {
+    if (!canAnalyze || loading) return;
 
-    // Validar inputs usando lógica de domínio
-    const validation = validateInputs(cv, jobDescription, resumeUrl);
-    if (!validation.valid) {
-      setError(validation.error || 'Erro de validação');
-      return;
-    }
+    trackEvent('analyze_clicked', {
+      has_resume_url: Boolean(resumeUrl),
+      job_length: jobDescription.trim().length,
+      cv_length: cv.trim().length,
+    });
 
-    setLoading(true);
-
-    try {
-      console.log('🚀 Iniciando análise com:', { 
-        cvLength: cv.length, 
-        jobDescriptionLength: jobDescription.length, 
-        resumeUrl 
-      });
-      const analysisResult: AnalysisResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
-      const formatted = formatAnalysisResult(analysisResult);
-      setResult(formatted);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao analisar';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    analyze(cv, jobDescription, resumeUrl);
   };
 
-  const canAnalyze = (cv.trim().length >= 50 || resumeUrl !== null) && jobDescription.trim().length >= 50 && !loading;
+  const canAnalyze = useMemo(
+    () => (cv.trim().length >= 50 || resumeUrl !== null) && jobDescription.trim().length >= 50 && !loading,
+    [cv, jobDescription, resumeUrl, loading]
+  );
+
+  useEffect(() => {
+    trackEvent('page_view', {
+      page_path: window.location.pathname,
+      page_title: document.title,
+    });
+  }, []);
+
+  useEffect(() => {
+    const trimmed = jobDescription.trim();
+    if (!jobDescriptionTracked.current && trimmed.length >= 50) {
+      trackEvent('job_description_filled', { length: trimmed.length });
+      jobDescriptionTracked.current = true;
+    }
+  }, [jobDescription]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <SettingsToggle />
+    <div className="app-shell">
       <Header />
 
-      {/* Loading Spinner Overlay */}
       <LoadingSpinner show={loading} overlay message={t('analyzingButton')} />
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className="space-y-6">
-          {/* Resume Upload - Optional Feature */}
-          <ResumeUpload onUploadComplete={handleResumeUrlChange} disabled={loading} />
+      <main className="app-main">
+        <div className="app-content">
+          <ResumeUpload onUploadComplete={setResumeUrl} disabled={loading} />
 
-          {/* Inputs */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="app-input-grid">
             <CVInput value={cv} onChange={setCv} disabled={loading} />
             <JobInput value={jobDescription} onChange={setJobDescription} disabled={loading} />
           </div>
 
-          {/* Botão Analyze */}
           <AnalyzeButton onClick={handleAnalyze} disabled={!canAnalyze} loading={loading} />
 
-          {/* Error Display */}
-          {error && <ErrorDisplay message={error} onDismiss={() => setError(null)} />}
+          {error && <ErrorDisplay message={error} onDismiss={clearError} />}
 
-          {/* Results */}
-          {result && <ResultsDisplay result={result} />}
+          <Suspense fallback={<ResultsLoadingFallback />}>
+            {result && gapResult && (
+              <div className="app-results-grid">
+                <div>
+                  <ResultsDisplay result={result} />
+                </div>
+                <div className="app-results-side">
+                  <GapAnalysisDisplay result={gapResult} />
+                </div>
+              </div>
+            )}
+            {result && !gapResult && <ResultsDisplay result={result} />}
+            {gapResult && !result && <GapAnalysisDisplay result={gapResult} />}
+            
+            {result && gapResult && <ConsolidatedAnalysis result={result} gapResult={gapResult} />}
 
-          {/* Empty State */}
+            {result && <CoverLetterDisplay coverLetter={result.coverLetter} detectedLanguage={result.detectedLanguage} />}
+          </Suspense>
+
           {!result && !error && !loading && (
-            <div className="card text-center py-12">
-              <span className="text-6xl mb-4 block">📋</span>
-              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <div className="card app-empty-state">
+              <span className="app-empty-icon">📋</span>
+              <h2 className="app-empty-title">
                 {t('readyToStart')}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="app-empty-text">
                 {t('emptyStateText')}
               </p>
             </div>
@@ -120,27 +129,49 @@ function AppContent() {
 /**
  * App - Root component with providers
  * Wraps AppContent with ThemeProvider and LanguageProvider
- * Shows splash screen on first load
+ * Shows splash screen only on first load (per session)
  */
-function App() {
-  const [showSplash, setShowSplash] = useState(true);
+function AppWithSplash() {
+  const [showSplash, setShowSplash] = useState(() => {
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    return !hasSeenSplash;
+  });
+  const { t } = useLanguage();
 
   useEffect(() => {
-    // Show splash screen for 4 seconds on app load
-    const timer = setTimeout(() => setShowSplash(false), 4000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (showSplash) {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        sessionStorage.setItem('hasSeenSplash', 'true');
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
 
+  return (
+    <>
+      <SplashScreen
+        show={showSplash}
+        message="Viora"
+        subtitle={t('appTagline')}
+        duration={4000}
+      />
+      {!showSplash && <AppContent />}
+    </>
+  );
+}
+
+function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <SplashScreen
-          show={showSplash}
-          message="Viora"
-          subtitle="Clarity for smarter career decisions"
-          duration={4000}
-        />
-        {!showSplash && <AppContent />}
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<AppWithSplash />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+          </Routes>
+        </BrowserRouter>
       </LanguageProvider>
     </ThemeProvider>
   );

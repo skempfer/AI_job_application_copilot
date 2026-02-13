@@ -1,0 +1,58 @@
+.terms-page {
+  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+}
+
+.terms-container {
+  @apply max-w-4xl mx-auto px-4 py-12;
+}
+
+.terms-back-link {
+  @apply inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline mb-8;
+}
+
+.terms-back-icon {
+  @apply w-4 h-4;
+}
+
+.terms-header {
+  @apply mb-12;
+}
+
+.terms-title {
+  @apply text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4;
+}
+
+.terms-updated {
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+.terms-content {
+  @apply max-w-none;
+}
+
+.terms-section {
+  @apply mb-10;
+}
+
+.terms-section-title {
+  @apply text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4;
+}
+
+.terms-section-text {
+  @apply text-gray-700 dark:text-gray-300 leading-relaxed mb-4;
+}
+
+.terms-section-list {
+  @apply list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4;
+}
+
+.terms-section-item {
+}
+
+.terms-contact-label {
+  @apply font-semibold;
+}
+
+.terms-email-link {
+  @apply text-blue-600 dark:text-blue-400 hover:underline;
+}

@@ -127,14 +127,13 @@ Letting the AI calculate `fitScore` directly caused:
 
 **Algorithm weights:**
 ```typescript
-// backend/src/services/scoring.ts
 const WEIGHTS = {
-  hardSkills: 0.35,        // 35% of score
-  mandatoryRequirements: 0.30,  // 30%
-  seniority: 0.15,              // 15%
-  desirableRequirements: 0.10,   // 10%
-  softSkills: 0.05,             // 5%
-  redFlagsPenalty: -0.05,       // -5% penalty
+  hardSkills: 0.35,        
+  mandatoryRequirements: 0.30,  
+  seniority: 0.15,             
+  desirableRequirements: 0.10,  
+  softSkills: 0.05,            
+  redFlagsPenalty: -0.05,     
 };
 ```
 
