@@ -5,6 +5,9 @@
     "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"],
     "runtime": "nodejs20"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "public": "frontend/dist",
     "ignore": [

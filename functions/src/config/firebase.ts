@@ -13,7 +13,7 @@ export function initializeFirebaseAdmin(): void {
   try {
     admin.initializeApp({
       databaseURL: "https://viora-cv-uploads-default-rtdb.firebaseio.com",
-      storageBucket: "viora-cv-uploads.appspot.com",
+      storageBucket: "viora-cv-uploads.firebasestorage.app",
     });
 
     firebaseInitialized = true;
