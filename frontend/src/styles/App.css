@@ -52,16 +52,16 @@
 
 .app-results-grid {
   @apply grid md:grid-cols-2 gap-6;
-  border-left: 1px solid #e2e8f0;
-  transition: border-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-:root[data-theme="dark"] .app-results-grid {
-  border-left-color: #374151;
 }
 
 .app-results-side {
   @apply md:pl-6;
+  border-left: 1px solid #e2e8f0;
+  transition: border-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root[data-theme="dark"] .app-results-side {
+  border-left-color: #374151;
 }
 
 .app-empty-state {

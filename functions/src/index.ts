@@ -1,4 +1,3 @@
-// Load environment variables from .env.local (for local testing)
 import dotenv from "dotenv";
 import path from "path";
 
@@ -49,7 +48,7 @@ app.get("/api/health", (_req, res) => {
     status: "ok", 
     timestamp: new Date().toISOString(),
     environment: "firebase-functions",
-    version: "1.0.0"
+    version: "1.0.1"
   });
 });
 

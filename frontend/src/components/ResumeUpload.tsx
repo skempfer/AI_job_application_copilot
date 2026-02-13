@@ -49,16 +49,19 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         throw new Error(data.error || t('uploadError'));
       }
 
-      const url = data.fileUrl || data.fileName;
-      setUploadedUrl(url);
+      if (!data.fileUrl) {
+        throw new Error('Upload succeeded but no file URL returned');
+      }
+
+      setUploadedUrl(data.fileUrl);
 
       trackEvent('cv_uploaded', {
         file_size: file.size,
         file_type: file.type,
       });
       
-      if (onUploadComplete && url) {
-        onUploadComplete(url);
+      if (onUploadComplete) {
+        onUploadComplete(data.fileUrl);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t('uploadError');

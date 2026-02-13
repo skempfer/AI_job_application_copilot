@@ -109,7 +109,9 @@ export function createUploadRouter(): Router {
         try {
           const userId = fields.userId || "anonymous";
 
+          console.log("📤 Uploading to Firebase Storage...", { userId, filePath });
           const fileUrl = await uploadResumeToFirebase(filePath, userId);
+          console.log("✅ Upload successful, URL:", fileUrl);
 
           await cleanupLocalFile(filePath);
 
@@ -118,6 +120,7 @@ export function createUploadRouter(): Router {
             fileUrl,
           });
         } catch (firebaseError) {
+          console.error("❌ Firebase Storage upload failed:", firebaseError);
           await cleanupLocalFile(filePath);
           throw firebaseError;
         }
