@@ -1,244 +1,261 @@
-# Viora — Clarity for Smarter Career Decisions
+# 🚀 Viora — Intelligent Career Decision Engine
 
-## Overview
+## Clarity Before Application. Strategy Before Action.
 
-Applying for jobs is not a volume game; it's a **decision-making problem**.
+Applying for jobs is not a volume game.  
+It is a **signal optimization problem**.
 
-Most tools either spam applications or blindly optimize keywords, which leads to poor results, wasted time, and sometimes account restrictions.  
-**Viora** takes a different approach.
+Most tools optimize for quantity:
+- More applications  
+- More keywords  
+- More automation  
 
-This project helps candidates decide whether they should apply to a job and how to improve their application, using AI as a **decision support system**; not as an automation bot.
+That strategy burns time and credibility.
 
-> **No auto-apply. No scraping. No ToS violations.**  
-> **Just better decisions.**
+**Viora optimizes for quality.**
+
+It helps professionals decide:
+- Should I apply?
+- What’s missing?
+- What should I fix first?
+- Is this strategically aligned?
+
+> ❌ No auto-apply  
+> ❌ No scraping  
+> ❌ No platform abuse  
+> ✅ Just better decisions  
 
 ---
 
-## Problem Statement
+## 📌 Overview
 
-Job seekers face three recurring issues:
+Viora is a decision-support system that helps candidates evaluate job fit before applying.
 
-- **Applying to too many low-fit roles** → wasted time and effort
-- **Not knowing why a role is or isn't a good match** → poor decision-making
-- **Spending excessive time tailoring resumes with little feedback** → inefficient workflow
+Instead of automating submissions, it focuses on clarity, alignment, and strategic improvement.
 
-Blind automation solves none of these problems.
+**AI extracts structured signals.**  
+**Code makes deterministic decisions.**
 
 ---
 
-## Solution
+## 🧠 The Core Problem
 
-**Viora** acts as a pre-application intelligence layer.
+Modern job search friction looks like this:
+
+- High application volume, low response rate  
+- Poor understanding of actual fit  
+- Resume tailoring done blindly  
+- No structured feedback loop  
+
+Automation increases noise.  
+Noise reduces signal.  
+Reduced signal lowers outcomes.
+
+---
+
+## 🔄 The Strategic Shift
+
+Viora reframes the problem:
+
+From:
+> "How many jobs can I apply to?"
+
+To:
+> "Which applications deserve my energy?"
+
+It acts as an intelligence layer between the candidate and the **Apply** button.
+
+---
+
+## ⚙️ What The System Does
 
 Given:
-- A candidate CV
-- A job description
+- A CV  
+- A job description  
 
-The system:
+Viora:
 
-- ✅ Analyzes skill alignment
-- ✅ Identifies strengths and gaps
-- ✅ Calculates a fit score (0-100)
-- ✅ Recommends whether to apply
-- ✅ Suggests targeted CV improvements
-- ✅ Generates a short, human recruiter message
+- ✅ Extracts structured signals  
+- ✅ Identifies strengths and gaps  
+- ✅ Calculates a deterministic fit score (0–100)  
+- ✅ Recommends `apply` / `apply_with_fixes` / `skip`  
+- ✅ Suggests targeted CV improvements  
+- ✅ Generates a concise recruiter message  
+- ✅ Explains the reasoning  
 
-**The final decision always stays with the user.**
+The final decision always stays with the user.
 
----
-
-## Key Principles
-
-- 🎯 **Decision support, not automation**
-- 🔍 **Explainability over black-box AI**
-- ⚖️ **Ethical usage aligned with platform ToS**
-- 🔌 **Provider-agnostic AI architecture**
-- 💰 **Low cost, fast iteration**
+Transparent.  
+Traceable.  
+Deterministic.
 
 ---
 
-## How It Works
-
-1. User pastes CV and job description
-2. AI extracts structured signals (skills, requirements, gaps)
-3. Deterministic logic calculates the final fit score
-4. The system returns a clear, explainable recommendation
-
-> **AI provides signals.**  
-> **Code makes the decision.**
-
----
-
-## Example Output
+## 📊 Example Response
 
 ```json
 {
   "fitScore": 78,
   "decision": "apply_with_fixes",
-  "strengths": [
-    "Advanced React",
-    "API integration experience"
-  ],
-  "gaps": [
-    "Elixir experience"
-  ],
+  "strengths": ["Advanced React", "Marketplace experience"],
+  "gaps": ["Elixir experience"],
   "cvSuggestions": [
-    "Highlight leadership responsibilities",
-    "Quantify business impact of features"
+    "Highlight measurable business impact",
+    "Quantify feature delivery outcomes"
   ],
   "recruiterMessage": "Hi! I really liked the product focus of this role. My experience with React and APIs aligns well with the team's needs.",
   "explanation": {
     "positives": [
       "Strong frontend background",
-      "Relevant marketplace experience"
+      "Relevant domain experience"
     ],
     "negatives": [
       "Missing one required backend technology"
     ],
-    "summary": "Good overall match with minor gaps that can be addressed in the CV."
+    "summary": "Strong match with minor technical gap."
   },
-  "promptVersion": "v1.1"
+  "promptVersion": "v1.2"
 }
 ```
 
----
-
-## Tech Stack
-
-### Frontend
-- React
-- TypeScript
-- Tailwind CSS
-
-> The UI supports runtime language and theme switching without external i18n or theming libraries.
-
-### Backend
-- Node.js
-- TypeScript
-- Lightweight API layer
-
-### AI Layer
-- **Provider-based architecture** (easily switch providers)
-- **Current provider:** Groq
-- **Mock provider** available for local development and testing
-
----
-
-## Architecture Highlights
-
-### 🔌 AI Provider Pattern
-Easily switch between Groq, OpenAI, or mock implementations via environment variables.
+## 🏗 Architectural Philosophy
 
 ### 🎯 Deterministic Scoring
-AI extracts signals; scoring logic lives in code for **consistency and transparency**.
+AI extracts information.  
+Scoring logic lives in code.  
+Consistency over randomness.
 
-### 📌 Prompt Versioning
-Each analysis is tagged with a prompt version to track evolution and behavior changes.
+### 🔌 Provider Abstraction
+AI providers are swappable via environment configuration.
 
-### 💡 Cost-Aware Design
-Token limits, low temperature, and fallback modes are built-in.
+**Current provider:**  
+- Groq  
 
----
+**Local development:**  
+- Mock provider  
 
-## Why This Project Exists
+This enables cost control and fast experimentation.
 
-This project was built as a response to **real-world job searching frustration**.
+### 🏷 Prompt Versioning
+Each analysis includes a prompt version for traceability and controlled iteration.
 
-It intentionally avoids:
-- ❌ Auto-apply bots
-- ❌ Mass application strategies
-- ❌ Scraping or platform abuse
+### 💰 Cost-Aware Design
+- Token limits  
+- Low temperature  
+- Structured output enforcement  
+- Fallback modes  
 
-Instead, it focuses on **clarity, intent, and leverage** applying less, but better.
-
----
-
-## Roadmap (Intentional and Minimal)
-
-- [ ] Improve scoring weights based on role seniority
-- [ ] Export CV suggestions in markdown
-- [ ] Add basic persistence for analysis history
-- [ ] Optional provider fallback
-
-**No feature bloat. No dark patterns.**
+No runaway billing. No unpredictable behavior.
 
 ---
 
-## � Documentation
+## 👥 Who This Is For
 
-All project documentation is in the [`/docs`](./docs) folder.
+Viora is designed for professionals who value strategy over volume.
 
-### Quick Links
+### 🎯 Mid-Level & Senior Engineers
+Applying to selective roles and optimizing application quality.
 
-| Document | Purpose |
-|----------|---------|
-| [Quick Start](./docs/QUICK-START.md) | Setup and running the project |
-| [Architecture](./docs/ARCHITECTURE.md) | System design and data flow |
-| [Technical Decisions](./docs/DECISIONS.md) | Why we made key choices |
-| [Development Guide](./docs/DEV-GUIDE.md) | Development workflow and practices |
-| [Git Workflow](./docs/GIT-WORKFLOW.md) | Contributing and branch strategy |
-| [Commit Standards](./docs/COMMIT-GUIDE.md) | Conventional Commits format |
-| [TypeScript Types](./docs/TYPES.md) | Type definitions and contracts |
-| [Examples](./docs/EXAMPLES.md) | Real-world usage examples |
-| [Contributing](./docs/CONTRIBUTING.md) | How to contribute |
+### 🌍 International Candidates
+Developers targeting global markets who need clarity before complex application processes.
+
+### 🔄 Career Transition Professionals
+Individuals pivoting roles or industries who need structured insight into skill gaps.
+
+### 📈 High-Signal Applicants
+Candidates who prefer fewer, stronger applications over mass submission.
 
 ---
 
-## 🔗 Git Workflow & Commit Standards
+## 🚫 Non-Goals
 
-This project uses **Husky** with **Commitlint** to enforce [Conventional Commits](https://www.conventionalcommits.org/) for all commits.
+Viora intentionally does not support:
 
-### Quick Example
+- ❌ Mass auto-apply systems  
+- ❌ Resume keyword stuffing  
+- ❌ Job platform scraping  
+- ❌ Circumventing platform rules  
+- ❌ Automation that violates Terms of Service  
 
-```bash
-# ✅ Valid commits
-git commit -m "feat(backend): add hybrid scoring algorithm"
-git commit -m "fix(frontend): resolve infinite loop"
-git commit -m "docs: update README"
-
-# ❌ Invalid commits (will be rejected)
-git commit -m "updated scoring"
-git commit -m "fe: added feature"
-```
-
-### Commit Types
-
-- **feat**: New feature
-- **fix**: Bug fix
-- **docs**: Documentation changes
-- **style**: Code formatting (no logic changes)
-- **refactor**: Code restructuring
-- **perf**: Performance improvements
-- **test**: Test additions/updates
-- **build**: Dependency updates
-- **ci**: CI/CD changes
-- **chore**: Maintenance tasks
-
-👉 **[See full commit guidelines](./docs/COMMIT-GUIDE.md)**
-
-### Setup
-
-Husky is automatically installed via `npm install`. No additional setup needed.
-
-To test the validation:
-```bash
-bash test-husky.sh
-```
-
-### Want to Contribute?
-
-👉 **[Read CONTRIBUTING.md](./docs/CONTRIBUTING.md)** for the full development process.
+Ethical alignment is a core constraint, not an afterthought.
 
 ---
 
-## Disclaimer
+## 🧩 Tech Stack
 
-⚠️ **This tool does not guarantee interviews or job offers.**
+### Frontend
+- React  
+- TypeScript  
+- Tailwind CSS  
+- Runtime language and theme switching  
 
-It is designed to improve decision-making and application quality, nothing more, nothing less.
+### Backend
+- Node.js  
+- TypeScript  
+- Lightweight API layer  
+
+### Infrastructure
+- Firebase Hosting  
+- Firebase Functions  
+- Firebase Analytics  
+- Realtime Database  
+
+### AI Layer
+- Provider-based architecture  
+- Structured output contracts  
 
 ---
 
-## Author
+## 🛠 Development Standards
+
+- Conventional Commits (Husky + Commitlint)  
+- Strict TypeScript typing  
+- Clear separation between AI extraction and scoring logic  
+- Documented architectural decisions  
+- Deterministic decision pipeline  
+
+---
+
+## 🗺 Roadmap
+
+- Adaptive scoring based on seniority level  
+- Basic analysis history persistence  
+- Markdown export for CV improvements  
+- Optional multi-provider fallback  
+- Lightweight analytics dashboard  
+
+No feature bloat.  
+No dark patterns.
+
+---
+
+## 📚 Documentation
+
+All documentation is located in the `/docs` folder.
+
+Key documents include:
+
+- Quick Start  
+- Architecture  
+- Technical Decisions  
+- Development Guide  
+- Git Workflow  
+- Commit Standards  
+- Type Definitions  
+- Examples  
+- Contributing  
+
+---
+
+## ⚠ Disclaimer
+
+This tool does not guarantee interviews or job offers.
+
+It improves decision clarity and application quality.  
+Outcomes depend on execution.
+
+---
+
+## 👩‍💻 Author
 
 Built by a software engineer exploring ethical, explainable, and practical applications of AI in real workflows.
