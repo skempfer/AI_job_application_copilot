@@ -3,6 +3,7 @@ import { analyzeJobFit, analyzeWithGap } from '../../../domain/apiClient';
 import { validateInputs, formatAnalysisResult } from '../../../domain/analyzer';
 import type { FormattedAnalysisResult, GapAnalysisResult } from '../../../types/analysis';
 import { trackEvent } from '../../../lib/analytics';
+import { checkRateLimit } from '../../../utils/rateLimiter';
 
 /**
  * Custom hook for managing job analysis state and logic
@@ -22,6 +23,13 @@ export function useJobAnalysis() {
     const validation = validateInputs(cv, jobDescription, resumeUrl);
     if (!validation.valid) {
       setError(validation.error || 'Validation error');
+      return;
+    }
+
+    const rateLimitCheck = checkRateLimit();
+    if (!rateLimitCheck.allowed) {
+      const errorMsg = rateLimitCheck.message || 'Too many requests. Please try again later.';
+      setError(errorMsg);
       return;
     }
 
@@ -50,7 +58,6 @@ export function useJobAnalysis() {
         });
       }
 
-      // Try gap analysis with resume URL or CV text
       if (resumeUrl) {
         try {
           const gapAnalysis = await analyzeWithGap(jobDescription, resumeUrl);

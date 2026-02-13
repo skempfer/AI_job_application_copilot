@@ -6,6 +6,7 @@ import { CVInput } from '../features/input/components/CVInput';
 import { JobInput } from '../features/input/components/JobInput';
 import { ResumeUpload } from '../features/input/components/ResumeUpload';
 import { AnalyzeButton } from '../features/analysis/components/AnalyzeButton';
+import { RateLimitMessage } from '../features/analysis/components/RateLimitMessage';
 import { ErrorDisplay } from '../features/error/components/ErrorDisplay';
 import { ResultsLoadingFallback } from '../features/display/components/ResultsLoadingFallback';
 import { Header } from './layout/Header';
@@ -17,6 +18,7 @@ import { LanguageProvider } from '../contexts/LanguageContext';
 import { Terms } from '../pages/TermsPage/Terms';
 import { Privacy } from '../pages/PrivacyPage/Privacy';
 import { trackEvent } from '../lib/analytics';
+import { isRateLimited } from '../utils/rateLimiter';
 import '../styles/App.css';
 
 const ResultsDisplay = lazy(() => import('../features/analysis/components/ResultsDisplay').then(m => ({ default: m.ResultsDisplay })));
@@ -33,6 +35,7 @@ function AppContent() {
   const [cv, setCv] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
   const jobDescriptionTracked = useRef(false);
 
   const { loading, result, gapResult, error, analyze, clearError } = useJobAnalysis();
@@ -50,8 +53,8 @@ function AppContent() {
   };
 
   const canAnalyze = useMemo(
-    () => (cv.trim().length >= 50 || resumeUrl !== null) && jobDescription.trim().length >= 50 && !loading,
-    [cv, jobDescription, resumeUrl, loading]
+    () => (cv.trim().length >= 50 || resumeUrl !== null) && jobDescription.trim().length >= 50 && !loading && !rateLimited,
+    [cv, jobDescription, resumeUrl, loading, rateLimited]
   );
 
   useEffect(() => {
@@ -69,6 +72,21 @@ function AppContent() {
     }
   }, [jobDescription]);
 
+  // Monitor rate limit status
+  useEffect(() => {
+    const checkRateLimit = () => {
+      setRateLimited(isRateLimited());
+    };
+
+    // Check initial status
+    checkRateLimit();
+
+    // Set up interval to check every second while rate limited
+    const interval = setInterval(checkRateLimit, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="app-shell">
       <Header />
@@ -85,6 +103,8 @@ function AppContent() {
           </div>
 
           <AnalyzeButton onClick={handleAnalyze} disabled={!canAnalyze} loading={loading} />
+
+          <RateLimitMessage />
 
           {error && <ErrorDisplay message={error} onDismiss={clearError} />}
 

@@ -155,4 +155,8 @@ export const en = {
   // Privacy
   privacyTitle: 'Privacy Policy',
   privacyComingSoon: 'Content coming soon.',
+
+  // Rate Limit
+  rateLimitTitle: 'Let the free AI breathe a little!',
+  rateLimitMessage: 'Come back in',
 };

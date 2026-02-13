@@ -155,4 +155,8 @@ export const pt = {
   // Privacy
   privacyTitle: 'Política de Privacidade',
   privacyComingSoon: 'Conteúdo em breve.',
+
+  // Rate Limit
+  rateLimitTitle: 'Deixe a IA gratuita respirar um pouco!',
+  rateLimitMessage: 'Volte em',
 };
