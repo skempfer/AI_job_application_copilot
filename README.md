@@ -80,14 +80,38 @@ Viora:
 - ✅ Calculates a deterministic fit score (0–100)  
 - ✅ Recommends `apply` / `apply_with_fixes` / `skip`  
 - ✅ Suggests targeted CV improvements  
-- ✅ Generates a concise recruiter message  
-- ✅ Explains the reasoning  
+- ✅ Generates a personalized and humanized recruiter message  
+- ✅ Generates a tailored cover letter aligned with the role  
+- ✅ Explains the reasoning behind the decision  
 
 The final decision always stays with the user.
 
-Transparent.  
-Traceable.  
-Deterministic.
+This is not generic AI text generation.
+
+The system uses structured signals from the job description and CV to produce context-aware, role-aligned communication.
+
+---
+## ✍️ Strategic Application Support
+
+Beyond scoring, Viora helps candidates improve how they communicate.
+
+### Personalized Recruiter Message
+A short, humanized message aligned with:
+- The role focus
+- The company context
+- The candidate’s strongest signals
+
+Designed to sound intentional — not automated.
+
+### Tailored Cover Letter
+A structured, role-aligned cover letter that:
+- Emphasizes relevant strengths
+- Transparently addresses skill gaps when necessary
+- Avoids generic filler language
+- Aligns tone with the job level
+
+The goal is not to generate volume.
+It is to increase signal clarity and intentional positioning.
 
 ---
 
@@ -96,25 +120,29 @@ Deterministic.
 ```json
 {
   "fitScore": 78,
-  "decision": "apply_with_fixes",
-  "strengths": ["Advanced React", "Marketplace experience"],
-  "gaps": ["Elixir experience"],
-  "cvSuggestions": [
-    "Highlight measurable business impact",
-    "Quantify feature delivery outcomes"
+  "decision": "apply",
+  "strengths": [
+    "Hard skill: nodejs",
+    "Hard skill: typescript",
+    "Hard skill: aws",
+    "Requirement met: REST APIs",
+    "Requirement met: automated testing",
+    "Bonus qualification: docker"
   ],
-  "recruiterMessage": "Hi! I really liked the product focus of this role. My experience with React and APIs aligns well with the team's needs.",
-  "explanation": {
-    "positives": [
-      "Strong frontend background",
-      "Relevant domain experience"
-    ],
-    "negatives": [
-      "Missing one required backend technology"
-    ],
-    "summary": "Strong match with minor technical gap."
-  },
-  "promptVersion": "v1.2"
+  "gaps": [
+    "Missing requirement: kubernetes",
+    "Missing bonus qualification: graphql",
+    "Missing bonus qualification: observability"
+  ],
+  "cvSuggestions": [
+    "Highlight experience related to: kubernetes, observability",
+    "Add more detail about your technical skills"
+  ],
+  "recruiterMessage": "The candidate has a solid Node.js and TypeScript background with real API and cloud experience. Recommend moving forward to a technical interview focused on scalability and architecture.",
+  "coverLetter": "Dear Hiring Manager,\n\nI am writing to express my interest in the Software Engineer role. I have over five years of experience building scalable APIs with Node.js and TypeScript, and I have worked extensively with AWS, testing frameworks, and modern development practices. I enjoy collaborating with cross-functional teams and delivering reliable, well-architected solutions.\n\nIn previous roles, I led initiatives to improve performance, strengthen testing coverage, and streamline deployment pipelines. I am eager to bring this experience to your team and continue growing in areas like Kubernetes and observability.\n\nThank you for your time and consideration. I would welcome the opportunity to discuss how I can contribute to your organization.\n\nSincerely,\n[Your Name]",
+  "explanation": "The candidate meets most mandatory requirements and has relevant backend experience. Missing Kubernetes and observability slightly reduce the score but do not block progression.",
+  "promptVersion": "v2.0-optimized",
+  "detectedLanguage": "en"
 }
 ```
 
