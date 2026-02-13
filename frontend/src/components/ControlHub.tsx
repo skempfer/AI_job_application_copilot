@@ -5,6 +5,7 @@ import { useTheme } from '../hooks/useTheme';
 import { Language } from '../i18n';
 import { Theme } from '../contexts/ThemeContext';
 import { SegmentedOption, SegmentedToggle } from './SegmentedToggle';
+import './ControlHub.css';
 
 interface ControlHubProps {
   position?: 'fixed' | 'inline';
@@ -59,14 +60,9 @@ export function ControlHub({ position = 'fixed' }: ControlHubProps) {
   return (
     <div
       className={[
-        'flex items-center gap-2 rounded-full border border-white/10',
-        'bg-white/60 dark:bg-gray-900/60 backdrop-blur-md',
-        'shadow-[0_4px_16px_rgba(0,0,0,0.08)]',
-        'px-3 py-2 transition-all duration-200 ease-in-out',
-        isCompact ? 'px-2.5 py-1.5' : 'px-4 py-2.5',
-        position === 'fixed'
-          ? 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] max-w-[calc(100vw-2rem)] sm:left-auto sm:translate-x-0 sm:right-6 sm:top-6'
-          : 'relative',
+        'control-hub',
+        isCompact ? 'control-hub--compact' : 'control-hub--regular',
+        position === 'fixed' ? 'control-hub--fixed' : 'control-hub--inline',
       ].join(' ')}
       role="toolbar"
       aria-label="Control hub"
@@ -79,7 +75,7 @@ export function ControlHub({ position = 'fixed' }: ControlHubProps) {
         ariaLabel="Language selection"
       />
 
-      <span className="h-6 w-px bg-white/10 dark:bg-white/10" aria-hidden="true" />
+      <span className="control-hub__divider" aria-hidden="true" />
 
       <SegmentedToggle
         options={themeOptions}

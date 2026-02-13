@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import './JobInput.css';
 
 interface JobInputProps {
   value: string;
@@ -11,8 +12,8 @@ export const JobInput = memo<JobInputProps>(({ value, onChange, disabled = false
   const { t } = useLanguage();
 
   return (
-    <div className="space-y-2">
-      <label htmlFor="job-input" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+    <div className="job-input">
+      <label htmlFor="job-input" className="job-input__label">
         {t('jobLabel')}
       </label>
       <textarea
@@ -26,7 +27,7 @@ export const JobInput = memo<JobInputProps>(({ value, onChange, disabled = false
         aria-label={t('jobLabel')}
         aria-required="true"
       />
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="job-input__char-count">
         {value.trim().length} {t('characters')}
       </p>
     </div>

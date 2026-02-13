@@ -34,6 +34,46 @@ export const pt = {
   positivePoints: 'Pontos positivos',
   negativePoints: 'Pontos negativos',
   summary: 'Resumo',
+  noCriticalIssues: 'Nenhum problema crítico identificado',
+  
+  // Analysis Components
+  overallAlignment: 'Alinhamento Geral',
+  holisticView: 'Visão holística',
+  overallAlignmentDesc: 'Analisa seu perfil completo, experiência, senioridade e alinhamento geral com a vaga.',
+  technicalAnalysis: 'Análise Técnica',
+  skillsMatch: 'Match de Skills',
+  technicalMatch: 'Match Técnico',
+  technicalMatchDesc: 'Compara as tecnologias do seu CV com os requisitos da vaga. Pontuação percentual baseada em compatibilidade técnica.',
+  skillsYouHave: 'Skills que você possui',
+  criticalSkillsMissing: 'Skills críticas faltando',
+  nextTechnologies: 'Próximas tecnologias para aprender',
+  
+  // Consolidated Analysis
+  analysisSummary: 'Resumo da Análise',
+  synthesisAnalyses: 'Síntese de ambas as análises para uma decisão mais confiante',
+  excellentCandidate: 'Excelente Candidato',
+  excellentCandidateDesc: 'Você atende aos requisitos técnicos e alinhamento geral. Esta é uma posição muito adequada para você. Aplique com confiança!',
+  goodFitCaveats: 'Bom Match (com ressalvas)',
+  goodFitTechDesc: 'Você tem um bom alinhamento geral, mas pode precisar aprender algumas tecnologias específicas. Considere estudar as skills faltantes antes de aplicar.',
+  goodFitExperienceDesc: 'Você tem as skills técnicas, mas pode não ter toda a experiência esperada. Mostre sua capacidade de aprender rápido na sua candidatura.',
+  significantChallenge: 'Desafio Significativo',
+  significantChallengeDesc: 'Há gaps significativos entre seu perfil e os requisitos da vaga. Você pode estar em uma transição de carreira. Foque em aprender as skills críticas primeiro.',
+  nextSteps: 'Próximos Passos',
+  learnMissingSkills: 'Aprenda as skills faltantes:',
+  gainRelevantExperience: 'Ganhe experiência relevante',
+  orLookJunior: 'ou procure por posições junior',
+  customizeApplication: 'Customize sua candidatura',
+  mentioningSkills: 'mencionando especificamente as skills que você possui',
+  personalizeMessage: '💡 Personalize esta mensagem antes de enviar',
+  
+  // Category translations for grouped items
+  hardSkills: 'Hard Skills',
+  requirementsMet: 'Requisitos atendidos',
+  bonusQualifications: 'Qualificações Bônus',
+  missingRequirements: 'Requisitos Faltando',
+  missingBonuses: 'Bônus Faltando',
+  redFlags: 'Red Flags',
+  other: 'Outro',
   
   // Settings
   language: 'Idioma',

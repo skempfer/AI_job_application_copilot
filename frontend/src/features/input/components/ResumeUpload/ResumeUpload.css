@@ -1,0 +1,95 @@
+.resume-upload {
+  @apply space-y-2;
+}
+
+.resume-upload__label {
+  @apply block text-sm font-semibold text-gray-700 dark:text-gray-300;
+}
+
+.resume-upload__dropzone {
+  @apply relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer;
+}
+
+.resume-upload__dropzone--dragging {
+  @apply border-blue-500 bg-blue-50 dark:bg-blue-900/20;
+}
+
+.resume-upload__dropzone--default {
+  @apply border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-gray-50 dark:bg-gray-800;
+}
+
+.resume-upload__dropzone--disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.resume-upload__dropzone--success {
+  @apply bg-green-50 dark:bg-green-900/10 border-green-300 dark:border-green-700;
+}
+
+.resume-upload__input {
+  @apply hidden;
+}
+
+.resume-upload__uploading {
+  @apply space-y-2;
+}
+
+.resume-upload__spinner-wrapper {
+  @apply flex items-center justify-center;
+}
+
+.resume-upload__spinner {
+  @apply w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin;
+}
+
+.resume-upload__uploading-text {
+  @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+.resume-upload__success {
+  @apply space-y-2;
+}
+
+.resume-upload__success-icon {
+  @apply text-green-600 dark:text-green-400 text-2xl;
+}
+
+.resume-upload__success-filename {
+  @apply text-sm font-medium text-gray-700 dark:text-gray-300;
+}
+
+.resume-upload__success-text {
+  @apply text-xs text-gray-500 dark:text-gray-400;
+}
+
+.resume-upload__default {
+  @apply space-y-2;
+}
+
+.resume-upload__default-icon {
+  @apply text-gray-400 dark:text-gray-500 text-3xl;
+}
+
+.resume-upload__default-text {
+  @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+.resume-upload__default-link {
+  @apply font-medium text-blue-600 dark:text-blue-400;
+}
+
+.resume-upload__default-hint {
+  @apply text-xs text-gray-500 dark:text-gray-400;
+}
+
+.resume-upload__error {
+  @apply p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg;
+}
+
+.resume-upload__error-text {
+  @apply text-sm text-red-600 dark:text-red-400;
+}
+
+.resume-upload__info {
+  @apply text-xs text-gray-500 dark:text-gray-400 italic;
+}

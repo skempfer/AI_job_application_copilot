@@ -1,0 +1,47 @@
+.privacy-page {
+  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+}
+
+.privacy-container {
+  @apply max-w-4xl mx-auto px-4 py-12;
+}
+
+.privacy-back-link {
+  @apply inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline mb-8;
+}
+
+.privacy-back-icon {
+  @apply w-4 h-4;
+}
+
+.privacy-header {
+  @apply mb-10;
+}
+
+.privacy-title {
+  @apply text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4;
+}
+
+.privacy-updated {
+  @apply text-sm text-gray-500 dark:text-gray-400 mb-3;
+}
+
+.privacy-intro-text {
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+.privacy-sections {
+  @apply space-y-8;
+}
+
+.privacy-section {
+  @apply space-y-3;
+}
+
+.privacy-section-title {
+  @apply text-xl font-semibold text-gray-900 dark:text-gray-100;
+}
+
+.privacy-section-text {
+  @apply text-gray-700 dark:text-gray-300;
+}

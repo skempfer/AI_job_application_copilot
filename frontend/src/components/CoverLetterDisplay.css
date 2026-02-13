@@ -1,0 +1,95 @@
+.cover-letter {
+  @apply bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-700 scroll-smooth;
+}
+
+.cover-letter__header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.cover-letter__title {
+  @apply text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2;
+}
+
+.cover-letter__title-icon {
+  @apply text-2xl;
+}
+
+.cover-letter__language {
+  @apply text-xs text-gray-600 dark:text-gray-400 mb-4;
+}
+
+.cover-letter__collapsed {
+  @apply space-y-4;
+}
+
+.cover-letter__preview {
+  @apply relative;
+}
+
+.cover-letter__preview-article {
+  @apply bg-white dark:bg-gray-800 p-5 rounded-lg border border-slate-300 dark:border-slate-700;
+}
+
+.cover-letter__preview-text {
+  @apply text-gray-800 dark:text-gray-200 font-serif text-sm leading-relaxed whitespace-pre-wrap;
+}
+
+.cover-letter__preview-fade {
+  @apply absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-gray-800 to-transparent rounded-b-lg;
+}
+
+.cover-letter__actions {
+  @apply flex gap-2 flex-wrap;
+}
+
+.cover-letter__button {
+  @apply flex-1 min-w-max px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2;
+}
+
+.cover-letter__button--read {
+  @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white transition-all duration-200 transform hover:scale-105;
+}
+
+.cover-letter__button--copy-neutral {
+  @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 transition-colors;
+}
+
+.cover-letter__button--copy-primary {
+  @apply bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white transition-colors;
+}
+
+.cover-letter__button--download {
+  @apply bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white transition-colors;
+}
+
+.cover-letter__button--collapse {
+  @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 transition-colors;
+}
+
+.cover-letter__button-icon {
+  @apply w-4 h-4;
+}
+
+.cover-letter__feedback {
+  @apply text-xs text-center text-green-600 dark:text-green-400 font-medium;
+}
+
+.cover-letter__expanded {
+  @apply space-y-4 animate-fade-in;
+}
+
+.cover-letter__full-article {
+  @apply bg-white dark:bg-gray-800 p-6 rounded-lg border border-slate-300 dark:border-slate-700 max-h-[600px] overflow-y-auto;
+}
+
+.cover-letter__paragraphs {
+  @apply space-y-4;
+}
+
+.cover-letter__paragraph {
+  @apply text-gray-800 dark:text-gray-200 font-serif text-sm leading-relaxed;
+}
+
+.cover-letter__signature {
+  @apply mt-8 pt-6 border-t border-gray-300 dark:border-gray-700;
+}

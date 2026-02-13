@@ -34,6 +34,46 @@ export const en = {
   positivePoints: 'Positive points',
   negativePoints: 'Negative points',
   summary: 'Summary',
+  noCriticalIssues: 'No critical issues identified',
+  
+  // Analysis Components
+  overallAlignment: 'Overall Alignment',
+  holisticView: 'Holistic view',
+  overallAlignmentDesc: 'Analyzes your complete profile, experience, seniority, and overall alignment with the job.',
+  technicalAnalysis: 'Technical Analysis',
+  skillsMatch: 'Skills Match',
+  technicalMatch: 'Technical Match',
+  technicalMatchDesc: 'Compares your CV technologies with job requirements. Percentage score based on technical match.',
+  skillsYouHave: 'Skills you have',
+  criticalSkillsMissing: 'Critical skills missing',
+  nextTechnologies: 'Next technologies to learn',
+  
+  // Consolidated Analysis
+  analysisSummary: 'Analysis Summary',
+  synthesisAnalyses: 'Synthesis of both analyses for a more confident decision',
+  excellentCandidate: 'Excellent Candidate',
+  excellentCandidateDesc: 'You meet both technical requirements and overall alignment. This is a very suitable position for you. Apply with confidence!',
+  goodFitCaveats: 'Good Fit (with caveats)',
+  goodFitTechDesc: 'You have a good overall fit, but may need to learn some specific technologies. Consider studying the missing skills before applying.',
+  goodFitExperienceDesc: 'You have the technical skills, but may not have all the experience expected. Show your ability to learn quickly in your application.',
+  significantChallenge: 'Significant Challenge',
+  significantChallengeDesc: 'There are significant gaps between your profile and job requirements. You may be in a career transition. Focus on learning critical skills first.',
+  nextSteps: 'Next Steps',
+  learnMissingSkills: 'Learn the missing skills:',
+  gainRelevantExperience: 'Gain relevant experience',
+  orLookJunior: 'or look for junior positions',
+  customizeApplication: 'Customize your application',
+  mentioningSkills: 'by specifically mentioning the skills you have',
+  personalizeMessage: '💡 Personalize this message before sending',
+  
+  // Category translations for grouped items
+  hardSkills: 'Hard Skills',
+  requirementsMet: 'Requirements met',
+  bonusQualifications: 'Bonus Qualifications',
+  missingRequirements: 'Missing Requirements',
+  missingBonuses: 'Missing Bonuses',
+  redFlags: 'Red Flags',
+  other: 'Other',
   
   // Settings
   language: 'Language',

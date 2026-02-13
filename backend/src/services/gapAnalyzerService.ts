@@ -264,7 +264,7 @@ export async function analyzeGap(
   const matchScore = totalWeight === 0 ? 0 : Math.round((matchedWeight / totalWeight) * 100);
   
   const missingCriticalSkills = scoredRequirements
-    .filter((item) => !item.matched && item.frequency >= 2)
+    .filter((item) => !item.matched && item.frequency >= 1)
     .sort((a, b) => b.weight - a.weight)
     .map((item) => item.value);
 

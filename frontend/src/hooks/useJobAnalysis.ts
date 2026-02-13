@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { analyzeJobFit, analyzeWithGap } from '../domain/apiClient';
 import { validateInputs, formatAnalysisResult } from '../domain/analyzer';
 import type { FormattedAnalysisResult, GapAnalysisResult } from '../types/analysis';
+import { trackEvent } from '../lib/analytics';
 
 /**
  * Custom hook for managing job analysis state and logic
@@ -31,6 +32,24 @@ export function useJobAnalysis() {
       const formatted = formatAnalysisResult(analysisResult);
       setResult(formatted);
 
+      trackEvent('analysis_success', {
+        has_resume_url: Boolean(resumeUrl),
+        job_length: jobDescription.trim().length,
+        cv_length: cv.trim().length,
+      });
+
+      if (formatted.coverLetter?.trim()) {
+        trackEvent('cover_letter_generated', {
+          length: formatted.coverLetter.trim().length,
+        });
+      }
+
+      if (formatted.recruiterMessage?.trim()) {
+        trackEvent('recruiter_message_generated', {
+          length: formatted.recruiterMessage.trim().length,
+        });
+      }
+
       // Try gap analysis with resume URL or CV text
       if (resumeUrl) {
         try {
@@ -48,6 +67,11 @@ export function useJobAnalysis() {
         }
       }
     } catch (err) {
+      const status = typeof (err as { status?: number }).status === 'number'
+        ? (err as { status?: number }).status
+        : undefined;
+
+      trackEvent('analysis_error', status ? { status } : undefined);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error during analysis';
       setError(errorMessage);
     } finally {

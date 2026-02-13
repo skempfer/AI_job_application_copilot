@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 import { trackEvent } from '../lib/analytics';
+import './ResumeUpload.css';
 
 interface ResumeUploadProps {
   onUploadComplete?: (url: string) => void;
@@ -130,8 +131,8 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+    <div className="resume-upload">
+      <label className="resume-upload__label">
         {t('cvUploadLabel')}
       </label>
       
@@ -151,15 +152,12 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
         tabIndex={disabled || isUploading ? -1 : 0}
         aria-label="Upload resume file, drag and drop or click to select"
         aria-disabled={disabled || isUploading}
-        className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200
-          ${isDragging 
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-          }
-          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          ${uploadedUrl ? 'bg-green-50 dark:bg-green-900/10 border-green-300 dark:border-green-700' : 'bg-gray-50 dark:bg-gray-800'}
-        `}
+        className={[
+          'resume-upload__dropzone',
+          isDragging ? 'resume-upload__dropzone--dragging' : 'resume-upload__dropzone--default',
+          (disabled || isUploading) ? 'resume-upload__dropzone--disabled' : '',
+          uploadedUrl ? 'resume-upload__dropzone--success' : '',
+        ].join(' ')}
       >
         <input
           ref={fileInputRef}
@@ -167,34 +165,34 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
           accept=".pdf,application/pdf"
           onChange={handleFileChange}
           disabled={disabled || isUploading}
-          className="hidden"
+          className="resume-upload__input"
         />
 
         {isUploading ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="resume-upload__uploading">
+            <div className="resume-upload__spinner-wrapper">
+              <div className="resume-upload__spinner"></div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{t('uploadingText')}</p>
+            <p className="resume-upload__uploading-text">{t('uploadingText')}</p>
           </div>
         ) : uploadedUrl ? (
-          <div className="space-y-2">
-            <div className="text-green-600 dark:text-green-400 text-2xl">✓</div>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div className="resume-upload__success">
+            <div className="resume-upload__success-icon">✓</div>
+            <p className="resume-upload__success-filename">
               {selectedFile?.name}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="resume-upload__success-text">
               {t('uploadSuccess')}
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
-            <div className="text-gray-400 dark:text-gray-500 text-3xl">📄</div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium text-blue-600 dark:text-blue-400">{t('clickToUpload')}</span>
+          <div className="resume-upload__default">
+            <div className="resume-upload__default-icon">📄</div>
+            <p className="resume-upload__default-text">
+              <span className="resume-upload__default-link">{t('clickToUpload')}</span>
               {' '}{t('orDragDrop')}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="resume-upload__default-hint">
               {t('pdfOnlyMaxSize')}
             </p>
           </div>
@@ -202,15 +200,15 @@ export function ResumeUpload({ onUploadComplete, disabled = false }: ResumeUploa
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400">
+        <div className="resume-upload__error">
+          <p className="resume-upload__error-text">
             {error}
           </p>
         </div>
       )}
 
       {!uploadedUrl && !error && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+        <p className="resume-upload__info">
           {t('uploadHint')}
         </p>
       )}

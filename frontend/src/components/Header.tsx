@@ -9,6 +9,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useLanguage } from '../hooks/useLanguage';
 import { Language } from '../i18n';
 import { Theme } from '../contexts/ThemeContext';
+import './Header.css';
 
 /**
  * Header - Application header with Viora branding
@@ -59,13 +60,13 @@ export function Header() {
   const drawer = (
     <div
       className={[
-        'fixed inset-0 z-[12000] sm:hidden transition-opacity duration-200',
-        isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+        'header-drawer',
+        isDrawerOpen ? 'header-drawer--open' : 'header-drawer--closed',
       ].join(' ')}
       aria-hidden={!isDrawerOpen}
     >
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm z-[12000]"
+        className="header-drawer-backdrop"
         onClick={() => setIsDrawerOpen(false)}
       />
 
@@ -75,28 +76,25 @@ export function Header() {
         aria-modal="true"
         aria-label="Settings"
         className={[
-          'absolute top-0 right-0 h-full w-[82%] max-w-xs z-[12010]',
-          'bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl',
-          'shadow-[0_20px_60px_rgba(0,0,0,0.25)]',
-          'transition-transform duration-200 ease-in-out',
-          isDrawerOpen ? 'translate-x-0' : 'translate-x-full',
+          'header-drawer-panel',
+          isDrawerOpen ? 'header-drawer-panel--open' : 'header-drawer-panel--closed',
         ].join(' ')}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/80 dark:border-gray-700/80">
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('language')} & {t('theme')}</span>
+        <div className="header-drawer-header">
+          <span className="header-drawer-title">{t('language')} & {t('theme')}</span>
           <button
             type="button"
             onClick={() => setIsDrawerOpen(false)}
-            className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/70 dark:bg-gray-900/70 text-gray-700 dark:text-gray-200"
+            className="header-drawer-close-button"
             aria-label="Close menu"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="px-5 py-6 space-y-6">
-          <section>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 mb-3">
+        <div className="header-drawer-content">
+          <section className="header-drawer-section">
+            <h3 className="header-drawer-section-title">
               {t('language')}
             </h3>
             <SegmentedToggle
@@ -107,10 +105,10 @@ export function Header() {
             />
           </section>
 
-          <div className="h-px bg-gray-200/70 dark:bg-gray-700/70" />
+          <div className="header-drawer-divider" />
 
-          <section>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 mb-3">
+          <section className="header-drawer-section">
+            <h3 className="header-drawer-section-title">
               {t('theme')}
             </h3>
             <SegmentedToggle
@@ -126,25 +124,25 @@ export function Header() {
   );
 
   return (
-    <header className="bg-white/80 dark:bg-gray-900/80 shadow-sm border-b border-gray-200/80 dark:border-gray-700/80 backdrop-blur" role="banner">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col gap-1" role="img" aria-label="Viora">
-            <div className="sm:hidden">
+    <header className="header" role="banner">
+      <div className="header-wrapper">
+        <div className="header-content">
+          <div className="header-brand" role="img" aria-label="Viora">
+            <div className="header-logo-mobile">
               {theme === 'dark' ? (
                 <LogoDarkTheme width={120} height={32} />
               ) : (
                 <Logo width={120} height={32} />
               )}
             </div>
-            <div className="hidden sm:block">
+            <div className="header-logo-desktop">
               {theme === 'dark' ? (
                 <LogoDarkTheme width={180} height={48} />
               ) : (
                 <Logo width={180} height={48} />
               )}
             </div>
-            <p className="hidden sm:block text-sm font-medium text-gray-600 dark:text-gray-300">
+            <p className="header-tagline">
               {t('appTagline')}
             </p>
           </div>
@@ -152,7 +150,7 @@ export function Header() {
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
-            className="sm:hidden inline-flex items-center justify-center h-11 w-11 rounded-full border border-white/10 bg-white/70 dark:bg-gray-900/70 text-gray-700 dark:text-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-colors"
+            className="header-menu-button"
             aria-label="Open menu"
             aria-expanded={isDrawerOpen}
             aria-controls="control-drawer"
@@ -160,7 +158,7 @@ export function Header() {
             <Menu size={22} />
           </button>
 
-          <div className="hidden sm:flex items-center gap-6">
+          <div className="header-control-hub">
             <ControlHub position="inline" />
           </div>
         </div>

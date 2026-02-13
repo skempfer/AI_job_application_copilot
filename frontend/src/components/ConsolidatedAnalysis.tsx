@@ -1,7 +1,9 @@
 import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import { getLanguageLabel } from '../utils/languageDetection';
 import type { FormattedAnalysisResult } from '../types/analysis';
 import type { GapAnalysisResult } from '../types/analysis';
+import './ConsolidatedAnalysis.css';
 
 interface ConsolidatedAnalysisProps {
   result: FormattedAnalysisResult;
@@ -9,109 +11,121 @@ interface ConsolidatedAnalysisProps {
 }
 
 export const ConsolidatedAnalysis = memo<ConsolidatedAnalysisProps>(({ result, gapResult }) => {
-  const { t } = useLanguage();
+  const { t, language, translateFreeform } = useLanguage();
   const technicalScore = gapResult.matchScore;
   const overallScore = result.fitScore;
-
   return (
-    <div className="space-y-6 animate-fade-in mt-8 pt-8 border-t-2 border-gray-300 dark:border-gray-700">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-          📋 Analysis Summary
+    <div className="consolidated-analysis">
+      <div className="consolidated-analysis__header">
+        <h2 className="consolidated-analysis__title">
+          📋 {t('analysisSummary')}
         </h2>
-        <p className="text-sm text-gray-800 dark:text-gray-100">
-          Synthesis of both analyses for a more confident decision
+        <p className="consolidated-analysis__subtitle">
+          {t('synthesisAnalyses')}
         </p>
       </div>
 
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-          📋 Recommendation 
+      <div className="card consolidated-analysis__card">
+        <h3 className="consolidated-analysis__card-title">
+          📋 {t('recommendation')} 
         </h3>
         
         {overallScore >= 70 && technicalScore >= 70 ? (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 p-4 rounded-lg">
-            <p className="text-green-800 dark:text-green-200 font-semibold mb-2">✅ Excellent Candidate</p>
-            <p className="text-sm text-green-700 dark:text-green-300">
-              You meet both technical requirements and overall alignment. This is a very suitable position for you. Apply with confidence!
+          <div className="consolidated-analysis__recommendation consolidated-analysis__recommendation--positive">
+            <p className="consolidated-analysis__recommendation-title">✅ {t('excellentCandidate')}</p>
+            <p className="consolidated-analysis__recommendation-text">
+              {t('excellentCandidateDesc')}
             </p>
           </div>
         ) : overallScore >= 50 && technicalScore >= 50 ? (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-4 rounded-lg">
-            <p className="text-yellow-800 dark:text-yellow-200 font-semibold mb-2">⚠️ Good Fit (with caveats)</p>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+          <div className="consolidated-analysis__recommendation consolidated-analysis__recommendation--warning">
+            <p className="consolidated-analysis__recommendation-title">⚠️ {t('goodFitCaveats')}</p>
+            <p className="consolidated-analysis__recommendation-text">
               {technicalScore < overallScore 
-                ? 'You have a good overall fit, but may need to learn some specific technologies. Consider studying the missing skills before applying.'
-                : 'You have the technical skills, but may not have all the experience expected. Show your ability to learn quickly in your application.'}
+                ? t('goodFitTechDesc')
+                : t('goodFitExperienceDesc')}
             </p>
           </div>
         ) : (
-          <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 p-4 rounded-lg">
-            <p className="text-orange-800 dark:text-orange-200 font-semibold mb-2">🤔 Significant Challenge</p>
-            <p className="text-sm text-orange-700 dark:text-orange-300">
-              There are significant gaps between your profile and job requirements. You may be in a career transition. Focus on learning critical skills first.
+          <div className="consolidated-analysis__recommendation consolidated-analysis__recommendation--caution">
+            <p className="consolidated-analysis__recommendation-title">🤔 {t('significantChallenge')}</p>
+            <p className="consolidated-analysis__recommendation-text">
+              {t('significantChallengeDesc')}
             </p>
           </div>
         )}
       </div>
 
       {result.cvSuggestions.length > 0 && (
-        <div className="card bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-            <span className="text-blue-600 dark:text-blue-400">📝</span>
+        <div className="card consolidated-analysis__card consolidated-analysis__card--blue">
+          <h3 className="consolidated-analysis__card-title consolidated-analysis__card-title--with-icon">
+            <span className="consolidated-analysis__icon consolidated-analysis__icon--blue">📝</span>
             {t('suggestions')}
           </h3>
-          <ul className="space-y-3">
+          <ul className="consolidated-analysis__list">
             {result.cvSuggestions.map((suggestion, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                <span className="text-blue-600 dark:text-blue-400 font-bold mt-1">{idx + 1}.</span>
-                <span>{suggestion}</span>
+              <li key={idx} className="consolidated-analysis__list-item">
+                <span className="consolidated-analysis__list-index consolidated-analysis__list-index--blue">{idx + 1}.</span>
+                <span>{translateFreeform(suggestion)}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      <div className="card bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-          <span className="text-green-600 dark:text-green-400">💬</span>
+      <div className="card consolidated-analysis__card consolidated-analysis__card--green">
+        <h3 className="consolidated-analysis__card-title consolidated-analysis__card-title--with-icon">
+          <span className="consolidated-analysis__icon consolidated-analysis__icon--green">💬</span>
           {t('recruiterMessage')}
         </h3>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-green-300 dark:border-green-700">
-          <p className="text-gray-800 dark:text-gray-200 italic leading-relaxed">
-            "{result.recruiterMessage}"
+        {result.detectedLanguage && (
+          <p
+            className="consolidated-analysis__language"
+            aria-live="polite"
+            role="doc-subtitle"
+          >
+            {getLanguageLabel(result.detectedLanguage, language as 'pt' | 'en')}
+          </p>
+        )}
+        <div className="consolidated-analysis__message-box">
+          <p className="consolidated-analysis__message-text">
+            "{translateFreeform(result.recruiterMessage)}"
           </p>
         </div>
-        <p className="text-xs text-gray-700 dark:text-gray-300 mt-2">
-          💡 Personalize this message before sending
+        <p className="consolidated-analysis__message-hint">
+          {t('personalizeMessage')}
         </p>
       </div>
 
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-          🎯 Next Steps
+      <div className="card consolidated-analysis__card">
+        <h3 className="consolidated-analysis__card-title">
+          🎯 {t('nextSteps')}
         </h3>
-        <ul className="space-y-3">
+        <ul className="consolidated-analysis__list">
           {technicalScore < overallScore && (
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 dark:text-blue-400 font-bold">1</span>
-              <span className="text-gray-700 dark:text-gray-300">
-                <strong>Learn the missing skills:</strong> {gapResult.missingCriticalSkills.slice(0, 2).join(', ')}
+            <li className="consolidated-analysis__list-item consolidated-analysis__list-item--spaced">
+              <span className="consolidated-analysis__list-index consolidated-analysis__list-index--blue">1</span>
+              <span className="consolidated-analysis__list-text">
+                <strong>{t('learnMissingSkills')}</strong>{' '}
+                {gapResult.missingCriticalSkills
+                  .slice(0, 2)
+                  .map((skill) => translateFreeform(skill))
+                  .join(', ')}
               </span>
             </li>
           )}
           {overallScore < 70 && (
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 dark:text-blue-400 font-bold">{technicalScore < overallScore ? '2' : '1'}</span>
-              <span className="text-gray-700 dark:text-gray-300">
-                <strong>Gain relevant experience</strong> or look for junior positions
+            <li className="consolidated-analysis__list-item consolidated-analysis__list-item--spaced">
+              <span className="consolidated-analysis__list-index consolidated-analysis__list-index--blue">{technicalScore < overallScore ? '2' : '1'}</span>
+              <span className="consolidated-analysis__list-text">
+                <strong>{t('gainRelevantExperience')}</strong> {t('orLookJunior')}
               </span>
             </li>
           )}
-          <li className="flex items-start gap-3">
-            <span className="text-blue-600 dark:text-blue-400 font-bold">{overallScore >= 70 && technicalScore >= 70 ? '1' : overallScore < 70 ? '2' : '2'}</span>
-            <span className="text-gray-700 dark:text-gray-300">
-              <strong>Customize your application</strong> by specifically mentioning the skills you have
+          <li className="consolidated-analysis__list-item consolidated-analysis__list-item--spaced">
+            <span className="consolidated-analysis__list-index consolidated-analysis__list-index--blue">{overallScore >= 70 && technicalScore >= 70 ? '1' : overallScore < 70 ? '2' : '2'}</span>
+            <span className="consolidated-analysis__list-text">
+              <strong>{t('customizeApplication')}</strong> {t('mentioningSkills')}
             </span>
           </li>
         </ul>

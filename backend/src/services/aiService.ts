@@ -97,6 +97,7 @@ export class AIService {
         coverLetter: signals.coverLetter,
         explanation,
         promptVersion: "v2.0-optimized",
+        detectedLanguage: language,
       };
 
       return result;

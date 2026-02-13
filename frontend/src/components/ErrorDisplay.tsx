@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import './ErrorDisplay.css';
 
 interface ErrorDisplayProps {
   message: string;
@@ -10,18 +11,18 @@ export const ErrorDisplay = memo<ErrorDisplayProps>(({ message, onDismiss }) => 
   const { t } = useLanguage();
 
   return (
-    <div className="card bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 animate-fade-in">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">❌</span>
+    <div className="error-container">
+      <div className="error-header">
+        <div className="error-content">
+          <span className="error-icon">❌</span>
           <div>
-            <h3 className="font-semibold text-red-800 dark:text-red-300 mb-1">Analysis Error</h3>
-            <p className="text-red-700 dark:text-red-200">{message}</p>
+            <h3 className="error-title">Analysis Error</h3>
+            <p className="error-message">{message}</p>
           </div>
         </div>
         <button
           onClick={onDismiss}
-          className="text-red-600 hover:text-red-800 font-bold text-xl"
+          className="error-dismiss"
           aria-label={t('dismissError')}
         >
           ×

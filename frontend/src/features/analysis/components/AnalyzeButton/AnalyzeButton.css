@@ -1,0 +1,19 @@
+.analyze-button {
+  @apply w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-500 dark:disabled:bg-gray-600 dark:disabled:text-gray-400;
+}
+
+.analyze-button__content {
+  @apply flex items-center justify-center gap-2;
+}
+
+.analyze-button__spinner {
+  @apply animate-spin h-5 w-5;
+}
+
+.analyze-button__spinner-track {
+  @apply opacity-25;
+}
+
+.analyze-button__spinner-head {
+  @apply opacity-75;
+}

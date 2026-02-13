@@ -49,6 +49,7 @@ export interface AnalysisResult {
   coverLetter: string; 
   explanation: ScoreExplanation; 
   promptVersion: string;
+  detectedLanguage?: 'pt' | 'en';
 }
 
 export interface StructuredCV {

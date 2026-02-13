@@ -1,29 +1,144 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import { getLanguageLabel } from '../utils/languageDetection';
+import './CoverLetterDisplay.css';
 
 interface CoverLetterDisplayProps {
   coverLetter: string;
+  detectedLanguage?: 'pt' | 'en';
 }
 
-export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
+/**
+ * Parsed cover letter structure
+ */
+interface ParsedCoverLetter {
+  bodyParagraphs: string[];
+  signature: string;
+  fullText: string;
+  plainText: string;
+}
+
+/**
+ * Parse cover letter into structured sections
+ */
+function parseCoverLetter(text: string): ParsedCoverLetter {
+  const normalized = text
+    .trim()
+    .replace(/^["'`]+|["'`]+$/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/^[\s\n]+|[\s\n]+$/g, '');
+
+  let lines = normalized.split(/\n\n+/).filter(p => p.trim().length > 0);
+
+  if (lines.length === 1) {
+    const text = lines[0];
+    
+    const sentencePattern = /([^.!?]*[.!?])\s+(?=[A-Z])/g;
+    const sentences = [];
+    let lastIndex = 0;
+    let match;
+
+    const regex = new RegExp(sentencePattern);
+    while ((match = regex.exec(text)) !== null) {
+      sentences.push(text.substring(lastIndex, match.index + match[1].length).trim());
+      lastIndex = match.index + match[1].length + 1;
+    }
+    if (lastIndex < text.length) {
+      sentences.push(text.substring(lastIndex).trim());
+    }
+
+    if (sentences.length > 0) {
+      lines = [];
+      let currentParagraph = '';
+      for (let i = 0; i < sentences.length; i++) {
+        currentParagraph += (currentParagraph ? ' ' : '') + sentences[i];
+        if ((i + 1) % 2 === 0 || currentParagraph.length > 400) {
+          if (currentParagraph.trim().length > 0) {
+            lines.push(currentParagraph.trim());
+          }
+          currentParagraph = '';
+        }
+      }
+      if (currentParagraph.trim().length > 0) {
+        lines.push(currentParagraph.trim());
+      }
+    }
+
+    if (lines.length === 0) {
+      lines = [text];
+    }
+  }
+
+  const signaturePatterns = [
+    /^(best regards|best|kind regards|sincerely|regards|respectfully|yours|atenciosamente|atenciosamente,|cordialmente|abraços|um abraço|obrigado|thanks|thank you)/i,
+    /^[a-z\s,'-]*,?\s*$/i,
+  ];
+
+  let signature = '';
+  let bodyParagraphs = lines;
+
+  if (lines.length > 0) {
+    const lastLine = lines[lines.length - 1];
+    if (signaturePatterns.some(pattern => pattern.test(lastLine.trim()))) {
+      signature = lines.pop()?.trim() || '';
+    }
+  }
+
+  bodyParagraphs = bodyParagraphs.map(p => p.trim()).filter(p => p.length > 0);
+
+  const plainText = [
+    ...bodyParagraphs.map(p => p.replace(/\n/g, ' ')), 
+    signature,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+
+  const fullText = [
+    ...bodyParagraphs.map(p => p.replace(/\n/g, ' ')),
+    signature,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+
+  return {
+    bodyParagraphs,
+    signature,
+    fullText,
+    plainText,
+  };
+}
+
+/**
+ * Generate dynamic filename for exports
+ */
+function generateFilename(
+  language: 'pt' | 'en',
+  format: 'txt' | 'pdf' | 'docx' = 'txt'
+): string {
+  const date = new Date().toISOString().slice(0, 10);
+  const langCode = language === 'pt' ? 'pt' : 'en';
+  return `cover-letter-${langCode}-${date}.${format}`;
+}
+
+export function CoverLetterDisplay({ coverLetter, detectedLanguage }: CoverLetterDisplayProps) {
   const { language } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const copyTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const normalizeText = (text: string): string => {
-    return text
-      .trim()
-      .replace(/^["'`]+|["'`]+$/g, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/^[\s\n]+|[\s\n]+$/g, '');
-  };
+  const parsed = parseCoverLetter(coverLetter);
 
-  const normalizedText = normalizeText(coverLetter);
-  
-  const paragraphs = normalizedText.split('\n\n').filter(p => p.trim().length > 0);
-
-  const firstParagraph = paragraphs[0] || '';
-  const hasMoreContent = paragraphs.length > 1 || firstParagraph.length > 250;
+  useEffect(() => {
+    if (copyFeedback) {
+      copyTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 3000);
+      return () => {
+        if (copyTimeoutRef.current) {
+          clearTimeout(copyTimeoutRef.current);
+        }
+      };
+    }
+  }, [copyFeedback]);
 
   const handleReadFull = () => {
     setIsExpanded(true);
@@ -34,60 +149,71 @@ export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(normalizedText);
-      alert(language === 'pt' ? 'Carta copiada com sucesso!' : 'Cover letter copied successfully!');
+      await navigator.clipboard.writeText(parsed.plainText);
+      setCopyFeedback(language === 'pt' ? '✓ Copiado!' : '✓ Copied!');
+      const copyButtons = document.querySelectorAll('[data-copy-button]');
+      copyButtons.forEach(btn => {
+        if (btn instanceof HTMLElement) btn.focus();
+      });
     } catch (error) {
       console.error('Failed to copy:', error);
-      alert(language === 'pt' ? 'Erro ao copiar. Tente novamente.' : 'Failed to copy. Try again.');
+      setCopyFeedback(language === 'pt' ? '✗ Erro ao copiar' : '✗ Copy failed');
     }
   };
 
-  const handleEdit = () => {
-    alert(language === 'pt' 
-      ? 'Funcionalidade de edição em desenvolvimento. Você pode copiar e editar no seu editor de texto favorito.'
-      : 'Edit feature coming soon. You can copy and edit in your favorite text editor.'
-    );
-  };
 
-  const handleDownload = () => {
+
+  const handleDownloadTxt = () => {
     const element = document.createElement('a');
-    const file = new Blob([normalizedText], { type: 'text/plain;charset=utf-8' });
+    const file = new Blob([parsed.plainText], { type: 'text/plain;charset=utf-8' });
     element.href = URL.createObjectURL(file);
-    element.download = `cover-letter-${Date.now()}.txt`;
+    element.download = generateFilename(language, 'txt');
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+    URL.revokeObjectURL(element.href);
   };
 
+  const handleDownload = handleDownloadTxt;
+
+  const firstParagraph = parsed.bodyParagraphs[0] || '';
+  const hasMoreContent = parsed.bodyParagraphs.length > 1 || firstParagraph.length > 250;
+
   return (
-    <div ref={scrollContainerRef} className="card bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-700 scroll-smooth">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-          <span className="text-2xl">📄</span>
+    <div ref={scrollContainerRef} className="card cover-letter">
+      <div className="cover-letter__header">
+        <h3 className="cover-letter__title">
+          <span className="cover-letter__title-icon">📄</span>
           {language === 'pt' ? 'Carta de Apresentação' : 'Cover Letter'}
         </h3>
       </div>
 
+      {detectedLanguage && (
+        <p className="cover-letter__language" role="doc-subtitle">
+          {getLanguageLabel(detectedLanguage, language as 'pt' | 'en')}
+        </p>
+      )}
+
       {!isExpanded ? (
-        <div className="space-y-4">
-          <div className="relative">
-            <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-slate-300 dark:border-slate-700 leading-relaxed">
-              <p className="text-gray-800 dark:text-gray-200 font-serif text-sm whitespace-pre-wrap">
+        <div className="cover-letter__collapsed">
+          <div className="cover-letter__preview">
+            <article className="cover-letter__preview-article">
+              <p className="cover-letter__preview-text">
                 {firstParagraph}
               </p>
               {hasMoreContent && (
-                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-gray-800 to-transparent rounded-b-lg"></div>
+                <div className="cover-letter__preview-fade"></div>
               )}
-            </div>
+            </article>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+         <div className="cover-letter__actions">
             {hasMoreContent && (
               <button
                 onClick={handleReadFull}
-                className="flex-1 min-w-max px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2"
+                className="cover-letter__button cover-letter__button--read"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="cover-letter__button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                 </svg>
                 {language === 'pt' ? 'Ler Completa' : 'Read Full'}
@@ -96,56 +222,10 @@ export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
 
             <button
               onClick={handleCopy}
-              className="flex-1 min-w-max px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              data-copy-button
+              className="cover-letter__button cover-letter__button--copy-neutral"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              {language === 'pt' ? 'Copiar' : 'Copy'}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4 animate-fade-in">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-slate-300 dark:border-slate-700 max-h-[500px] overflow-y-auto">
-            <div className="space-y-4">
-              {paragraphs.map((paragraph, idx) => (
-                <p
-                  key={idx}
-                  className="text-gray-800 dark:text-gray-200 font-serif text-sm leading-relaxed whitespace-pre-wrap"
-                >
-                  {paragraph.trim()}
-                </p>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-              </svg>
-              {language === 'pt' ? 'Resumir' : 'Collapse'}
-            </button>
-
-            <button
-              onClick={handleEdit}
-              className="flex-1 min-w-max px-4 py-2 bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              {language === 'pt' ? 'Editar' : 'Edit'}
-            </button>
-
-            <button
-              onClick={handleCopy}
-              className="flex-1 min-w-max px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="cover-letter__button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
               {language === 'pt' ? 'Copiar' : 'Copy'}
@@ -153,14 +233,90 @@ export function CoverLetterDisplay({ coverLetter }: CoverLetterDisplayProps) {
 
             <button
               onClick={handleDownload}
-              className="flex-1 min-w-max px-4 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              className="cover-letter__button cover-letter__button--download"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="cover-letter__button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               {language === 'pt' ? 'Baixar' : 'Download'}
             </button>
           </div>
+
+          {copyFeedback && (
+            <div
+              className="cover-letter__feedback"
+              role="status"
+              aria-live="polite"
+            >
+              {copyFeedback}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="cover-letter__expanded">
+          <article className="cover-letter__full-article">
+            <div className="cover-letter__paragraphs">
+              {parsed.bodyParagraphs.map((paragraph, idx) => (
+                <p
+                  key={idx}
+                  className="cover-letter__paragraph"
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+
+            {parsed.signature && (
+              <div className="cover-letter__signature">
+                <p className="cover-letter__paragraph">
+                  {parsed.signature}
+                </p>
+              </div>
+            )}
+          </article>
+
+          <div className="cover-letter__actions">
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="cover-letter__button cover-letter__button--collapse"
+            >
+              <svg className="cover-letter__button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+              {language === 'pt' ? 'Resumir' : 'Collapse'}
+            </button>
+
+            <button
+              onClick={handleCopy}
+              data-copy-button
+              className="cover-letter__button cover-letter__button--copy-primary"
+            >
+              <svg className="cover-letter__button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              {language === 'pt' ? 'Copiar' : 'Copy'}
+            </button>
+
+            <button
+              onClick={handleDownload}
+              className="cover-letter__button cover-letter__button--download"
+            >
+              <svg className="cover-letter__button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              {language === 'pt' ? 'Baixar' : 'Download'}
+            </button>
+          </div>
+
+          {copyFeedback && (
+            <div
+              className="cover-letter__feedback"
+              role="status"
+              aria-live="polite"
+            >
+              {copyFeedback}
+            </div>
+          )}
         </div>
       )}
     </div>

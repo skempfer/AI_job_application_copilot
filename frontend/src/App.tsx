@@ -17,6 +17,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { Terms } from './pages/Terms';
 import { Privacy } from './pages/Privacy';
 import { trackEvent } from './lib/analytics';
+import './App.css';
 
 const ResultsDisplay = lazy(() => import('./components/ResultsDisplay').then(m => ({ default: m.ResultsDisplay })));
 const GapAnalysisDisplay = lazy(() => import('./components/GapAnalysisDisplay').then(m => ({ default: m.GapAnalysisDisplay })));
@@ -69,16 +70,16 @@ function AppContent() {
   }, [jobDescription]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="app-shell">
       <Header />
 
       <LoadingSpinner show={loading} overlay message={t('analyzingButton')} />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
-        <div className="space-y-6">
+      <main className="app-main">
+        <div className="app-content">
           <ResumeUpload onUploadComplete={setResumeUrl} disabled={loading} />
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="app-input-grid">
             <CVInput value={cv} onChange={setCv} disabled={loading} />
             <JobInput value={jobDescription} onChange={setJobDescription} disabled={loading} />
           </div>
@@ -89,11 +90,11 @@ function AppContent() {
 
           <Suspense fallback={<ResultsLoadingFallback />}>
             {result && gapResult && (
-              <div className="grid md:grid-cols-2 gap-6 divide-x divide-gray-300 dark:divide-gray-600">
+              <div className="app-results-grid">
                 <div>
                   <ResultsDisplay result={result} />
                 </div>
-                <div>
+                <div className="app-results-side">
                   <GapAnalysisDisplay result={gapResult} />
                 </div>
               </div>
@@ -103,16 +104,16 @@ function AppContent() {
             
             {result && gapResult && <ConsolidatedAnalysis result={result} gapResult={gapResult} />}
 
-            {result && <CoverLetterDisplay coverLetter={result.coverLetter} />}
+            {result && <CoverLetterDisplay coverLetter={result.coverLetter} detectedLanguage={result.detectedLanguage} />}
           </Suspense>
 
           {!result && !error && !loading && (
-            <div className="card text-center py-12">
-              <span className="text-6xl mb-4 block">📋</span>
-              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <div className="card app-empty-state">
+              <span className="app-empty-icon">📋</span>
+              <h2 className="app-empty-title">
                 {t('readyToStart')}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="app-empty-text">
                 {t('emptyStateText')}
               </p>
             </div>

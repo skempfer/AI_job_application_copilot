@@ -1,3 +1,5 @@
+import { detectLanguage } from '../utils/languageDetection';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
@@ -7,9 +9,12 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
  * @param {string|null} resumeUrl - PDF resume URL (optional)
  */
 export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
+  const detectedLanguage = detectLanguage(jobDescription);
+
   const payload = {
     cv: cv.trim(),
     jobDescription: jobDescription.trim(),
+    language: detectedLanguage,
   };
 
   if (resumeUrl) {
@@ -31,7 +36,12 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
     throw error;
   }
 
-  return response.json();
+  const response_data = await response.json();
+  // Return detected language along with response
+  return {
+    ...response_data,
+    detectedLanguage
+  };
 }
 
 /**

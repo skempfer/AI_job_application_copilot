@@ -43,4 +43,5 @@ export interface FormattedAnalysisResult extends AnalysisResult {
   scoreBadgeClass: string;
   decisionText: string;
   decisionIcon: string;
+  detectedLanguage?: 'pt' | 'en';
 }

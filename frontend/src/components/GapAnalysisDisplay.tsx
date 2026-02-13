@@ -1,56 +1,59 @@
 import { memo } from 'react';
+import { useLanguage } from '../hooks/useLanguage';
 import type { GapAnalysisResult } from '../types/analysis';
 import { clampScore, getScoreBadgeClass } from '../utils/scoreHelpers';
+import './GapAnalysisDisplay.css';
 
 interface GapAnalysisDisplayProps {
   result: GapAnalysisResult;
 }
 
 export const GapAnalysisDisplay = memo<GapAnalysisDisplayProps>(({ result }) => {
+  const { t, translateFreeform } = useLanguage();
   const clampedScore = clampScore(result.matchScore);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="card bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-700">
+    <div className="gap-analysis">
+      <div className="gap-analysis__header-card">
         <div className="mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">🔧 Technical Analysis</span>
-            <span className="text-xs px-2 py-1 rounded bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 font-semibold">
-              Skills Match
+          <div className="gap-analysis__header-title">
+            <span className="gap-analysis__header-title-text">🔧 {t('technicalAnalysis')}</span>
+            <span className="gap-analysis__header-badge">
+              {t('skillsMatch')}
             </span>
           </div>
-          <p className="text-sm text-gray-800 dark:text-blue-300">
-            Compares your CV technologies with job requirements. Percentage score based on technical match.
+          <p className="gap-analysis__header-desc">
+            {t('technicalMatchDesc')}
           </p>
         </div>
         
-        <div className="flex items-center justify-between mb-3 pt-2 border-t border-blue-200 dark:border-blue-700">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Technical Match</h3>
-          <div className={`px-4 py-2 rounded-full border-2 font-bold text-lg ${getScoreBadgeClass(clampedScore)}`}>
+        <div className="gap-analysis__score-section">
+          <h3 className="gap-analysis__score-label">{t('technicalMatch')}</h3>
+          <div className={`gap-analysis__score-badge ${getScoreBadgeClass(clampedScore)}`}>
             {clampedScore}%
           </div>
         </div>
-        <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+        <div className="gap-analysis__progress-bar">
           <div
-            className="h-full bg-blue-500 transition-all duration-500"
+            className="gap-analysis__progress-fill"
             style={{ width: `${clampedScore}%` }}
           />
         </div>
       </div>
 
       {result.strongMatches.length > 0 && (
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-            <span className="text-green-600 dark:text-green-400">✓</span>
-            Skills you have
+        <div className="gap-analysis__section">
+          <h3 className="gap-analysis__section-title">
+            <span className="gap-analysis__section-icon gap-analysis__section-icon--positive">✓</span>
+            {t('skillsYouHave')}
           </h3>
-          <ul className="flex flex-wrap gap-2">
+          <ul className="gap-analysis__skills-list">
             {result.strongMatches.map((match) => (
               <li
                 key={match}
-                className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium"
+                className="gap-analysis__skill-tag"
               >
-                {match}
+                {translateFreeform(match)}
               </li>
             ))}
           </ul>
@@ -58,16 +61,16 @@ export const GapAnalysisDisplay = memo<GapAnalysisDisplayProps>(({ result }) => 
       )}
 
       {result.missingCriticalSkills.length > 0 && (
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-            <span className="text-red-600 dark:text-red-400">✕</span>
-            Critical skills missing
+        <div className="gap-analysis__section">
+          <h3 className="gap-analysis__section-title">
+            <span className="gap-analysis__section-icon gap-analysis__section-icon--critical">✕</span>
+            {t('criticalSkillsMissing')}
           </h3>
-          <ul className="space-y-2">
+          <ul className="gap-analysis__items-list">
             {result.missingCriticalSkills.map((skill) => (
-              <li key={skill} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                <span className="text-red-500 dark:text-red-400 mt-1">•</span>
-                <span>{skill}</span>
+              <li key={skill} className="gap-analysis__list-item">
+                <span className="gap-analysis__list-icon gap-analysis__list-icon--critical">•</span>
+                <span>{translateFreeform(skill)}</span>
               </li>
             ))}
           </ul>
@@ -75,16 +78,16 @@ export const GapAnalysisDisplay = memo<GapAnalysisDisplayProps>(({ result }) => 
       )}
 
       {result.suggestedFocusAreas.length > 0 && (
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-            <span className="text-orange-600 dark:text-orange-400">→</span>
-            Next technologies to learn
+        <div className="gap-analysis__section">
+          <h3 className="gap-analysis__section-title">
+            <span className="gap-analysis__section-icon gap-analysis__section-icon--focus">→</span>
+            {t('nextTechnologies')}
           </h3>
-          <ul className="space-y-2">
+          <ul className="gap-analysis__items-list">
             {result.suggestedFocusAreas.map((area) => (
-              <li key={area} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                <span className="text-orange-500 dark:text-orange-400 mt-1">•</span>
-                <span>{area}</span>
+              <li key={area} className="gap-analysis__list-item">
+                <span className="gap-analysis__list-icon gap-analysis__list-icon--focus">•</span>
+                <span>{translateFreeform(area)}</span>
               </li>
             ))}
           </ul>
