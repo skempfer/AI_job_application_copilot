@@ -18,10 +18,19 @@ export default {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       useESM: true,
+      tsconfig: {
+        jsx: 'react-jsx',
+      },
     }],
     '^.+\\.jsx?$': ['ts-jest', {
       useESM: true,
     }],
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx,js,jsx}',
+    '!src/**/*.d.ts',
+    '!src/main.tsx',
+    '!src/vite-env.d.ts',
+  ],
 };
