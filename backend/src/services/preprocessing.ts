@@ -115,8 +115,6 @@ const YEARS_PATTERN = /(\d{1,2})\s*(?:\+|\s)?(?:years?|anos?|yrs?)\s*(?:of\s+)?(
 
 
 export function preprocessCV(rawCV: string): ProcessedCV {
-  console.log("[preprocessCV] Started. CV length:", rawCV.length);
-  console.log("[preprocessCV] First 100 chars:", rawCV.substring(0, 100));
   
   let cleaned = rawCV;
   for (const pattern of PERSONAL_DATA_PATTERNS) {
@@ -257,15 +255,12 @@ export function preprocessCV(rawCV: string): ProcessedCV {
 
   // NEW: Extract years of experience using deterministic inference
   const yearsExperienceResult = extractYearsExperience(rawCV);
-  console.log([yearsExperienceResult])
-  console.log("[preprocessCV] Years extraction result:", {
-    yearsExperience: yearsExperienceResult.yearsExperience,
-    confidence: yearsExperienceResult.confidence,
-    method: yearsExperienceResult.method,
-  });
+
+  if (yearsTotal === 0 && yearsExperienceResult.yearsExperience !== null) {
+    yearsTotal = yearsExperienceResult.yearsExperience;
+  }
 
   const domainExperience = detectDomainExperience(rawCV);
-  console.log("[preprocessCV] Domain experience detected:", domainExperience);
 
   return {
     skills: Array.from(skillsSet).sort(),
@@ -334,13 +329,31 @@ export function preprocessJobDescription(rawJob: string): ProcessedJobDescriptio
   const mandatoryRequirements: string[] = [];
   const desirableRequirements: string[] = [];
 
+  const nonRequirementPatterns = [
+    /\b(clt|pj|contrato|contract|benef[ií]cios?|benefits|sal[aá]rio|remunera[cç][aã]o|vale\b|vr\b|va\b|plr\b|b[oô]nus|bonus|stock|equity|f[eé]rias|13[oº]?|health|insurance|aux[ií]lio|home\s*office|remote|h[ií]brido|hybrid)\b/i,
+    /\b(benefit|perks?)\b/i,
+  ];
+
+  function normalizeRequirementItem(item: string): string {
+    return item
+      .replace(/^[-•\s\d.]+/, "")
+      .replace(/\s{2,}/g, " ")
+      .replace(/[;:]+$/g, "")
+      .trim();
+  }
+
+  function isValidRequirementItem(item: string): boolean {
+    if (!item || item.length < 3 || item.length > 150) return false;
+    return !nonRequirementPatterns.some((pattern) => pattern.test(item));
+  }
+
   const mandatoryMarkers = [
-    /(?:required|obrigatório|must have|essential|necessário|essencial)\s*:?(.+?)(?=\n|$)/gis,
-    /(?:requirements|requisitos)\s*:?(.+?)(?=(?:desired|desejável|nice to have|bônus)|$)/gis,
+    /(?:required|obrigat[oó]rio|must have|essential|necess[aá]rio|essencial|requisitos\s+obrigat[oó]rios|qualifica[cç][oõ]es\s+obrigat[oó]rias)\s*:?(.+?)(?=\n(?:desired|desej[aá]vel|nice to have|b[oô]nus|bonus|diferenciais|preferencial|idealmente)|$)/gis,
+    /(?:requirements|requisitos|qualifica[cç][oõ]es|exig[eê]ncias|experi[eê]ncia\s+necess[aá]ria|o\s+que\s+buscamos)\s*:?(.+?)(?=\n(?:desired|desej[aá]vel|nice to have|b[oô]nus|bonus|diferenciais|preferencial|idealmente)|$)/gis,
   ];
 
   const desirableMarkers = [
-    /(?:desired|desejável|nice to have|bônus|bonus|preferred|preferencial|idealmente)\s*:?(.+?)(?=\n(?:requirements|requisitos)|$)/gis,
+    /(?:desired|desej[aá]vel|nice to have|b[oô]nus|bonus|preferred|preferencial|idealmente|diferenciais|plus|ser[aá]\s+um\s+diferencial)\s*:?(.+?)(?=\n(?:requirements|requisitos|qualifica[cç][oõ]es|exig[eê]ncias)|$)/gis,
   ];
 
   for (const pattern of mandatoryMarkers) {
@@ -349,8 +362,8 @@ export function preprocessJobDescription(rawJob: string): ProcessedJobDescriptio
       const section = match[1] || match[0];
       const items = section
         .split(/[\n•\-]/g)
-        .map((item) => item.trim())
-        .filter((item) => item && item.length > 3 && item.length < 150);
+        .map(normalizeRequirementItem)
+        .filter(isValidRequirementItem);
 
       for (const item of items) {
         if (!mandatoryRequirements.includes(item)) {
@@ -366,8 +379,8 @@ export function preprocessJobDescription(rawJob: string): ProcessedJobDescriptio
       const section = match[1] || match[0];
       const items = section
         .split(/[\n•\-]/g)
-        .map((item) => item.trim())
-        .filter((item) => item && item.length > 3 && item.length < 150);
+        .map(normalizeRequirementItem)
+        .filter(isValidRequirementItem);
 
       for (const item of items) {
         if (!desirableRequirements.includes(item)) {
@@ -406,10 +419,10 @@ export function preprocessJobDescription(rawJob: string): ProcessedJobDescriptio
   mainResponsibilities.splice(8);
 
   return {
-    mandatoryRequirements: mandatoryRequirements.length > 0 ? mandatoryRequirements : ["No specific requirements extracted"],
+    mandatoryRequirements: mandatoryRequirements.length > 0 ? mandatoryRequirements : [],
     desirableRequirements: desirableRequirements.length > 0 ? desirableRequirements : [],
     seniorityLevel,
-    mainResponsibilities: mainResponsibilities.length > 0 ? mainResponsibilities : ["No specific responsibilities extracted"],
+    mainResponsibilities: mainResponsibilities.length > 0 ? mainResponsibilities : [],
     techStack: Array.from(techStack).sort(),
   };
 }

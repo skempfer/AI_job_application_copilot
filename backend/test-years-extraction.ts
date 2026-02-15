@@ -27,29 +27,11 @@ const testCVs = [
   "10+ years as JavaScript developer",
 ];
 
-console.log("\n" + "=".repeat(80));
-console.log("TESTING YEARS OF EXPERIENCE EXTRACTION");
-console.log("=".repeat(80) + "\n");
-
 testCVs.forEach((cv, index) => {
-  console.log("\n" + "-".repeat(80));
-  console.log(`TEST ${index + 1}:`);
-  console.log(`Input: "${cv.substring(0, 80)}${cv.length > 80 ? "..." : ""}"`);
-  console.log("-".repeat(80));
-
   const result = extractYearsExperience(cv);
 
-  console.log("\n📊 RESULT:");
-  console.log(JSON.stringify(result, null, 2));
-
   const domains = detectDomainExperience(cv);
-  console.log("\n🎯 DOMAINS DETECTED:");
   const detectedDomains = Object.entries(domains)
     .filter(([_, detected]) => detected)
     .map(([domain]) => domain);
-  console.log(detectedDomains.length > 0 ? detectedDomains : "None");
 });
-
-console.log("\n" + "=".repeat(80));
-console.log("TEST COMPLETE");
-console.log("=".repeat(80) + "\n");
