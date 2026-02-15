@@ -122,7 +122,6 @@ describe('languageDetection', () => {
 
       it('should detect English from specific phrases', () => {
         const text = 'If you have experience. If you possess skills. We seek developers.';
-        // Should be English dominant
         const result = detectLanguage(text);
         expect(result).toMatch(/en|pt/); // Could be either, but EN should be preferred
       });
@@ -212,8 +211,7 @@ describe('languageDetection', () => {
       });
 
       it('should handle partial word matches within larger words', () => {
-        const text = 'excavation position experienced'; // "vaga" in excavation, "position"
-        // "vaga" in excavation should count as partial match
+        const text = 'excavation position experienced';
         const result = detectLanguage(text);
         expect(result).toBeDefined();
       });
@@ -299,7 +297,6 @@ describe('languageDetection', () => {
         const ptDetectedPtUI = getLanguageLabel('pt', 'pt');
         const enDetectedPtUI = getLanguageLabel('en', 'pt');
 
-        // Both should be in Portuguese
         expect(ptDetectedPtUI).toContain('Português');
         expect(enDetectedPtUI).toContain('Inglês');
       });
@@ -308,7 +305,6 @@ describe('languageDetection', () => {
 
   describe('integration: detect then label', () => {
     it('should provide complete language information flow', () => {
-      const cvText = 'Developer with 5 years experience';
       const jobText = `
         Vaga: Desenvolvedor Senior
         Procuramos profissionais com experiência
@@ -327,14 +323,12 @@ describe('languageDetection', () => {
     it('should handle language switching', () => {
       const englishJob = 'Senior developer position with requirements';
 
-      // Detect English, display in Portuguese UI
       const detectEn = detectLanguage(englishJob);
       const labelPt = getLanguageLabel(detectEn, 'pt');
 
       expect(detectEn).toBe('en');
       expect(labelPt).toContain('Inglês');
 
-      // Same detection, display in English UI
       const labelEn = getLanguageLabel(detectEn, 'en');
       expect(labelEn).toContain('English');
     });

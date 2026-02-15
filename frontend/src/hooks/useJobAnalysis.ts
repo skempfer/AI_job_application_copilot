@@ -26,10 +26,43 @@ export function useJobAnalysis() {
     }
 
     setLoading(true);
+    console.log('\n🚀 [useJobAnalysis] Starting analysis...');
+    console.log('📝 [useJobAnalysis] CV length:', cv.trim().length);
+    console.log('📝 [useJobAnalysis] Job description length:', jobDescription.trim().length);
+    console.log('📝 [useJobAnalysis] Resume URL:', resumeUrl || 'none');
 
     try {
+      console.log('\n📤 [useJobAnalysis] Sending request to /api/analyze...');
       const analysisResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
+      
+      console.log('\n✅ [useJobAnalysis] Raw result from API:', {
+        fitScore: analysisResult.fitScore,
+        decision: analysisResult.decision,
+        hasExplanation: !!analysisResult.explanation,
+        hasSuggestions: !!analysisResult.cvSuggestions,
+      });
+      console.log('📊 [useJobAnalysis] Full API response:', analysisResult);
+      
+      // Log preprocessing results if available
+      if (analysisResult.preprocessedCV) {
+        console.log('\n🔍 [useJobAnalysis] Preprocessing results:', {
+          yearsExperience: analysisResult.preprocessedCV.yearsExperience,
+          yearsExperienceConfidence: analysisResult.preprocessedCV.yearsExperienceConfidence,
+          domainExperience: analysisResult.preprocessedCV.domainExperience,
+          skills: analysisResult.preprocessedCV.skills?.length || 0,
+        });
+      }
+      
       const formatted = formatAnalysisResult(analysisResult);
+      
+      console.log('\n🎯 [useJobAnalysis] Formatted result:', {
+        fitScore: formatted.fitScore,
+        decision: formatted.decision,
+        strengths: formatted.strengths?.length || 0,
+        gaps: formatted.gaps?.length || 0,
+        suggestions: formatted.cvSuggestions?.length || 0,
+      });
+      
       setResult(formatted);
 
       trackEvent('analysis_success', {

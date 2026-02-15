@@ -6,7 +6,6 @@ import {
   isRateLimited,
 } from './rateLimiter';
 
-// Mock sessionStorage
 const sessionStorageMock = (() => {
   let store: Record<string, string> = {};
 
@@ -30,7 +29,6 @@ Object.defineProperty(window, 'sessionStorage', {
 
 describe('rateLimiter', () => {
   const RATE_LIMIT_KEY = 'viora_request_rate_limit';
-  const MAX_REQUESTS = 4;
   const TIME_WINDOW = 15 * 60 * 1000; // 15 minutes
 
   beforeEach(() => {
@@ -53,12 +51,10 @@ describe('rateLimiter', () => {
     });
 
     it('should deny request when limit exceeded', () => {
-      // Make 4 requests
       for (let i = 0; i < 4; i++) {
         checkRateLimit();
       }
 
-      // 5th request should be denied
       const result = checkRateLimit();
       expect(result.allowed).toBe(false);
       expect(result.message).toContain('Rate limit exceeded');
@@ -90,23 +86,20 @@ describe('rateLimiter', () => {
       });
 
       const result = checkRateLimit();
-      expect(result.allowed).toBe(true); // Should allow on error
+      expect(result.allowed).toBe(true); 
 
       getItemSpy.mockRestore();
     });
 
     it('should filter out expired timestamps', () => {
-      // Make 4 requests
       for (let i = 0; i < 4; i++) {
         checkRateLimit();
       }
 
       expect(checkRateLimit().allowed).toBe(false);
 
-      // Advance time past TIME_WINDOW + 1 second
       jest.advanceTimersByTime(TIME_WINDOW + 1000);
 
-      // All timestamps should be expired, so next request should be allowed
       const result = checkRateLimit();
       expect(result.allowed).toBe(true);
     });
@@ -116,12 +109,10 @@ describe('rateLimiter', () => {
         checkRateLimit();
       }
 
-      // Advance time by 5 minutes (300,000 ms)
       jest.advanceTimersByTime(5 * 60 * 1000);
 
       const result = checkRateLimit();
       expect(result.allowed).toBe(false);
-      // Should have ~10 minutes left (600 seconds)
       expect(result.message).toMatch(/60[0-9] seconds|599 seconds|60\d seconds/);
     });
   });
@@ -149,16 +140,13 @@ describe('rateLimiter', () => {
     });
 
     it('should allow new requests after reset', () => {
-      // Exhaust limit
       for (let i = 0; i < 4; i++) {
         checkRateLimit();
       }
       expect(checkRateLimit().allowed).toBe(false);
 
-      // Reset
       resetRateLimit();
 
-      // Should allow new request
       expect(checkRateLimit().allowed).toBe(true);
     });
   });
@@ -206,20 +194,13 @@ describe('rateLimiter', () => {
 
     it('should partially reset count for partially expired timestamps', () => {
       checkRateLimit();
-      const firstTime = Date.now();
 
       checkRateLimit();
       checkRateLimit();
-
-      // Advance time by 5 minutes
       jest.advanceTimersByTime(5 * 60 * 1000);
 
       checkRateLimit();
 
-      // After 5 minutes, first 3 timestamps are older but still within 15 minute window
-      // (they expire after 15 min total, so we're at 5 min, they have 10 min left)
-      // We have 1 new timestamp at 5 min
-      // Total: 4 timestamps all within the 15 min window = 0 remaining
       expect(getRemainingRequests()).toBe(0);
     });
 
@@ -229,8 +210,7 @@ describe('rateLimiter', () => {
       });
 
       const result = getRemainingRequests();
-      expect(result).toBe(4); // Default to MAX_REQUESTS
-
+      expect(result).toBe(4); 
       getItemSpy.mockRestore();
     });
   });
@@ -264,7 +244,7 @@ describe('rateLimiter', () => {
 
       const time1 = getTimeUntilReset();
 
-      jest.advanceTimersByTime(60000); // 1 minute
+      jest.advanceTimersByTime(60000); 
 
       const time2 = getTimeUntilReset();
 
@@ -289,7 +269,7 @@ describe('rateLimiter', () => {
       });
 
       const result = getTimeUntilReset();
-      expect(result).toBe(0); // Default to 0
+      expect(result).toBe(0); 
 
       getItemSpy.mockRestore();
     });
@@ -345,7 +325,7 @@ describe('rateLimiter', () => {
       });
 
       const result = isRateLimited();
-      expect(result).toBe(false); // Default to false (not limited)
+      expect(result).toBe(false); 
 
       getItemSpy.mockRestore();
     });
@@ -353,7 +333,6 @@ describe('rateLimiter', () => {
 
   describe('rate limit workflow', () => {
     it('should handle complete user workflow', () => {
-      // User makes 4 analyses
       expect(getRemainingRequests()).toBe(4);
       expect(checkRateLimit().allowed).toBe(true);
       expect(getRemainingRequests()).toBe(3);
@@ -367,16 +346,13 @@ describe('rateLimiter', () => {
       expect(checkRateLimit().allowed).toBe(true);
       expect(getRemainingRequests()).toBe(0);
 
-      // 5th attempt fails
       expect(isRateLimited()).toBe(true);
       const result = checkRateLimit();
       expect(result.allowed).toBe(false);
       expect(result.message).toContain('Rate limit exceeded');
 
-      // User waits for window to expire
       jest.advanceTimersByTime(TIME_WINDOW + 1000);
 
-      // Can try again
       expect(isRateLimited()).toBe(false);
       expect(checkRateLimit().allowed).toBe(true);
     });

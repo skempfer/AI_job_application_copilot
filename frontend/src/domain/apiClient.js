@@ -1,6 +1,6 @@
 import { detectLanguage } from '../utils/languageDetection';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 /**
  * Analyzes job fit via API
@@ -21,6 +21,14 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
     payload.resumeUrl = resumeUrl;
   }
 
+  console.log('\n📮 [apiClient.analyzeJobFit] Sending payload:');
+  console.log({
+    cvLength: payload.cv.length,
+    jobDescriptionLength: payload.jobDescription.length,
+    hasResumeUrl: !!resumeUrl,
+    language: detectedLanguage,
+  });
+
   const response = await fetch(`${API_BASE_URL}/api/analyze`, {
     method: 'POST',
     headers: {
@@ -29,15 +37,31 @@ export async function analyzeJobFit(cv, jobDescription, resumeUrl = null) {
     body: JSON.stringify(payload),
   });
 
+  console.log('\n📩 [apiClient.analyzeJobFit] Response status:', response.status);
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    console.error('❌ [apiClient.analyzeJobFit] Error:', errorData);
     const error = new Error(errorData.error || `HTTP Error: ${response.status}`);
     error.status = response.status;
     throw error;
   }
 
   const response_data = await response.json();
-  // Return detected language along with response
+  console.log('✅ [apiClient.analyzeJobFit] Success! Response data:', response_data);
+  
+  if (response_data.preprocessedCV) {
+    console.log('\n🔧 [apiClient.analyzeJobFit] PREPROCESSING DATA FOUND!');
+    console.log('📊 Years Experience:', response_data.preprocessedCV.yearsExperience);
+    console.log('🎯 Confidence:', response_data.preprocessedCV.yearsExperienceConfidence);
+    console.log('🏢 Domain Experience:', response_data.preprocessedCV.domainExperience);
+    console.log('🏷️  Seniority:', response_data.preprocessedCV.seniority);
+    console.log('💾 Skills:', response_data.preprocessedCV.skills);
+  } else {
+    console.warn('⚠️ [apiClient.analyzeJobFit] No preprocessedCV in response!');
+    console.log('Available keys:', Object.keys(response_data));
+  }
+  
   return {
     ...response_data,
     detectedLanguage

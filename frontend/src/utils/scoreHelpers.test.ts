@@ -119,14 +119,8 @@ describe('scoreHelpers', () => {
     });
 
     it('should be immutable (readonly)', () => {
-      // JS allows modification at runtime even with as const, but TypeScript prevents it
-      // This test verifies the constant should not be modified in regular code
       const original = SCORE_BOUNDARIES.MIN;
       expect(original).toBe(0);
-
-      // In proper TypeScript code, this would be a compile error:
-      // (SCORE_BOUNDARIES as any).MIN = 10;
-      // We're just verifying the initial values are correct
     });
 
     it('should maintain order and logic', () => {
