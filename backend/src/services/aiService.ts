@@ -5,6 +5,11 @@ import { preprocessCV, preprocessJobDescription } from "./preprocessing.js";
 import { buildOptimizedPrompt } from "./promptBuilder.js";
 import { getErrorMessage } from "../i18n/index.js";
 
+const SYSTEM_PROMPT = `Return ONLY valid JSON. No markdown. No extra text.
+Use only the structured input provided.
+Do NOT fabricate data or infer details not present.
+Do NOT recalculate deterministic signals; if inconsistent, flag in redFlags.`;
+
 export class AIService {
   private client: OpenAI;
   private model: string;
@@ -18,8 +23,6 @@ export class AIService {
   }
 
   async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
-    // esse console.log não está sendo chamado, ou seja, o processamento não passar por aqui, verificar onde está sendo barrado o último processamento 
-    console.log([cv])
     const processedCV = await preprocessCV(cv);
 
     const processedJob = await preprocessJobDescription(jobDescription);
@@ -32,7 +35,7 @@ export class AIService {
         messages: [
           {
             role: "system",
-            content: "You are an assistant that returns ONLY valid JSON, with no markdown or extra text.",
+            content: SYSTEM_PROMPT,
           },
           {
             role: "user",
