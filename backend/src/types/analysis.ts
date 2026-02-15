@@ -75,6 +75,19 @@ export interface AnalysisResult {
     seniority: "junior" | "mid" | "senior" | "unknown";
     skills: string[];
   };
+
+  // STRUCTURED DATA (NEW - for UI mapping)
+  // These are the raw signals from the AI, not formatted strings
+  aiSignals?: {
+    hardSkillsDetected: string[];
+    softSkillsEvidence: string[]; 
+    mandatoryRequirementsMet: string[];
+    mandatoryRequirementsMissing: string[]; 
+    desirableRequirementsMet: string[]; 
+    desirableRequirementsMissing: string[]; 
+    seniorityMatch: "above" | "match" | "below"; 
+    redFlags: string[]; 
+  };
 }
 
 export interface StructuredCV {
@@ -110,4 +123,7 @@ export interface AIServiceConfig {
   apiKey: string;
   apiUrl: string;
   model: string;
+  fallbackApiKey?: string;
+  fallbackApiUrl?: string;
+  fallbackModel?: string;
 }

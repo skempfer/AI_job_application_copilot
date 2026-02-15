@@ -31,6 +31,10 @@ export interface LogMetrics {
   itemsProcessed?: number;
   provider?: string;
   errors?: number;
+  providerUsed?: "groq" | "deepseek";
+  fallbackTriggered?: boolean;
+  responseTimeMs?: number;
+  schemaValidationSuccess?: boolean;
 }
 
 /**

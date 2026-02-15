@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import type { AnalysisResult, AIServiceConfig, AISignals } from "../types/analysis.js";
 import { calculateFitScore, generateExplanation, determineDecision } from "./scoring.js";
 import { preprocessCV, preprocessJobDescription } from "./preprocessing.js";
@@ -7,17 +6,116 @@ import { SYSTEM_PROMPT } from "./systemPrompt.js";
 import { validateAIResponse, AIResponseValidationError } from "./aiResponseSchema.js";
 import { createAIServiceLogger, generateCorrelationId } from "./aiLogger.js";
 import { getErrorMessage } from "../i18n/index.js";
+import { AIProvider, GroqProvider, DeepSeekProvider, AIOrchestrator, ProviderResponse } from "./providers/index.js";
+
+const AMBIGUOUS_TOKENS = new Set(["go"]);
+const STOPWORDS = new Set([
+  "experience",
+  "experiencia",
+  "exp",
+  "years",
+  "year",
+  "anos",
+  "with",
+  "and",
+  "em",
+  "de",
+  "na",
+  "no",
+  "para",
+  "com",
+  "knowledge",
+]);
+
+function normalizeToken(token: string): string {
+  return token.toLowerCase().replace(/[()\[\],.;:]/g, "").trim();
+}
+
+function hasCvEvidence(item: string, cvText: string, cvSkills: string[]): boolean {
+  const normalizedItem = item.toLowerCase();
+  const cvLower = cvText.toLowerCase();
+  const normalizedSkills = cvSkills.map((skill) => skill.toLowerCase());
+
+  if (normalizedSkills.includes(normalizedItem)) return true;
+
+  for (const skill of normalizedSkills) {
+    if (skill.length >= 3 && normalizedItem.includes(skill)) {
+      return true;
+    }
+  }
+
+  const tokens = normalizedItem.match(/[a-z0-9+#.]+/g) ?? [];
+  const meaningfulTokens = tokens
+    .map(normalizeToken)
+    .filter((token) => token.length >= 3 || /[#.+]/.test(token))
+    .filter((token) => token && !STOPWORDS.has(token) && !AMBIGUOUS_TOKENS.has(token));
+
+  return meaningfulTokens.some((token) => cvLower.includes(token));
+}
+
+function sanitizeSignals(
+  signals: AISignals,
+  cvText: string,
+  cvSkills: string[],
+  yearsExperience: number | null,
+  yearsTotal: number,
+  mandatoryRequirementsCount: number
+): AISignals {
+  const filterByCv = (items: string[]) => items.filter((item) => hasCvEvidence(item, cvText, cvSkills));
+  const redFlagPatterns = {
+    yearsMissing: /insufficient data.*years|years-of-experience|yearsofexperience|yearsTotal/i,
+    requirementsMissing: /no mandatory requirements|no specific requirements extracted|missing requirements/i,
+  };
+
+  const sanitizedRedFlags = signals.redFlags.filter((flag) => {
+    if (mandatoryRequirementsCount === 0 && redFlagPatterns.requirementsMissing.test(flag)) {
+      return false;
+    }
+
+    if ((yearsExperience !== null || yearsTotal > 0) && redFlagPatterns.yearsMissing.test(flag)) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return {
+    ...signals,
+    hardSkillsDetected: filterByCv(signals.hardSkillsDetected),
+    mandatoryRequirementsMet: filterByCv(signals.mandatoryRequirementsMet),
+    desirableRequirementsMet: filterByCv(signals.desirableRequirementsMet),
+    redFlags: sanitizedRedFlags,
+  };
+}
 
 export class AIService {
-  private client: OpenAI;
-  private model: string;
+  private provider: AIProvider;
+  private hasOrchestrator: boolean;
 
   constructor(config: AIServiceConfig) {
-    this.client = new OpenAI({
+    // Create primary provider (Groq)
+    const primaryProvider = new GroqProvider({
       apiKey: config.apiKey,
       baseURL: config.apiUrl,
+      model: config.model,
     });
-    this.model = config.model;
+
+    // Create fallback provider (DeepSeek) if configured
+    if (config.fallbackApiKey) {
+      const fallbackProvider = new DeepSeekProvider({
+        apiKey: config.fallbackApiKey,
+        baseURL: config.fallbackApiUrl,
+        model: config.fallbackModel,
+      });
+
+      // Use orchestrator with fallback
+      this.provider = new AIOrchestrator(primaryProvider, fallbackProvider);
+      this.hasOrchestrator = true;
+    } else {
+      // Use primary provider only
+      this.provider = primaryProvider;
+      this.hasOrchestrator = false;
+    }
   }
 
   async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
@@ -48,15 +146,16 @@ export class AIService {
 
       const prompt = await buildOptimizedPrompt(processedCV, processedJob, language);
 
-      // API Request phase
+      // API Request phase with provider metadata tracking
       logger.startTiming("api_request");
-      logger.logAPIRequest("openai", this.model, {
+      logger.logAPIRequest("provider", "groq-or-deepseek", {
         promptLength: prompt.length,
       });
 
-      const completion = await this.client.chat.completions.create({
-        model: this.model,
-        messages: [
+      // Get provider response with metadata
+      let providerMetadata: ProviderResponse;
+      if (this.hasOrchestrator && this.provider instanceof AIOrchestrator) {
+        providerMetadata = await this.provider.generateWithMetadata([
           {
             role: "system",
             content: SYSTEM_PROMPT,
@@ -65,27 +164,51 @@ export class AIService {
             role: "user",
             content: prompt,
           },
-        ],
-        temperature: 0.2,
-        max_tokens: 1500,
-      });
-
-      const apiDuration = logger.endTiming("api_request");
-      logger.debug("API response received", {
-        duration: `${apiDuration.toFixed(2)}ms`,
-        tokensUsed: completion.usage?.total_tokens,
-        finishReason: completion.choices[0]?.finish_reason,
-      });
-
-      const content = completion.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error(getErrorMessage('aiEmptyResponse', language));
+        ]);
+      } else {
+        // Single provider (no fallback configured)
+        const content = await this.provider.generate([
+          {
+            role: "system",
+            content: SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ]);
+        providerMetadata = {
+          content,
+          providerUsed: this.provider.getProviderName(),
+          fallbackTriggered: false,
+        };
       }
 
-      // Parsing phase
+      const content = providerMetadata.content;
+      const apiDuration = logger.endTiming("api_request");
+      
+      // Structured logging: provider usage and response time
+      logger.info("Provider response received", {
+        providerUsed: providerMetadata.providerUsed,
+        fallbackTriggered: providerMetadata.fallbackTriggered,
+        responseTimeMs: apiDuration,
+        duration: `${apiDuration.toFixed(2)}ms`,
+      });
+
+      // Parsing phase - applies to BOTH primary and fallback providers
+      // Malformed JSON will throw SyntaxError, caught below
       logger.startTiming("json_parsing");
       const cleanJson = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const parsedData = JSON.parse(cleanJson);
+      
+      try {
+        var parsedData = JSON.parse(cleanJson);
+      } catch (parseError) {
+        logger.error("JSON parsing failed - provider returned malformed response", parseError as Error, {
+          responsePreview: cleanJson.substring(0, 200),
+        });
+        throw parseError;
+      }
+      
       const parsingDuration = logger.endTiming("json_parsing");
 
       logger.debug("JSON parsing completed", {
@@ -93,22 +216,35 @@ export class AIService {
         jsonLength: cleanJson.length,
       });
 
-      // Validation phase
+      // Validation phase - applies to BOTH primary and fallback providers
+      // Invalid schema will throw AIResponseValidationError, caught below
+      // We do NOT accept malformed responses from any provider
       logger.startTiming("validation");
       const signals = validateAIResponse(parsedData);
+      const sanitizedSignals = sanitizeSignals(
+        signals,
+        cv,
+        processedCV.skills,
+        processedCV.yearsExperience,
+        processedCV.yearsTotal,
+        processedJob.mandatoryRequirements.length
+      );
       const validationDuration = logger.endTiming("validation");
 
+      // Structured logging: schema validation success
       logger.logValidation(true, {
+        schemaValidationSuccess: true,
+        providerUsed: providerMetadata.providerUsed,
         duration: `${validationDuration.toFixed(2)}ms`,
-        hardSkills: signals.hardSkillsDetected.length,
-        missingRequirements: signals.mandatoryRequirementsMissing.length,
-        redFlags: signals.redFlags.length,
+        hardSkills: sanitizedSignals.hardSkillsDetected.length,
+        missingRequirements: sanitizedSignals.mandatoryRequirementsMissing.length,
+        redFlags: sanitizedSignals.redFlags.length,
       });
 
       // Scoring phase
       logger.startTiming("scoring");
-      const fitScore = calculateFitScore(signals);
-      const explanation = generateExplanation(signals, fitScore);
+      const fitScore = calculateFitScore(sanitizedSignals);
+      const explanation = generateExplanation(sanitizedSignals, fitScore);
       const decision = determineDecision(fitScore);
       const scoringDuration = logger.endTiming("scoring");
 
@@ -122,18 +258,18 @@ export class AIService {
         fitScore,
         decision,
         strengths: [
-          ...signals.hardSkillsDetected.map(s => `Hard skill: ${s}`),
-          ...signals.mandatoryRequirementsMet.map(r => `Requirement met: ${r}`),
-          ...signals.desirableRequirementsMet.map(d => `Bonus qualification: ${d}`),
+          ...sanitizedSignals.hardSkillsDetected.map(s => `Hard skill: ${s}`),
+          ...sanitizedSignals.mandatoryRequirementsMet.map(r => `Requirement met: ${r}`),
+          ...sanitizedSignals.desirableRequirementsMet.map(d => `Bonus qualification: ${d}`),
         ],
         gaps: [
-          ...signals.mandatoryRequirementsMissing.map(r => `Missing requirement: ${r}`),
-          ...signals.desirableRequirementsMissing.map(d => `Missing bonus qualification: ${d}`),
-          ...signals.redFlags,
+          ...sanitizedSignals.mandatoryRequirementsMissing.map(r => `Missing requirement: ${r}`),
+          ...sanitizedSignals.desirableRequirementsMissing.map(d => `Missing bonus qualification: ${d}`),
+          ...sanitizedSignals.redFlags,
         ],
-        cvSuggestions: this.generateCVSuggestions(signals),
-        recruiterMessage: signals.recruiterMessage,
-        coverLetter: signals.coverLetter,
+        cvSuggestions: this.generateCVSuggestions(sanitizedSignals),
+        recruiterMessage: sanitizedSignals.recruiterMessage,
+        coverLetter: sanitizedSignals.coverLetter,
         explanation,
         promptVersion: "v2.0-optimized",
         detectedLanguage: language,
@@ -144,13 +280,27 @@ export class AIService {
           seniority: processedCV.seniority,
           skills: processedCV.skills,
         },
+        // Include structured data for new UI mapper
+        aiSignals: {
+          hardSkillsDetected: sanitizedSignals.hardSkillsDetected,
+          softSkillsEvidence: sanitizedSignals.softSkillsEvidence,
+          mandatoryRequirementsMet: sanitizedSignals.mandatoryRequirementsMet,
+          mandatoryRequirementsMissing: sanitizedSignals.mandatoryRequirementsMissing,
+          desirableRequirementsMet: sanitizedSignals.desirableRequirementsMet,
+          desirableRequirementsMissing: sanitizedSignals.desirableRequirementsMissing,
+          seniorityMatch: sanitizedSignals.seniorityMatch,
+          redFlags: sanitizedSignals.redFlags,
+        },
       };
 
       const totalDuration = logger.endTiming("full_analysis");
       logger.logCompletion("analyzeJobFit", {
         success: true,
         itemsProcessed: 1,
-        provider: "openai",
+        provider: providerMetadata.providerUsed,
+        fallbackTriggered: providerMetadata.fallbackTriggered,
+        responseTimeMs: apiDuration,
+        schemaValidationSuccess: true,
         duration: totalDuration,
       });
 
@@ -160,14 +310,24 @@ export class AIService {
         correlationId,
       });
 
+      // Handle JSON parsing errors (from either provider)
       if (error instanceof SyntaxError) {
+        logger.error("Provider returned invalid JSON", error, {
+          errorType: "json_parse_error",
+          schemaValidationSuccess: false,
+          message: "Response was not valid JSON - rejecting malformed response",
+        });
         throw new Error(getErrorMessage('aiParsingFailed', language, { details: error.message }));
       }
 
+      // Handle schema validation errors (from either provider)
       if (error instanceof AIResponseValidationError) {
-        logger.warn("Validation violations", {
+        logger.error("Provider returned response that failed schema validation", error, {
+          errorType: "schema_validation_error",
+          schemaValidationSuccess: false,
           violationCount: error.violations.length,
           violations: error.violations.map(v => ({ path: v.path, type: v.code })),
+          message: "Response schema validation failed - rejecting malformed response",
         });
 
         // Map specific violation patterns to user-friendly messages
