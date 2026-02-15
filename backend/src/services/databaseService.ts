@@ -23,9 +23,14 @@ export async function saveAnalysis(analysis: Omit<AnalysisRecord, "id">): Promis
     const db = getDatabase();
     const analysesRef = db.ref("analyses");
     
+    // Firebase doesn't accept undefined values, so filter them out
+    const cleanedAnalysis = Object.fromEntries(
+      Object.entries(analysis).filter(([_, value]) => value !== undefined)
+    );
+    
     const newAnalysisRef = analysesRef.push();
     await newAnalysisRef.set({
-      ...analysis,
+      ...cleanedAnalysis,
       timestamp: Date.now(),
     });
 

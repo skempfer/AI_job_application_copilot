@@ -34,8 +34,32 @@ export function buildOptimizedPrompt(
 **STRUCTURED CANDIDATE PROFILE:**
 ${cvSummary}
 
+✅ **IMPORTANT - USE THIS DATA:**
+- Years of experience (DETECTED): ${processedCV.yearsExperience} years (confidence: ${processedCV.yearsExperienceConfidence})
+- Detected domains: ${Object.entries(processedCV.domainExperience).filter(([_, v]) => v).map(([k]) => k).join(", ")}
+- Seniority level (DETECTED): ${processedCV.seniority}
+
 **STRUCTURED ROLE:**
 ${jobSummary}
+
+**🔍 EXPERIENCE VALIDATION (CRITICAL):**
+⚠️ The candidate has ${processedCV.yearsExperience} years of experience.
+⚠️ Check MANDATORY requirements above for any years-of-experience requirement (e.g., "5+ years", "3 years minimum").
+⚠️ Compare: Does candidate's ${processedCV.yearsExperience}Y meet the role's experience requirement?
+⚠️ This comparison MUST influence seniorityMatch and redFlags.
+
+**🔍 DOMAIN EXPERTISE VALIDATION (CRITICAL):**
+⚠️ Detected domains in candidate profile: ${Object.entries(processedCV.domainExperience).filter(([_, v]) => v).map(([k]) => k).join(", ") || "none"}
+⚠️ Check MANDATORY requirements for required domains/skills/tech stack.
+⚠️ Check DESIRABLE requirements for bonus domains/skills.
+⚠️ Compare: Which detected domains align with role requirements?
+⚠️ Missing domain expertise = potential red flag for mandatory requirements.
+
+**🔍 SKILLS VALIDATION (CRITICAL):**
+⚠️ Candidate technical skills: ${processedCV.skills.slice(0, 10).join(", ")}${processedCV.skills.length > 10 ? "..." : ""}
+⚠️ Compare with MANDATORY requirements (extract tech/tools mentioned).
+⚠️ Compare with DESIRABLE requirements (extract bonus tech/tools).
+⚠️ Skills match = MANDATORY requirements met. Skills mismatch = MANDATORY requirements missing.
 
 **MESSAGE LANGUAGE:** ${isPt ? "Portuguese" : "English"}
 Write recruiterMessage and coverLetter in the language above.
@@ -49,9 +73,39 @@ Write recruiterMessage and coverLetter in the language above.
 5. **desirableRequirementsMet**: Desired requirements the candidate HAS
 6. **desirableRequirementsMissing**: Desired requirements the candidate DOES NOT HAVE
 7. **seniorityMatch**: "above" (overqualified), "match" (ideal), or "below" (underqualified)
+   ⚠️ MUST consider: Candidate has ${processedCV.yearsExperience}Y, Role level is ${processedJob.seniorityLevel}
+   ⚠️ Extract years requirement from MANDATORY requirements (e.g., "5+ years", "3-5 years")
+   ⚠️ If candidate years < required years → "below"
+   ⚠️ If candidate years >= required years AND seniority matches → "match"  
+   ⚠️ If candidate years >> required years AND highly overqualified → "above"
 8. **redFlags**: Critical issues (e.g., missing minimum experience, missing mandatory skill, too junior/senior)
 9. **recruiterMessage**: Personalized strategic message (4-6 sentences) to send to a recruiter
 10. **coverLetter**: Formal cover letter (3-5 paragraphs, 400-500 words)
+11. **detectedYearsExperience**: CONFIRM the detected years of experience (${processedCV.yearsExperience} years). This is ALREADY EXTRACTED - DO NOT OVERRIDE unless there's clear evidence it's wrong.
+12. **detectedDomainExperience**: CONFIRM the detected domain expertise. Return the confirmed domains (frontend, backend, fullstack, qa, devops, product)
+
+**HOW TO USE THE VALIDATION DATA:**
+
+🔗 **For mandatoryRequirementsMet:**
+- Check if candidate has the required TECH: Do candidate skills match mandatory tech/tools listed?
+- Check if candidate has the required DOMAIN: Do detected domains match role domain?
+- Check if candidate has required EXPERIENCE: Is ${processedCV.yearsExperience}Y >= the role's years requirement?
+- Only list requirements the candidate EXPLICITLY MEETS based on detected data.
+
+🔗 **For mandatoryRequirementsMissing:**
+- List TECH the candidate clearly does NOT have from the mandatory list.
+- List DOMAINS the candidate clearly does NOT have from the mandatory list.
+- List if ${processedCV.yearsExperience}Y < the role's years requirement (e.g., "5+ years experience required, only ${processedCV.yearsExperience} detected").
+- Be specific: "Missing: React expertise" not "Missing: some skills".
+
+🔗 **For desirableRequirementsMet:**
+- Check bonus TECH: Do candidate skills include any desirable technologies?
+- Check bonus DOMAINS: Do detected domains include any desirable specializations?
+- Only list desirable items the candidate HAS.
+
+🔗 **For desirableRequirementsMissing:**
+- List TECH bonuses the candidate doesn't have.
+- List DOMAIN bonuses the candidate doesn't have.
 
 **CRITERIA:**
 
@@ -63,6 +117,13 @@ The analysis must be based ONLY on the structured data provided:
 - Key achievements
 - Role responsibilities
 - Mandatory vs desirable requirements
+- ✏️ **YEARS OF EXPERIENCE (${processedCV.yearsExperience} years) - ALREADY EXTRACTED AND VERIFIED**
+- ✏️ **DOMAIN EXPERTISE (${Object.entries(processedCV.domainExperience).filter(([_, v]) => v).map(([k]) => k).join(", ")}) - ALREADY DETECTED**
+
+**CRITICAL FOR THESE FIELDS:**
+The years of experience (${processedCV.yearsExperience}) and domain expertise have been DETERMINISTICALLY extracted using specialized algorithms.
+Your job is to CONFIRM these values or FLAG if they appear incorrect.
+DO NOT CALCULATE OR INVENT NEW VALUES - use the provided detectedYearsExperience and detectedDomainExperience.
 
 📌 LANGUAGE AND TONE
 
@@ -150,7 +211,17 @@ Return ONLY valid JSON (no markdown, no extra explanations):
   "seniorityMatch": "match"|"above"|"below",
   "redFlags": ["flag1", "flag2", ...],
   "recruiterMessage": "plain text message",
-  "coverLetter": "plain text cover letter, 3-5 paragraphs"
+  "coverLetter": "plain text cover letter, 3-5 paragraphs",
+  "detectedYearsExperience": ${processedCV.yearsExperience},
+  "detectedDomainExperience": {
+    "frontend": ${processedCV.domainExperience.frontend},
+    "backend": ${processedCV.domainExperience.backend},
+    "fullstack": ${processedCV.domainExperience.fullstack},
+    "qa": ${processedCV.domainExperience.qa},
+    "devops": ${processedCV.domainExperience.devops},
+    "product": ${processedCV.domainExperience.product}
+  }
+}
 }`;
 }
 

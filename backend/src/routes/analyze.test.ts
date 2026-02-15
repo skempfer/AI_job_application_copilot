@@ -53,7 +53,7 @@ describe("POST /api/analyze", () => {
 
     const response = await request(app)
       .post("/api/analyze")
-      .send({ cv: "", jobDescription, resumeUrl: "../evil.pdf" });
+      .send({ cv: "", jobDescription, resumeUrl: "../evil.pdf", language: "pt" });
 
     expect(response.status).toBe(400);
     expect(response.body.error).toMatch(/Falha ao extrair CV do PDF/i);
@@ -69,7 +69,7 @@ describe("POST /api/analyze", () => {
 
     const response = await request(app)
       .post("/api/analyze")
-      .send({ cv: "", jobDescription, resumeUrl: "resume.txt" });
+      .send({ cv: "", jobDescription, resumeUrl: "resume.txt", language: "pt" });
 
     expect(response.status).toBe(400);
     expect(response.body.error).toMatch(/Falha ao extrair CV do PDF/i);
@@ -81,7 +81,7 @@ describe("POST /api/analyze", () => {
       analyzeJobFit: jest.fn().mockResolvedValue(baseResult),
     } as unknown as AIService;
 
-    mockFs.stat.mockResolvedValue({ size: 123 } as any);
+    mockFs.access.mockResolvedValue(undefined);
     mockExtract.mockResolvedValue("cv text");
 
     const app = createApp(aiService);
