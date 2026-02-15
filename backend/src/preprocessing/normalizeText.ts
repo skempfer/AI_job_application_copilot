@@ -16,11 +16,9 @@ const DOMAIN_TERM_MAPPINGS: Record<string, string> = {
 
 export function normalizeText(text: string): string {
   if (!text || typeof text !== "string") {
-    console.log("[normalizeText] Input is empty or not a string");
     return "";
   }
 
-  console.log("[normalizeText] Input: first 100 chars:", text.substring(0, 100));
 
   let normalized = text.toLowerCase();
 
@@ -32,7 +30,6 @@ export function normalizeText(text: string): string {
     const before = normalized;
     normalized = normalized.replace(regex, canonical);
     if (before !== normalized) {
-      console.log("[normalizeText] Domain term normalized:", pattern, "→", canonical);
     }
   }
 
@@ -44,7 +41,6 @@ export function normalizeText(text: string): string {
   normalized = normalized.replace(/\n{3,}/g, "\n\n");
   normalized = normalized.trim();
 
-  console.log("[normalizeText] Output: first 100 chars:", normalized.substring(0, 100));
   return normalized;
 }
 

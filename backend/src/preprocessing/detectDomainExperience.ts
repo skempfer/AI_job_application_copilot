@@ -86,15 +86,11 @@ export function detectDomainExperience(rawCV: string): DomainExperienceFlags {
  *
  * @example
  * const result = detectDomainExperienceDetailed("React & Node developer")
- * console.log(result.frontend) // → true
- * console.log(result.detectedKeywords.frontend) // → ["react"]
- * console.log(result.detectedKeywords.backend) // → ["node.js", "nodejs"]
  */
 export function detectDomainExperienceDetailed(
   rawCV: string
 ): DomainExperienceDetailed {
   const normalized = normalizeText(rawCV);
-  console.log("[detectDomainExperienceDetailed] Input: first 100 chars:", rawCV.substring(0, 100));
 
   // Initialize result with all domains as empty arrays
   const detectedKeywords: Record<DomainCategory, string[]> = {
@@ -108,13 +104,11 @@ export function detectDomainExperienceDetailed(
 
   // Extract tokens from normalized text for matching
   const tokens = extractTokens(normalized);
-  console.log("[detectDomainExperienceDetailed] Extracted tokens:", tokens.slice(0, 20)); // First 20 tokens
 
   // For each unique token, check if it matches a domain keyword
   for (const token of tokens) {
     const domains = getDomainsByKeyword(token);
     if (domains.length > 0) {
-      console.log("[detectDomainExperienceDetailed] Token matched:", token, "→", domains);
     }
     for (const domain of domains) {
       if (!detectedKeywords[domain].includes(token)) {
@@ -122,15 +116,6 @@ export function detectDomainExperienceDetailed(
       }
     }
   }
-
-  console.log("[detectDomainExperienceDetailed] Final results:", {
-    frontend: detectedKeywords.frontend.length,
-    backend: detectedKeywords.backend.length,
-    fullstack: detectedKeywords.fullstack.length,
-    qa: detectedKeywords.qa.length,
-    devops: detectedKeywords.devops.length,
-    product: detectedKeywords.product.length,
-  });
 
   // Convert to boolean flags
   return {
