@@ -3,20 +3,8 @@ import type { AnalysisResult, AIServiceConfig, AISignals } from "../types/analys
 import { calculateFitScore, generateExplanation, determineDecision } from "./scoring.js";
 import { preprocessCV, preprocessJobDescription } from "./preprocessing.js";
 import { buildOptimizedPrompt } from "./promptBuilder.js";
+import { getErrorMessage } from "../i18n/index.js";
 
-/**
- * Prompt version
- * (Now defined in promptBuilder.ts as PROMPT_VERSION = "v2.0-optimized")
- */
-
-/**
- * AI service using Groq (OpenAI-compatible API)
- * Groq provides free access to Llama models with ultra-fast speed
- *
- * HYBRID ARCHITECTURE:
- * - AI: extracts signals and classifies requirements
- * - Code: calculates the final score deterministically
- */
 export class AIService {
   private client: OpenAI;
   private model: string;
@@ -29,22 +17,14 @@ export class AIService {
     this.model = config.model;
   }
 
-  /**
-   * Analyze candidate fit using structured preprocessing
-   *
-   * NEW FLOW (v2.0):
-   * 1. Preprocess CV (remove personal data, normalize, extract structure)
-   * 2. Preprocess Job Description (remove marketing, extract requirements)
-   * 3. Build optimized prompt with structured data
-   * 4. Send to AI (far fewer tokens)
-   * 5. Extract signals and compute score
-   */
   async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
-    const processedCV = preprocessCV(cv);
+    // esse console.log não está sendo chamado, ou seja, o processamento não passar por aqui, verificar onde está sendo barrado o último processamento 
+    console.log([cv])
+    const processedCV = await preprocessCV(cv);
 
-    const processedJob = preprocessJobDescription(jobDescription);
+    const processedJob = await preprocessJobDescription(jobDescription);
 
-    const prompt = buildOptimizedPrompt(processedCV, processedJob, language);
+    const prompt = await buildOptimizedPrompt(processedCV, processedJob, language);
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -65,19 +45,28 @@ export class AIService {
 
       const content = completion.choices[0]?.message?.content;
       if (!content) {
-        throw new Error("AI returned an empty response");
+        throw new Error(getErrorMessage('aiEmptyResponse', language));
       }
 
       const cleanJson = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       const signals = JSON.parse(cleanJson) as AISignals;
 
-      this.validateSignals(signals);
+      this.validateSignals(signals, language);
 
       const fitScore = calculateFitScore(signals);
       
       const explanation = generateExplanation(signals, fitScore);
       
       const decision = determineDecision(fitScore);
+
+      console.log("\n🔍 [aiService.analyzeJobFit] Preprocessing summary:");
+      console.log({
+        yearsExperience: processedCV.yearsExperience,
+        yearsExperienceConfidence: processedCV.yearsExperienceConfidence,
+        domainExperience: processedCV.domainExperience,
+        seniority: processedCV.seniority,
+        skillsCount: processedCV.skills.length,
+      });
 
       const result: AnalysisResult = {
         fitScore,
@@ -98,12 +87,19 @@ export class AIService {
         explanation,
         promptVersion: "v2.0-optimized",
         detectedLanguage: language,
+        preprocessedCV: {
+          yearsExperience: processedCV.yearsExperience,
+          yearsExperienceConfidence: processedCV.yearsExperienceConfidence,
+          domainExperience: processedCV.domainExperience,
+          seniority: processedCV.seniority,
+          skills: processedCV.skills,
+        },
       };
 
       return result;
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new Error(`Failed to parse AI response: ${error.message}`);
+        throw new Error(getErrorMessage('aiParsingFailed', language, { details: error.message }));
       }
       throw error;
     }
@@ -143,7 +139,7 @@ export class AIService {
   /**
   * Validate signals extracted by the AI
    */
-  private validateSignals(signals: any): asserts signals is AISignals {
+  private validateSignals(signals: any, language: "pt" | "en" = "en"): asserts signals is AISignals {
     const required = [
       "hardSkillsDetected",
       "mandatoryRequirementsMet",
@@ -160,7 +156,7 @@ export class AIService {
     const missing = required.filter((field) => !(field in signals));
 
     if (missing.length > 0) {
-      throw new Error(`Invalid AI response. Missing fields: ${missing.join(", ")}`);
+      throw new Error(getErrorMessage('aiInvalidResponse', language, { fields: missing.join(", ") }));
     }
 
     const arrayFields = [
@@ -175,20 +171,20 @@ export class AIService {
 
     for (const field of arrayFields) {
       if (!Array.isArray(signals[field])) {
-        throw new Error(`${field} must be an array`);
+        throw new Error(getErrorMessage('aiInvalidArrayField', language, { field }));
       }
     }
 
     if (!["below", "match", "above"].includes(signals.seniorityMatch)) {
-      throw new Error("seniorityMatch must be 'below', 'match', or 'above'");
+      throw new Error(getErrorMessage('aiInvalidSeniority', language));
     }
 
     if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
-      throw new Error("recruiterMessage must be a non-empty string");
+      throw new Error(getErrorMessage('aiInvalidRecruiterMessage', language));
     }
 
     if (typeof signals.coverLetter !== "string" || signals.coverLetter.length === 0) {
-      throw new Error("coverLetter must be a non-empty string");
+      throw new Error(getErrorMessage('aiInvalidCoverLetter', language));
     }
   }
 }

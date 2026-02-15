@@ -9,6 +9,16 @@ describe('Prompt Builder Service', () => {
     experienceBySkill: { 'React': 5, 'TypeScript': 5 },
     companies: ['TechCorp', 'StartupXYZ'],
     achievements: ['Led frontend team', 'Architected system'],
+    yearsExperience: 5,
+    yearsExperienceConfidence: 'high',
+    domainExperience: {
+      frontend: true,
+      backend: true,
+      fullstack: true,
+      qa: false,
+      devops: false,
+      product: false,
+    },
   };
 
   const mockProcessedJob: ProcessedJobDescription = {
@@ -44,7 +54,6 @@ describe('Prompt Builder Service', () => {
   it('should structure prompt with clear sections', () => {
     const prompt = buildOptimizedPrompt(mockProcessedCV, mockProcessedJob, 'en');
 
-    // Should have clear structure
     expect(prompt.split('\n').length).toBeGreaterThan(5);
   });
 
@@ -57,7 +66,6 @@ describe('Prompt Builder Service', () => {
   it('should format skills as lists', () => {
     const prompt = buildOptimizedPrompt(mockProcessedCV, mockProcessedJob, 'en');
 
-    // Should have bullet points or structured list format
     expect(prompt).toMatch(/[-•*]|[\d]+\./);
   });
 
@@ -107,20 +115,17 @@ describe('Prompt Builder Service', () => {
     const prompt = buildOptimizedPrompt(cvWithGaps, mockProcessedJob, 'en');
 
     expect(prompt).toBeTruthy();
-    // Prompt should acknowledge the gap
   });
 
   it('should prioritize mandatory requirements', () => {
     const prompt = buildOptimizedPrompt(mockProcessedCV, mockProcessedJob, 'en');
 
-    // Should contain analysis of mandatory requirements
     expect(prompt.length).toBeGreaterThan(0);
   });
 
   it('should include assessment criteria', () => {
     const prompt = buildOptimizedPrompt(mockProcessedCV, mockProcessedJob, 'en');
 
-    // Prompt should guide the AI on what to evaluate
     expect(prompt).toBeTruthy();
   });
 });

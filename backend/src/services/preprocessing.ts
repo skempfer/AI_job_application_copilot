@@ -3,23 +3,37 @@
  * Goal: Reduce tokens and improve AI parsing quality
  *
  * Simple heuristics: regex + basic parsing (no heavy libraries)
+ *
+ * IMPROVED: Now includes deterministic preprocessing layer with:
+ * - Years of experience inference (never defaults to 0)
+ * - Domain/role semantic detection using normalized synonym dictionary
  */
+
+import { extractYearsExperience, YearsExperienceConfidence } from "../preprocessing/extractYearsExperience";
+import { detectDomainExperience, DomainExperienceFlags } from "../preprocessing/detectDomainExperience";
 
 /**
  * Structured data from a preprocessed CV
  */
 export interface ProcessedCV {
+  // Original fields
   skills: string[];
   seniority: "junior" | "mid" | "senior" | "unknown";
-  experienceBySkill: Record<string, number>; 
+  experienceBySkill: Record<string, number>;
   companies: string[];
   achievements: string[];
+
+  // DEPRECATED: Use yearsExperience instead (was defaulting to 0)
   yearsTotal: number;
+
+  // NEW: Deterministic years experience inference
+  yearsExperience: number | null;
+  yearsExperienceConfidence: YearsExperienceConfidence;
+
+  // NEW: Domain experience detection
+  domainExperience: DomainExperienceFlags;
 }
 
-/**
- * Structured data from a preprocessed Job Description
- */
 export interface ProcessedJobDescription {
   mandatoryRequirements: string[];
   desirableRequirements: string[];
@@ -28,9 +42,6 @@ export interface ProcessedJobDescription {
   techStack: string[];
 }
 
-/**
- * Regex patterns to detect personal data to remove
- */
 const PERSONAL_DATA_PATTERNS = [
   /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g, 
   /\b\d{1,2}\.\d{3}\.\d{3}-?\d{1}\b/g,
@@ -59,9 +70,7 @@ const GENERIC_SECTIONS = [
   /dinâmico|ambicioso|dedicado|proativo/gi,
 ];
 
-/**
- * Common keywords to group and normalize skills
- */
+
 const SKILL_SYNONYMS: Record<string, string> = {
   "js": "javascript",
   "ts": "typescript",
@@ -104,10 +113,11 @@ const SENIORITY_PATTERNS = {
 
 const YEARS_PATTERN = /(\d{1,2})\s*(?:\+|\s)?(?:years?|anos?|yrs?)\s*(?:of\s+)?(?:experience|experiência|exp\.?)?/gi;
 
-/**
- * Preprocess raw CV and return normalized structure
- */
+
 export function preprocessCV(rawCV: string): ProcessedCV {
+  console.log("[preprocessCV] Started. CV length:", rawCV.length);
+  console.log("[preprocessCV] First 100 chars:", rawCV.substring(0, 100));
+  
   let cleaned = rawCV;
   for (const pattern of PERSONAL_DATA_PATTERNS) {
     cleaned = cleaned.replace(pattern, "[redacted]");
@@ -245,19 +255,32 @@ export function preprocessCV(rawCV: string): ProcessedCV {
     }
   }
 
+  // NEW: Extract years of experience using deterministic inference
+  const yearsExperienceResult = extractYearsExperience(rawCV);
+  console.log([yearsExperienceResult])
+  console.log("[preprocessCV] Years extraction result:", {
+    yearsExperience: yearsExperienceResult.yearsExperience,
+    confidence: yearsExperienceResult.confidence,
+    method: yearsExperienceResult.method,
+  });
+
+  const domainExperience = detectDomainExperience(rawCV);
+  console.log("[preprocessCV] Domain experience detected:", domainExperience);
+
   return {
     skills: Array.from(skillsSet).sort(),
     seniority,
     experienceBySkill,
-    companies: Array.from(companies).slice(0, 10), 
+    companies: Array.from(companies).slice(0, 10),
     achievements,
     yearsTotal,
+    yearsExperience: yearsExperienceResult.yearsExperience,
+    yearsExperienceConfidence: yearsExperienceResult.confidence,
+    domainExperience,
   };
 }
 
-/**
- * Preprocess raw Job Description and return normalized structure
- */
+
 export function preprocessJobDescription(rawJob: string): ProcessedJobDescription {
   let cleaned = rawJob;
 

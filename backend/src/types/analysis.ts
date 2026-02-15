@@ -25,6 +25,17 @@ export interface AISignals {
   redFlags: string[]; 
   recruiterMessage: string; 
   coverLetter: string; 
+  
+  // PREPROCESSED DATA (from deterministic layer - use these values)
+  detectedYearsExperience?: number | null;
+  detectedDomainExperience?: {
+    frontend?: boolean;
+    backend?: boolean;
+    fullstack?: boolean;
+    qa?: boolean;
+    devops?: boolean;
+    product?: boolean;
+  };
 }
 
 /**
@@ -47,9 +58,23 @@ export interface AnalysisResult {
   cvSuggestions: string[]; 
   recruiterMessage: string; 
   coverLetter: string; 
-  explanation: ScoreExplanation; 
-  promptVersion: string;
-  detectedLanguage?: 'pt' | 'en';
+  explanation: ScoreExplanation;
+  promptVersion?: string;
+  detectedLanguage?: string;
+  preprocessedCV?: {
+    yearsExperience: number | null;
+    yearsExperienceConfidence: "high" | "medium" | "low";
+    domainExperience: {
+      frontend: boolean;
+      backend: boolean;
+      fullstack: boolean;
+      qa: boolean;
+      devops: boolean;
+      product: boolean;
+    };
+    seniority: "junior" | "mid" | "senior" | "unknown";
+    skills: string[];
+  };
 }
 
 export interface StructuredCV {
