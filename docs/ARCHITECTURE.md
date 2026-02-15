@@ -1,17 +1,29 @@
 # System Architecture
 
-## ⚠️ Recent Update: AI Inference Architecture Refactor (v2.0)
+## ⚠️ Recent Updates
 
-The AI inference layer has been refactored for improved maintainability, reliability, and clarity. The following improvements were made:
+### AI Inference Architecture v2.1: Provider Orchestration with Fallback
 
-- **System vs User Prompt Separation**: Invariant AI rules are separated from task-specific instructions
-- **Schema Validation**: All AI responses validated against Zod schema at runtime  
-- **Structured Logging**: Comprehensive observability with correlation IDs and performance metrics
+The AI inference layer now includes **provider abstraction and automatic fallback**:
+
+- **Provider Abstraction**: Clean interface for AI providers (Groq, DeepSeek, future providers)
+- **Automatic Fallback**: Groq falls back to DeepSeek on rate limits (HTTP 429)
+- **Unified Validation**: Both providers validated against same Zod schema
+- **Structured Logging**: Tracks provider used, fallback triggers, and validation success
+- **Rate Limit Resilience**: No silent failures, clear error propagation
+
+**See [PROVIDER-ORCHESTRATION.md](./PROVIDER-ORCHESTRATION.md) for complete details.**
+
+### Previous: AI Inference Architecture v2.0
+
+The AI inference layer was refactored for maintainability:
+
+- **System vs User Prompt Separation**: Invariant AI rules separated from task-specific instructions
+- **Schema Validation**: All AI responses validated against Zod schema
+- **Structured Logging**: Observability with correlation IDs and performance metrics
 - **Modular Prompt Builder**: Clear separation of concerns in prompt construction
 
-**See [AI-INFERENCE-ARCHITECTURE.md](AI-INFERENCE-ARCHITECTURE.md) for complete details on the refactored AI inference layer.**
-
-This document describes the overall system architecture. For implementation details of the AI service, prompt builder, validation, and logging, refer to the dedicated AI inference architecture guide.
+**See [AI-INFERENCE-ARCHITECTURE.md](./AI-INFERENCE-ARCHITECTURE.md) for implementation details.**
 
 ---
 
