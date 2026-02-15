@@ -3,12 +3,10 @@ import type { AnalysisResult, AIServiceConfig, AISignals } from "../types/analys
 import { calculateFitScore, generateExplanation, determineDecision } from "./scoring.js";
 import { preprocessCV, preprocessJobDescription } from "./preprocessing.js";
 import { buildOptimizedPrompt } from "./promptBuilder.js";
+import { SYSTEM_PROMPT } from "./systemPrompt.js";
+import { validateAIResponse, AIResponseValidationError } from "./aiResponseSchema.js";
+import { createAIServiceLogger, generateCorrelationId } from "./aiLogger.js";
 import { getErrorMessage } from "../i18n/index.js";
-
-const SYSTEM_PROMPT = `Return ONLY valid JSON. No markdown. No extra text.
-Use only the structured input provided.
-Do NOT fabricate data or infer details not present.
-Do NOT recalculate deterministic signals; if inconsistent, flag in redFlags.`;
 
 export class AIService {
   private client: OpenAI;
@@ -23,13 +21,39 @@ export class AIService {
   }
 
   async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
-    const processedCV = await preprocessCV(cv);
+    // Create correlation ID for tracing this request
+    const correlationId = generateCorrelationId();
+    const logger = createAIServiceLogger("analyzeJobFit", correlationId);
 
-    const processedJob = await preprocessJobDescription(jobDescription);
-
-    const prompt = await buildOptimizedPrompt(processedCV, processedJob, language);
+    logger.startTiming("full_analysis");
+    logger.info("Starting job fit analysis", {
+      language,
+      cvLength: cv.length,
+      jobDescriptionLength: jobDescription.length,
+    });
 
     try {
+      // Preprocessing phase
+      logger.startTiming("preprocessing");
+      const processedCV = await preprocessCV(cv);
+      const processedJob = await preprocessJobDescription(jobDescription);
+      const preprocessingDuration = logger.endTiming("preprocessing");
+
+      logger.info("Preprocessing completed", {
+        duration: `${preprocessingDuration.toFixed(2)}ms`,
+        skillsCount: processedCV.skills.length,
+        yearsExperience: processedCV.yearsExperience,
+        mandatoryReqs: processedJob.mandatoryRequirements.length,
+      });
+
+      const prompt = await buildOptimizedPrompt(processedCV, processedJob, language);
+
+      // API Request phase
+      logger.startTiming("api_request");
+      logger.logAPIRequest("openai", this.model, {
+        promptLength: prompt.length,
+      });
+
       const completion = await this.client.chat.completions.create({
         model: this.model,
         messages: [
@@ -42,8 +66,15 @@ export class AIService {
             content: prompt,
           },
         ],
-        temperature: 0.3,
+        temperature: 0.2,
         max_tokens: 1500,
+      });
+
+      const apiDuration = logger.endTiming("api_request");
+      logger.debug("API response received", {
+        duration: `${apiDuration.toFixed(2)}ms`,
+        tokensUsed: completion.usage?.total_tokens,
+        finishReason: completion.choices[0]?.finish_reason,
       });
 
       const content = completion.choices[0]?.message?.content;
@@ -51,24 +82,40 @@ export class AIService {
         throw new Error(getErrorMessage('aiEmptyResponse', language));
       }
 
+      // Parsing phase
+      logger.startTiming("json_parsing");
       const cleanJson = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const signals = JSON.parse(cleanJson) as AISignals;
+      const parsedData = JSON.parse(cleanJson);
+      const parsingDuration = logger.endTiming("json_parsing");
 
-      this.validateSignals(signals, language);
+      logger.debug("JSON parsing completed", {
+        duration: `${parsingDuration.toFixed(2)}ms`,
+        jsonLength: cleanJson.length,
+      });
 
+      // Validation phase
+      logger.startTiming("validation");
+      const signals = validateAIResponse(parsedData);
+      const validationDuration = logger.endTiming("validation");
+
+      logger.logValidation(true, {
+        duration: `${validationDuration.toFixed(2)}ms`,
+        hardSkills: signals.hardSkillsDetected.length,
+        missingRequirements: signals.mandatoryRequirementsMissing.length,
+        redFlags: signals.redFlags.length,
+      });
+
+      // Scoring phase
+      logger.startTiming("scoring");
       const fitScore = calculateFitScore(signals);
-      
       const explanation = generateExplanation(signals, fitScore);
-      
       const decision = determineDecision(fitScore);
+      const scoringDuration = logger.endTiming("scoring");
 
-      console.log("\n🔍 [aiService.analyzeJobFit] Preprocessing summary:");
-      console.log({
-        yearsExperience: processedCV.yearsExperience,
-        yearsExperienceConfidence: processedCV.yearsExperienceConfidence,
-        domainExperience: processedCV.domainExperience,
-        seniority: processedCV.seniority,
-        skillsCount: processedCV.skills.length,
+      logger.debug("Scoring completed", {
+        duration: `${scoringDuration.toFixed(2)}ms`,
+        fitScore,
+        decision,
       });
 
       const result: AnalysisResult = {
@@ -99,13 +146,74 @@ export class AIService {
         },
       };
 
+      const totalDuration = logger.endTiming("full_analysis");
+      logger.logCompletion("analyzeJobFit", {
+        success: true,
+        itemsProcessed: 1,
+        provider: "openai",
+        duration: totalDuration,
+      });
+
       return result;
     } catch (error) {
+      logger.error("Analysis failed", error as Error, {
+        correlationId,
+      });
+
       if (error instanceof SyntaxError) {
         throw new Error(getErrorMessage('aiParsingFailed', language, { details: error.message }));
       }
+
+      if (error instanceof AIResponseValidationError) {
+        logger.warn("Validation violations", {
+          violationCount: error.violations.length,
+          violations: error.violations.map(v => ({ path: v.path, type: v.code })),
+        });
+
+        // Map specific violation patterns to user-friendly messages
+        const specificErrorKey = this.mapViolationToErrorKey(error.violations);
+        throw new Error(getErrorMessage(specificErrorKey as any, language));
+      }
+
       throw error;
     }
+  }
+
+  /**
+   * Map specific validation violations to user-friendly error messages
+   * Provides more specific guidance based on what field failed validation
+   */
+  private mapViolationToErrorKey(violations: Array<{ path: (string | number)[]; code: string; message: string }>): string {
+    if (violations.length === 0) {
+      return 'aiInvalidResponse';
+    }
+
+    const firstViolation = violations[0];
+    const fieldPath = firstViolation.path[0]?.toString() || '';
+
+    // Map specific field violations to error messages
+    if (fieldPath.includes('recruiterMessage')) {
+      return 'aiMessageRequired';
+    }
+    if (fieldPath.includes('coverLetter')) {
+      return 'aiCoverLetterRequired';
+    }
+    if (fieldPath.includes('seniorityMatch')) {
+      return 'aiSeniorityInvalid';
+    }
+    if (fieldPath.includes('hardSkillsDetected') || 
+        fieldPath.includes('mandatoryRequirementsMet') ||
+        fieldPath.includes('softSkillsEvidence')) {
+      return 'aiInvalidArrayField';
+    }
+
+    // If multiple violations, likely incomplete response
+    if (violations.length > 3) {
+      return 'aiResponseIncomplete';
+    }
+
+    // Generic invalid response
+    return 'aiInvalidResponse';
   }
 
   /**
@@ -137,57 +245,5 @@ export class AIService {
     }
 
     return suggestions;
-  }
-
-  /**
-  * Validate signals extracted by the AI
-   */
-  private validateSignals(signals: any, language: "pt" | "en" = "en"): asserts signals is AISignals {
-    const required = [
-      "hardSkillsDetected",
-      "mandatoryRequirementsMet",
-      "mandatoryRequirementsMissing",
-      "desirableRequirementsMet",
-      "desirableRequirementsMissing",
-      "softSkillsEvidence",
-      "seniorityMatch",
-      "redFlags",
-      "recruiterMessage",
-      "coverLetter"
-    ];
-    
-    const missing = required.filter((field) => !(field in signals));
-
-    if (missing.length > 0) {
-      throw new Error(getErrorMessage('aiInvalidResponse', language, { fields: missing.join(", ") }));
-    }
-
-    const arrayFields = [
-      "hardSkillsDetected",
-      "mandatoryRequirementsMet",
-      "mandatoryRequirementsMissing",
-      "desirableRequirementsMet",
-      "desirableRequirementsMissing",
-      "softSkillsEvidence",
-      "redFlags"
-    ];
-
-    for (const field of arrayFields) {
-      if (!Array.isArray(signals[field])) {
-        throw new Error(getErrorMessage('aiInvalidArrayField', language, { field }));
-      }
-    }
-
-    if (!["below", "match", "above"].includes(signals.seniorityMatch)) {
-      throw new Error(getErrorMessage('aiInvalidSeniority', language));
-    }
-
-    if (typeof signals.recruiterMessage !== "string" || signals.recruiterMessage.length === 0) {
-      throw new Error(getErrorMessage('aiInvalidRecruiterMessage', language));
-    }
-
-    if (typeof signals.coverLetter !== "string" || signals.coverLetter.length === 0) {
-      throw new Error(getErrorMessage('aiInvalidCoverLetter', language));
-    }
   }
 }

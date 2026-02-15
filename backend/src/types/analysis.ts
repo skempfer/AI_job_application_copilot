@@ -35,7 +35,7 @@ export interface AISignals {
     qa?: boolean;
     devops?: boolean;
     product?: boolean;
-  };
+  } | null;
 }
 
 /**

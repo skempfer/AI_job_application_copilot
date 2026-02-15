@@ -1,10 +1,10 @@
 export const pt = {
   errors: {
-    // Validation errors
-    cvRequired: 'CV ou arquivo PDF é obrigatório',
-    cvTooShort: 'CV muito curto. Forneça mais detalhes.',
-    jobDescriptionRequired: 'Descrição da vaga é obrigatória',
-    jobDescriptionTooShort: 'Descrição da vaga muito curta. Cole a descrição completa.',
+    // Input validation errors
+    cvRequired: 'Por favor, insira seu CV',
+    cvTooShort: 'CV muito curto. Forneça pelo menos 100 caracteres com informações sobre experiência, skills e educação.',
+    jobDescriptionRequired: 'Por favor, insira a descrição da vaga',
+    jobDescriptionTooShort: 'Descrição da vaga muito curta. Cole a descrição completa com requisitos, responsabilidades e experiência esperada.',
     
     // PDF/File errors
     invalidResumePath: 'Caminho do currículo inválido',
@@ -13,14 +13,20 @@ export const pt = {
     pdfExtractionFailed: 'Falha ao extrair CV do PDF. Tente enviar o CV como texto.',
     cvEmptyAfterExtraction: 'CV vazio após extração do PDF',
     
-    // AI errors
-    aiEmptyResponse: 'IA retornou uma resposta vazia',
-    aiParsingFailed: 'Falha ao processar resposta da IA: {{details}}',
-    aiInvalidResponse: 'Resposta da IA inválida. Campos faltando: {{fields}}',
-    aiInvalidArrayField: '{{field}} deve ser um array',
-    aiInvalidSeniority: 'seniorityMatch deve ser "below", "match" ou "above"',
-    aiInvalidRecruiterMessage: 'recruiterMessage deve ser uma string não vazia',
-    aiInvalidCoverLetter: 'coverLetter deve ser uma string não vazia',
+    // AI errors - General
+    aiEmptyResponse: 'A IA retornou uma resposta vazia. Tente novamente com um CV e descrição mais descritivos.',
+    aiParsingFailed: 'Falha ao processar a resposta da IA. Tente novamente.',
+    aiInvalidResponse: 'A resposta da IA não está no formato esperado. Tente novamente.',
+    aiResponseIncomplete: 'A resposta da IA está incompleta. Tente novamente.',
+    
+    // AI errors - Specific field validation
+    aiFieldMissing: 'Erro na análise: campo {{field}} não pode ser vazio.',
+    aiInvalidArrayField: 'Falha na validação de {{field}}. Tente novamente com mais contexto.',
+    aiInvalidFormat: 'A IA retornou um formato inválido. Tente novamente.',
+    aiSeniorityInvalid: 'Falha ao determinar nível de senioridade. Tente novamente com mais informações sobre sua experiência.',
+    aiMessageRequired: 'A IA não conseguiu gerar uma mensagem. Tente novamente ou forneça mais detalhes.',
+    aiCoverLetterRequired: 'A IA não conseguiu gerar uma carta de apresentação. Tente novamente.',
+    aiInvalidData: 'Dados inválidos na resposta da IA. Não conseguimos processar. Tente novamente com um CV melhor formatado.',
     
     // Generic errors
     endpointNotFound: 'Endpoint não encontrado',

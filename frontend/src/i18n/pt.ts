@@ -84,10 +84,15 @@ export const pt = {
   dark: 'Escuro',
   
   // Error messages
-  cvError: 'Por favor, forneça um CV válido',
-  jobError: 'Por favor, forneça uma descrição válida da vaga',
-  analyzeError: 'Erro ao analisar compatibilidade. Tente novamente.',
+  cvError: 'Por favor, forneça um CV com pelo menos 100 caracteres. Inclua experiência profissional, skills e formação.',
+  jobError: 'Por favor, forneça uma descrição completa da vaga. Inclua requisitos, responsabilidades e nível esperado.',
+  analyzeError: 'Não conseguimos processar sua análise. Verifique se o CV e a descrição estão bem formatados e tente novamente.',
   dismissError: 'Descartar',
+  
+  // Specific AI error messages
+  aiProcessingError: 'Houve um problema ao processar sua análise. Isso pode ser devido a conteúdo mal formatado no CV ou vaga.',
+  aiFormatError: 'A resposta da IA não estava no formato esperado. Tente novamente ou formatar melhor seu CV.',
+  aiGenericError: 'Erro na análise. Tente com um CV mais detalhado ou uma descrição de vaga mais completa.',
   
   // Validation
   characters: 'caracteres',

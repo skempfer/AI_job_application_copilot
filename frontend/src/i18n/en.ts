@@ -84,10 +84,15 @@ export const en = {
   dark: 'Dark',
   
   // Error messages
-  cvError: 'Please provide a valid CV',
-  jobError: 'Please provide a valid job description',
-  analyzeError: 'Error analyzing job fit. Please try again.',
+  cvError: 'Please provide a CV with at least 100 characters. Include professional experience, skills, and education.',
+  jobError: 'Please provide a complete job description. Include requirements, responsibilities, and expected level.',
+  analyzeError: 'Unable to process your analysis. Make sure the CV and description are well formatted and try again.',
   dismissError: 'Dismiss',
+  
+  // Specific AI error messages
+  aiProcessingError: 'There was a problem processing your analysis. This may be due to poorly formatted content in the CV or job description.',
+  aiFormatError: 'AI response was not in the expected format. Try again or better format your CV.',
+  aiGenericError: 'Analysis error. Try with a more detailed CV or a more complete job description.',
   
   // Validation
   characters: 'characters',

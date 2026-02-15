@@ -1,10 +1,10 @@
 export const en = {
   errors: {
     // Validation errors
-    cvRequired: 'CV or PDF file is required',
-    cvTooShort: 'CV too short. Provide more details.',
-    jobDescriptionRequired: 'Job description is required',
-    jobDescriptionTooShort: 'Job description too short. Paste the full job description.',
+    cvRequired: 'Please enter your CV',
+    cvTooShort: 'CV too short. Provide at least 100 characters with information about experience, skills, and education.',
+    jobDescriptionRequired: 'Please enter the job description',
+    jobDescriptionTooShort: 'Job description too short. Paste the complete description with requirements, responsibilities, and expected experience.',
     
     // PDF/File errors
     invalidResumePath: 'Invalid resume path',
@@ -13,14 +13,20 @@ export const en = {
     pdfExtractionFailed: 'Failed to extract CV from PDF. Try sending the CV as text.',
     cvEmptyAfterExtraction: 'CV is empty after PDF extraction',
     
-    // AI errors
-    aiEmptyResponse: 'AI returned an empty response',
-    aiParsingFailed: 'Failed to parse AI response: {{details}}',
-    aiInvalidResponse: 'Invalid AI response. Missing fields: {{fields}}',
-    aiInvalidArrayField: '{{field}} must be an array',
-    aiInvalidSeniority: 'seniorityMatch must be "below", "match", or "above"',
-    aiInvalidRecruiterMessage: 'recruiterMessage must be a non-empty string',
-    aiInvalidCoverLetter: 'coverLetter must be a non-empty string',
+    // AI errors - General
+    aiEmptyResponse: 'AI returned an empty response. Try again with a more descriptive CV and job description.',
+    aiParsingFailed: 'Failed to process AI response. Please try again.',
+    aiInvalidResponse: 'AI response is not in the expected format. Please try again.',
+    aiResponseIncomplete: 'AI response is incomplete. Try again.',
+    
+    // AI errors - Specific field validation
+    aiFieldMissing: 'Analysis error: {{field}} field cannot be empty.',
+    aiInvalidArrayField: 'Validation error in {{field}}. Try again with more context.',
+    aiInvalidFormat: 'AI returned an invalid format. Try again.',
+    aiSeniorityInvalid: 'Failed to determine seniority level. Try again with more details about your experience.',
+    aiMessageRequired: 'AI could not generate a message. Try again or provide more details.',
+    aiCoverLetterRequired: 'AI could not generate a cover letter. Try again.',
+    aiInvalidData: 'Invalid data in AI response. Unable to process. Try again with a better formatted CV.',
     
     // Generic errors
     endpointNotFound: 'Endpoint not found',

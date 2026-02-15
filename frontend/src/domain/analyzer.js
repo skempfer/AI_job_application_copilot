@@ -1,12 +1,12 @@
 export function validateCV(cv) {
   if (!cv || typeof cv !== 'string') {
-    return { valid: false, error: 'CV is required' };
+    return { valid: false, error: 'Please enter your CV' };
   }
 
   const trimmed = cv.trim();
   
-  if (trimmed.length < 50) {
-    return { valid: false, error: 'CV too short. Please provide more details about your experience.' };
+  if (trimmed.length < 100) {
+    return { valid: false, error: 'CV too short. Provide at least 100 characters with information about experience, skills, and education.' };
   }
 
   if (trimmed.length > 20000) {
@@ -18,13 +18,13 @@ export function validateCV(cv) {
 
 export function validateJobDescription(jobDescription) {
   if (!jobDescription || typeof jobDescription !== 'string') {
-    return { valid: false, error: 'Job description is required' };
+    return { valid: false, error: 'Please enter the job description' };
   }
 
   const trimmed = jobDescription.trim();
   
-  if (trimmed.length < 50) {
-    return { valid: false, error: 'Job description too short. Please paste the complete job description.' };
+  if (trimmed.length < 100) {
+    return { valid: false, error: 'Job description too short. Paste the complete description with requirements, responsibilities, and expected experience.' };
   }
 
   if (trimmed.length > 50000) {
