@@ -15,30 +15,18 @@ export function createAnalyzeRouter(aiService: AIService): Router {
       const { cv, jobDescription, resumeUrl, language } = req.body as AnalysisRequest & { resumeUrl?: string };
       const lang = getLanguageFromRequest(language);
 
-      console.log("\n\n");
-      console.log("====================================================");
-      console.log("🚀🚀🚀 ROUTE /API/ANALYZE CALLED - NEW CODE! 🚀🚀🚀");
-      console.log("====================================================");
-      console.log("\n[POST /api/analyze] Request received");
-      console.log("[POST /api/analyze] CV provided:", !!cv, "| CV length:", cv?.length || 0);
-      console.log("[POST /api/analyze] Job description length:", jobDescription?.length || 0);
-      console.log("[POST /api/analyze] Resume URL:", resumeUrl || "none");
-      console.log("[POST /api/analyze] Language:", language || "en");
-
       if (!resumeUrl && (!cv || typeof cv !== "string" || cv.trim().length === 0)) {
-        console.error("❌ ERROR: Empty CV and no resumeUrl");
         res.status(400).json({ error: getErrorMessage('cvRequired', lang) });
         return;
       }
 
       if (!jobDescription || typeof jobDescription !== "string" || jobDescription.trim().length === 0) {
-        console.error("❌ ERROR: Job description is empty");
+        res.status(400).json({ error: getErrorMessage('jobDescriptionRequired', lang) });
         res.status(400).json({ error: getErrorMessage('jobDescriptionRequired', lang) });
         return;
       }
 
       if (!resumeUrl && cv && cv.trim().length < 50) {
-        console.error("❌ ERROR: CV too short");
         res.status(400).json({ error: getErrorMessage('cvTooShort', lang) });
         return;
       }
@@ -55,7 +43,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
           const pdfPath = path.resolve(uploadDir, resumeUrl);
           
           if (!pdfPath.startsWith(uploadDir)) {
-            console.error("   ❌ Invalid resume path (outside upload directory)");
             throw new Error(getErrorMessage('invalidResumePath', lang));
           }
 
@@ -69,32 +56,17 @@ export function createAnalyzeRouter(aiService: AIService): Router {
 
           cvText = await extractTextFromPDF(pdfPath);
         } catch (error) {
-          console.error(`\n❌ Error extracting PDF:`, error instanceof Error ? error.message : error);
           cvText = "";
         }
       }
 
       if (!cvText || cvText.trim().length === 0) {
-        console.error("❌ ERROR: CV empty after PDF extraction");
         res.status(400).json({ error: getErrorMessage('pdfExtractionFailed', lang) });
         return;
       }
 
       const analysisLanguage = (language as "pt" | "en" | undefined) || "en";
-      console.log("\n[POST /api/analyze] Starting AI analysis with CV length:", cvText.length);
-      console.log("[POST /api/analyze] CV first 150 chars:", cvText.substring(0, 150));
       const result = await aiService.analyzeJobFit(cvText, jobDescription.trim(), analysisLanguage);
-
-      console.log("\n[POST /api/analyze] ✅ Analysis complete");
-      console.log("[POST /api/analyze] Result has preprocessedCV:", !!result.preprocessedCV);
-      if (result.preprocessedCV) {
-        console.log("[POST /api/analyze] Preprocessing data:", {
-          yearsExperience: result.preprocessedCV.yearsExperience,
-          yearsExperienceConfidence: result.preprocessedCV.yearsExperienceConfidence,
-          domains: result.preprocessedCV.domainExperience,
-          seniority: result.preprocessedCV.seniority,
-        });
-      }
 
       if (process.env.USE_FIREBASE === "true") {
         try {
@@ -111,10 +83,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
           console.error("⚠️  Error saving to database (non-critical):", dbError);
         }
       }
-
-      console.log("\n[POST /api/analyze] 📤 Sending response to client...");
-      console.log("[POST /api/analyze] Response object keys:", Object.keys(result));
-      console.log("[POST /api/analyze] preprocessedCV included:", !!result.preprocessedCV);
       
       res.json(result);
     } catch (error) {

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useLanguage } from './hooks/useLanguage';
 import { useJobAnalysis } from './hooks/useJobAnalysis';
+import { useAlignmentUIModel } from './hooks/useAlignmentUIModel';
 import { CVInput } from './components/CVInput';
 import { JobInput } from './components/JobInput';
 import { ResumeUpload } from './components/ResumeUpload';
@@ -17,6 +18,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { Terms } from './pages/Terms';
 import { Privacy } from './pages/Privacy';
 import { trackEvent } from './lib/analytics';
+import { AlignmentDisplayWithState } from './features/analysis/components/AlignmentDisplay/AlignmentDisplayWithState';
 import './App.css';
 
 const ResultsDisplay = lazy(() => import('./components/ResultsDisplay').then(m => ({ default: m.ResultsDisplay })));
@@ -29,13 +31,23 @@ const CoverLetterDisplay = lazy(() => import('./components/CoverLetterDisplay').
  * Separated from root App to be wrapped with context providers
  */
 function AppContent() {
+  console.log('[AppContent] Function started');
   const { t } = useLanguage();
+  console.log('[AppContent] useLanguage OK');
   const [cv, setCv] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const jobDescriptionTracked = useRef(false);
 
-  const { loading, result, gapResult, error, analyze, clearError } = useJobAnalysis();
+  console.log('[AppContent] States initialized');
+  const { loading, analysisResult, result, gapResult, error, analyze, clearError } = useJobAnalysis();
+  console.log('[AppContent] useJobAnalysis OK');
+  const alignmentSource = analysisResult ?? result ?? null;
+  console.log('[AppContent] alignmentSource computed:', alignmentSource ? 'HAS DATA' : 'NULL');
+  const alignmentUIModel = useAlignmentUIModel(alignmentSource);
+  console.log('[AppContent] useAlignmentUIModel OK:', alignmentUIModel ? 'HAS MODEL' : 'NULL');
+  const analysisError = useMemo(() => (error ? new Error(error) : null), [error]);
+  console.log('[AppContent] Rendering complete setup...');
 
   const handleAnalyze = () => {
     if (!canAnalyze || loading) return;
@@ -87,6 +99,17 @@ function AppContent() {
           <AnalyzeButton onClick={handleAnalyze} disabled={!canAnalyze} loading={loading} />
 
           {error && <ErrorDisplay message={error} onDismiss={clearError} />}
+
+          {/* {showAlignment && ( */}
+          <div style={{ border: "2px solid red", width: "200px", height: "100px"}}>
+            <AlignmentDisplayWithState
+              uiModel={alignmentUIModel}
+              isLoading={loading}
+              error={analysisError}
+              loadingMessage={t('analyzingButton')}
+            />
+            </div>
+          {/* )} */}
 
           <Suspense fallback={<ResultsLoadingFallback />}>
             {result && gapResult && (

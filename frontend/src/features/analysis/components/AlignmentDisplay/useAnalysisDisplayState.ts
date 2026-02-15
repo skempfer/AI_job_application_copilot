@@ -61,8 +61,19 @@ export const useAnalysisDisplayState = (
       (uiModel.recruiterMessage?.length ?? 0) > 0 ||
       (uiModel.coverLetter?.length ?? 0) > 0;
 
+    console.log('[useAnalysisDisplayState] Content check:', {
+      hardSkillsCount: uiModel.hardSkills?.length ?? 0,
+      softSkillsCount: uiModel.softSkills?.length ?? 0,
+      detectedDomainsCount: uiModel.detectedDomains?.length ?? 0,
+      yearsExperience: uiModel.yearsExperience,
+      recruiterMessageLen: uiModel.recruiterMessage?.length ?? 0,
+      coverLetterLen: uiModel.coverLetter?.length ?? 0,
+      hasContent,
+    });
+
     // Empty state
     if (!hasContent) {
+      console.log('[useAnalysisDisplayState] -> EMPTY state');
       return {
         state: 'empty',
         isLoading: false,
@@ -74,6 +85,7 @@ export const useAnalysisDisplayState = (
     }
 
     // Display state
+    console.log('[useAnalysisDisplayState] -> DISPLAY state');
     return {
       state: 'display',
       isLoading: false,

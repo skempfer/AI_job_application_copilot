@@ -46,23 +46,13 @@ export async function analyzeJobFit(
     payload.resumeUrl = resumeUrl;
   }
 
-  console.log('\n📮 [apiClient.analyzeJobFit] Sending payload:');
-  console.log({
-    cvLength: payload.cv.length,
-    jobDescriptionLength: payload.jobDescription.length,
-    hasResumeUrl: !!resumeUrl,
-    language: detectedLanguage,
-  });
-
-  const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+   const response = await fetch(`${API_BASE_URL}/api/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });
-
-  console.log('\n📩 [apiClient.analyzeJobFit] Response status:', response.status);
 
   if (!response.ok) {
     const errorData = (await response.json().catch(() => ({}))) as Record<string, unknown>;
@@ -73,21 +63,8 @@ export async function analyzeJobFit(
   }
 
   const responseData = (await response.json()) as AnalysisResult;
-  console.log('✅ [apiClient.analyzeJobFit] Success! Response data:', responseData);
-
   // Log preprocessed data if available
-  if (responseData.preprocessedCV) {
-    console.log('\n🔧 [apiClient.analyzeJobFit] PREPROCESSING DATA FOUND!');
-    console.log('📊 Years Experience:', responseData.preprocessedCV.yearsExperience);
-    console.log('🎯 Confidence:', responseData.preprocessedCV.yearsExperienceConfidence);
-    console.log('🏢 Domain Experience:', responseData.preprocessedCV.domainExperience);
-    console.log('🏷️  Seniority:', responseData.preprocessedCV.seniority);
-    console.log('💾 Skills:', responseData.preprocessedCV.skills);
-  } else {
-    console.warn('⚠️ [apiClient.analyzeJobFit] No preprocessedCV in response!');
-    console.log('Available keys:', Object.keys(responseData));
-  }
-
+ 
   return {
     ...responseData,
     detectedLanguage,
@@ -139,8 +116,6 @@ export async function analyzeWithGap(
     payload.cv = cv.trim();
   }
 
-  console.log('\n📮 [apiClient.analyzeWithGap] Sending gap analysis request');
-
   const response = await fetch(`${API_BASE_URL}/api/analyze-gap`, {
     method: 'POST',
     headers: {
@@ -151,14 +126,12 @@ export async function analyzeWithGap(
 
   if (!response.ok) {
     const errorData = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-    console.error('❌ [apiClient.analyzeWithGap] Error:', errorData);
     const error = new Error(errorData.error as string || `HTTP Error: ${response.status}`);
     (error as any).status = response.status;
     throw error;
   }
 
   const result = (await response.json()) as GapAnalysisResponse;
-  console.log('✅ [apiClient.analyzeWithGap] Success!');
 
   return result;
 }

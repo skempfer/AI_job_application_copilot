@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { analyzeJobFit, analyzeWithGap } from '../domain/apiClient';
 import { validateInputs, formatAnalysisResult } from '../domain/analyzer';
-import type { FormattedAnalysisResult, GapAnalysisResult } from '../types/analysis';
+import type { AnalysisResult, FormattedAnalysisResult, GapAnalysisResult } from '../types/analysis';
 import { trackEvent } from '../lib/analytics';
 import { secureAnalysisResult } from '../lib/typeGuards';
 
@@ -11,6 +11,7 @@ import { secureAnalysisResult } from '../lib/typeGuards';
  */
 export function useJobAnalysis() {
   const [loading, setLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [result, setResult] = useState<FormattedAnalysisResult | null>(null);
   const [gapResult, setGapResult] = useState<GapAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +19,7 @@ export function useJobAnalysis() {
   const analyze = async (cv: string, jobDescription: string, resumeUrl: string | null) => {
     setResult(null);
     setGapResult(null);
+    setAnalysisResult(null);
     setError(null);
 
     const validation = validateInputs(cv, jobDescription, resumeUrl);
@@ -32,7 +34,7 @@ export function useJobAnalysis() {
       const rawResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
       const analysisResult = secureAnalysisResult(rawResult);
 
-      console.log('📊 [useJobAnalysis] Full API response:', analysisResult);
+      setAnalysisResult(analysisResult);
 
       const formatted = formatAnalysisResult(analysisResult);
 
@@ -80,6 +82,7 @@ export function useJobAnalysis() {
       trackEvent('analysis_error', status ? { status } : undefined);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error during analysis';
       setError(errorMessage);
+      setAnalysisResult(null);
     } finally {
       setLoading(false);
     }
@@ -87,6 +90,7 @@ export function useJobAnalysis() {
 
   return {
     loading,
+    analysisResult,
     result,
     gapResult,
     error,

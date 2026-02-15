@@ -46,13 +46,23 @@ interface AlignmentDisplayWithStateProps {
 export const AlignmentDisplayWithState = memo<
   AlignmentDisplayWithStateProps
 >(({ uiModel, isLoading = false, error, loadingMessage }) => {
+  console.log('[AlignmentDisplayWithState] Component mounted/rendered');
   const { state, loadingStage } = useAnalysisDisplayState(
     uiModel,
     isLoading,
     error
   );
 
+  console.log('[AlignmentDisplayWithState] Render:', { 
+    state, 
+    uiModelExists: Boolean(uiModel), 
+    isLoading, 
+    hasError: Boolean(error),
+    loadingStage
+  });
+
   if (state === 'loading') {
+    console.log('[AlignmentDisplayWithState] Rendering LoadingState');
     return (
       <LoadingState
         show={true}
@@ -63,6 +73,7 @@ export const AlignmentDisplayWithState = memo<
   }
 
   if (state === 'error') {
+    console.log('[AlignmentDisplayWithState] Rendering EmptyState (error)');
     return (
       <EmptyState
         show={true}
@@ -77,6 +88,7 @@ export const AlignmentDisplayWithState = memo<
   }
 
   if (state === 'empty') {
+    console.log('[AlignmentDisplayWithState] Rendering EmptyState (empty)');
     return (
       <EmptyState
         show={true}
@@ -90,6 +102,7 @@ export const AlignmentDisplayWithState = memo<
     );
   }
 
+  console.log('[AlignmentDisplayWithState] Rendering BaseAlignmentDisplay');
   return (
     <div className="alignment-display-with-state">
       <BaseAlignmentDisplay uiModel={uiModel!} />

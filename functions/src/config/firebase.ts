@@ -17,7 +17,6 @@ export function initializeFirebaseAdmin(): void {
     });
 
     firebaseInitialized = true;
-    console.log("✅ Firebase Admin SDK initialized for Cloud Functions");
   } catch (error: any) {
     if (error.code !== 'app/duplicate-app') {
       console.error("❌ Error initializing Firebase Admin SDK:", error);

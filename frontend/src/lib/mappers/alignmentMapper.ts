@@ -194,6 +194,12 @@ function normalizeRedFlags(flags: string[]): string[] {
  * @returns UI-ready model for components to consume
  */
 export function mapAlignmentResponseToUIModel(response: AnalysisResult): AlignmentUIModel {
+  console.log('[alignmentMapper] Starting mapping with response:', {
+    hasAiSignals: Boolean(response.aiSignals),
+    hasPreprocessedCV: Boolean(response.preprocessedCV),
+    aiSignalsKeys: response.aiSignals ? Object.keys(response.aiSignals) : [],
+  });
+
   // Extract preprocessed data with safe defaults
   const preprocessedCV = response.preprocessedCV;
   const yearsExperience = preprocessedCV?.yearsExperience ?? null;
@@ -201,33 +207,59 @@ export function mapAlignmentResponseToUIModel(response: AnalysisResult): Alignme
   const domainExperience = preprocessedCV?.domainExperience ?? null;
   const expectedSeniority = preprocessedCV?.seniority ?? 'unknown';
 
-  // Map seniority with context
-  const seniority = mapSeniorityMatch(response.explanation?.summary ? 'match' : 'below', yearsExperience, expectedSeniority);
+  console.log('[alignmentMapper] Preprocessed CV:', {
+    yearsExperience,
+    yearsConfidence,
+    domainExperience,
+    expectedSeniority,
+  });
 
-  // Note: In a real implementation, seniorityMatch would come from AISignals
-  // For this mapper, we infer from the response. Update when backend provides it directly.
+  // Use structured AI signals if available, fallback to string parsing
+  const signals = response.aiSignals;
+  console.log('[alignmentMapper] Signals:', signals);
+  
+  // Map seniority with context from signals or fallback
+  const seniorityMatch = signals?.seniorityMatch ?? (response.explanation?.summary ? 'match' : 'below');
+  const seniority = mapSeniorityMatch(seniorityMatch as any, yearsExperience, expectedSeniority);
 
-  // Group requirements
+  // Group requirements using structured data
   const requirements = groupRequirements(
-    response.strengths || [],
-    response.gaps || [],
-    response.explanation?.positives || [],
-    response.explanation?.negatives || [],
-    response.strengths || [],
-    response.gaps || []
+    signals?.hardSkillsDetected || [],
+    signals?.softSkillsEvidence || [],
+    signals?.mandatoryRequirementsMet || [],
+    signals?.mandatoryRequirementsMissing || [],
+    signals?.desirableRequirementsMet || [],
+    signals?.desirableRequirementsMissing || []
   );
+
+  console.log('[alignmentMapper] Grouped requirements:', {
+    mandatoryMet: requirements.mandatory.met.length,
+    mandatoryMissing: requirements.mandatory.missing.length,
+    desirableMet: requirements.desirable.met.length,
+    desirableMissing: requirements.desirable.missing.length,
+  });
 
   // Map detected domains
   const detectedDomains = mapDetectedDomains(domainExperience);
 
-  // Normalize red flags
-  const redFlags = normalizeRedFlags([]);
+  // Normalize red flags from signals
+  const redFlags = normalizeRedFlags(signals?.redFlags || []);
 
   // Determine empty states
   const hasAnyMissingMandatory =
     (requirements.mandatory.missing?.length ?? 0) > 0;
   const hasRedFlags = redFlags.length > 0;
   const hasDetectedDomains = detectedDomains.length > 0;
+
+  const hardSkills = signals?.hardSkillsDetected || response.strengths || [];
+  const softSkills = signals?.softSkillsEvidence || response.gaps || [];
+
+  console.log('[alignmentMapper] Final skills and domains:', {
+    hardSkillsCount: hardSkills.length,
+    softSkillsCount: softSkills.length,
+    detectedDomainsCount: detectedDomains.length,
+    redFlagsCount: redFlags.length,
+  });
 
   return {
     // Core metadata
@@ -241,9 +273,9 @@ export function mapAlignmentResponseToUIModel(response: AnalysisResult): Alignme
     // Requirements
     requirements,
 
-    // Skills
-    hardSkills: response.strengths || [],
-    softSkills: response.gaps || [],
+    // Skills - use structured data from signals
+    hardSkills,
+    softSkills,
 
     // Domain experience
     detectedDomains,

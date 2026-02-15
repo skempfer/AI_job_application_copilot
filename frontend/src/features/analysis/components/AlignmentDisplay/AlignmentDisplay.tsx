@@ -30,8 +30,22 @@ interface AlignmentDisplayProps {
  * - Graceful degradation when parts fail
  */
 const AlignmentDisplayContent = memo<AlignmentDisplayProps>(({ uiModel }) => {
+  console.log('[AlignmentDisplayContent] Received model:', {
+    hardSkillsCount: uiModel.hardSkills.length,
+    softSkillsCount: uiModel.softSkills.length,
+    detectedDomainsCount: uiModel.detectedDomains.length,
+    hasRedFlags: uiModel.hasRedFlags,
+    redFlagsCount: uiModel.redFlags.length,
+    yearsExperience: uiModel.yearsExperience,
+    recruiterMessageLen: uiModel.recruiterMessage.length,
+    coverLetterLen: uiModel.coverLetter.length,
+    cvSuggestionsCount: uiModel.cvSuggestions.length,
+  });
+
   const priority = getPriorityLevel(uiModel);
   const contentExists = hasContent(uiModel);
+
+  console.log('[AlignmentDisplayContent] Content exists:', contentExists);
 
   if (!contentExists) {
     return (

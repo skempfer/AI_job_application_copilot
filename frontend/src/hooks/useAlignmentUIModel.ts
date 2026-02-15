@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { AnalysisResult, AlignmentUIModel } from '../types/analysis';
-import { mapAlignmentResponseToUIModel } from './mappers/alignmentMapper';
+import { mapAlignmentResponseToUIModel } from '../lib/mappers/alignmentMapper';
 
 /**
  * Hook to map raw analysis result to UI model

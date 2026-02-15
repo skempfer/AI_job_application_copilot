@@ -95,7 +95,9 @@ function buildAnalysisAlgorithmSection(): string {
    - If clearly overqualified → seniorityMatch = "above"
 3. Compare candidate skills with mandatory and desirable requirements
 4. Compare domainExperience with role requirements
-5. Identify missing mandatory items and flag in redFlags`;
+5. Identify missing mandatory items and flag in redFlags
+6. If mandatoryRequirements is empty, do NOT add missing requirements or redFlags about missing requirements
+7. If yearsExperience is null, do NOT add redFlags about missing years/yearsTotal`;
 }
 
 /**

@@ -68,6 +68,18 @@ export interface AnalysisResult {
   promptVersion?: string;
   detectedLanguage?: 'pt' | 'en';
   preprocessedCV?: PreprocessedCV;
+  
+  // Structured data from AI signals (NEW)
+  aiSignals?: {
+    hardSkillsDetected: string[];
+    softSkillsEvidence: string[]; 
+    mandatoryRequirementsMet: string[];
+    mandatoryRequirementsMissing: string[]; 
+    desirableRequirementsMet: string[]; 
+    desirableRequirementsMissing: string[]; 
+    seniorityMatch: "above" | "match" | "below"; 
+    redFlags: string[]; 
+  };
 }
 
 export interface StructuredCV {
