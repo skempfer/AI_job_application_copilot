@@ -10,6 +10,34 @@ export interface AnalysisRequest {
   language?: "pt" | "en";
 }
 
+export const AI_FAILURE_REASON = {
+  RateLimit: "rate_limit",
+  QuotaExceeded: "quota_exceeded",
+  ProviderUnavailable: "provider_unavailable",
+  Timeout: "timeout",
+} as const;
+
+export type AIProviderFailureReason =
+  (typeof AI_FAILURE_REASON)[keyof typeof AI_FAILURE_REASON];
+
+export const AI_FALLBACK_PROVIDER = {
+  Firebase: "firebase",
+} as const;
+
+export type AIFallbackProvider =
+  (typeof AI_FALLBACK_PROVIDER)[keyof typeof AI_FALLBACK_PROVIDER];
+
+export interface AIProviderFallbackResponse {
+  success: false;
+  fallback: AIFallbackProvider;
+  reason: AIProviderFailureReason;
+  message: string;
+  prompt: {
+    system: string;
+    user: string;
+  };
+}
+
 /**
  * Signals extracted by the AI (no score calculation)
  * The AI only identifies and classifies skills/requirements
@@ -123,7 +151,4 @@ export interface AIServiceConfig {
   apiKey: string;
   apiUrl: string;
   model: string;
-  fallbackApiKey?: string;
-  fallbackApiUrl?: string;
-  fallbackModel?: string;
 }

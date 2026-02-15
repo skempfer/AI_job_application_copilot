@@ -2,28 +2,31 @@
 
 ## ⚠️ Recent Updates
 
-### AI Inference Architecture v2.1: Provider Orchestration with Fallback
+### AI Inference Architecture v3.0: Two-Tier Fallback with Frontend Firebase
 
-The AI inference layer now includes **provider abstraction and automatic fallback**:
+The AI inference layer now uses a **two-tier fallback strategy**:
 
-- **Provider Abstraction**: Clean interface for AI providers (Groq, DeepSeek, future providers)
+- **Primary Provider (Backend)**: Groq LLM with error classification
+- **Fallback Signal**: Structured HTTP 200 response with original prompts when Groq fails
+- **Fallback Provider (Frontend)**: Firebase Vertex AI's generative model (prepared, not yet implemented)
+- **Degraded Mode**: Safe defaults when both providers fail (fitScore=0.5, decision='apply')
+
+**Key Changes from v2.1**:
+- ✅ Removed AIOrchestrator and DeepSeekProvider (backend only, no multi-provider orchestration)
+- ✅ Moved fallback responsibility to frontend where Firebase is available
+- ✅ Structured error classification (RateLimit, QuotaExceeded, ProviderUnavailable, Timeout)
+- ✅ Prompt preservation through error chain for frontend to use in fallback
+
+**See [PROVIDER-FALLBACK-v3.md](./PROVIDER-FALLBACK-v3.md) for complete implementation details.**
+
+### Previous: AI Inference Architecture v2.1
+
+The AI inference layer included **provider abstraction and automatic backend fallback**:
+
+- **Provider Abstraction**: Clean interface for AI providers (Groq, DeepSeek)
 - **Automatic Fallback**: Groq falls back to DeepSeek on rate limits (HTTP 429)
-- **Unified Validation**: Both providers validated against same Zod schema
-- **Structured Logging**: Tracks provider used, fallback triggers, and validation success
-- **Rate Limit Resilience**: No silent failures, clear error propagation
-
-**See [PROVIDER-ORCHESTRATION.md](./PROVIDER-ORCHESTRATION.md) for complete details.**
-
-### Previous: AI Inference Architecture v2.0
-
-The AI inference layer was refactored for maintainability:
-
-- **System vs User Prompt Separation**: Invariant AI rules separated from task-specific instructions
-- **Schema Validation**: All AI responses validated against Zod schema
-- **Structured Logging**: Observability with correlation IDs and performance metrics
-- **Modular Prompt Builder**: Clear separation of concerns in prompt construction
-
-**See [AI-INFERENCE-ARCHITECTURE.md](./AI-INFERENCE-ARCHITECTURE.md) for implementation details.**
+  
+**Note**: This approach has been superseded by v3.0, which simplifies the backend and leverages Firebase for frontend fallback.
 
 ---
 
@@ -54,7 +57,15 @@ The AI inference layer was refactored for maintainability:
 │  ┌──────────────▼───────────────────────────────────────┐  │
 │  │  API Client (Pure JavaScript)                         │  │
 │  │  - analyzeJobFit()                                    │  │
-│  │  - fetch() HTTP calls                                 │  │
+│  │  - Fallback Detection (isAIProviderFallbackResponse)  │  │
+│  │  - Fallback Service Invocation                        │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                            │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │  Fallback AI Service (NEW - v3.0)                     │  │
+│  │  - handleProviderFallback()                           │  │
+│  │  - callFirebaseVertexAI() [prepared, not implemented] │  │
+│  │  - createDegradedResponse()                           │  │
 │  └──────────────┬───────────────────────────────────────┘  │
 └─────────────────┼────────────────────────────────────────────┘
                   │ HTTP POST /api/analyze
@@ -71,13 +82,62 @@ The AI inference layer was refactored for maintainability:
 │  ┌──────────────▼───────────────────────────────────────┐  │
 │  │  Route: POST /api/analyze                             │  │
 │  │  - Input validation                                   │  │
-│  │  - Error handling                                     │  │
+│  │  - Error classification & fallback response handling  │  │
 │  └──────────────┬───────────────────────────────────────┘  │
 │                 │                                            │
 │  ┌──────────────▼───────────────────────────────────────┐  │
-│  │  AIService (Hybrid Scoring with Modular Prompts)     │  │
+│  │  AIService (Hybrid Scoring with Prompt Building)     │  │
 │  │  - System Prompt (invariant rules)                    │  │
 │  │  - buildOptimizedPrompt() (modular sections)          │  │
+│  │  - Error handling with prompt preservation           │  │
+│  │  - Throws AIProviderError on failure                 │  │
+│  │  - analyzeJobFit() orchestrates:                      │  │
+│  │    1. Preprocess CV & Job Description                │  │
+│  │    2. Get AISignals from Groq (primary only)          │  │
+│  │    3. Validate response against schema                │  │
+│  │    4. calculateFitScore(signals) [deterministic]      │  │
+│  │    5. generateExplanation(signals, score)             │  │
+│  │    6. determineDecision(score)                        │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                            │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │  GroqProvider (NEW - v3.0)                            │  │
+│  │  - Single provider (no orchestration)                 │  │
+│  │  - Error classification methods:                      │  │
+│  │    • classifyFailure() → AIProviderFailureReason      │  │
+│  │    • getStatusCode()                                  │  │
+│  │    • getErrorCode()                                   │  │
+│  │  - Throws AIProviderError on classified failures      │  │
+│  │  - API Call: Groq LLM (llama-3.3-70b-versatile)       │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                            │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │  Scoring Service (Pure TypeScript Logic)             │  │
+│  │  - calculateFitScore(signals) → number               │  │
+│  │  - generateExplanation(signals, score)               │  │
+│  │  - determineDecision(score)                          │  │
+│  │  Weights: hardSkills 35%, mandatory 30%,             │  │
+│  │           seniority 15%, desirable 10%,              │  │
+│  │           softSkills 5%, redFlags -5%                │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+└─────────────────┼────────────────────────────────────────────┘
+         ┌────────┴──────────┐
+         │ Success (HTTP 200)│ Failure (AIProviderError)
+         │                   │
+         ▼                   ▼
+   ┌──────────┐      ┌─────────────────────┐
+   │ Analysis │      │ Fallback Response   │
+   │ Result   │      │ (HTTP 200)          │
+   └──────────┘      │ - reason: classified│
+         │           │ - prompt: preserved │
+         │           │ - fallback: firebase│
+         │           └──────────┬──────────┘
+         │                      │
+         └──────────┬───────────┘
+                    ▼
+         Frontend receives
+         and processes
+```
 │  │  - Schema Validation (Zod)                            │  │
 │  │  - Structured Logging (timing, correlation IDs)       │  │
 │  │  - analyzeJobFit() orchestrates:                      │  │

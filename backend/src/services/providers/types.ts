@@ -3,6 +3,12 @@
  * These types define the contract for AI provider implementations
  */
 
+export const AI_PROVIDER = {
+  GROQ: "groq",
+} as const;
+
+export type AIProviderName = (typeof AI_PROVIDER)[keyof typeof AI_PROVIDER];
+
 /**
  * Represents a single message in a chat conversation
  * Follows OpenAI's message format
@@ -10,15 +16,6 @@
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
-}
-
-/**
- * Result from provider generation including metadata
- */
-export interface ProviderResponse {
-  content: string;
-  providerUsed: "groq" | "deepseek";
-  fallbackTriggered: boolean;
 }
 
 /**
@@ -37,5 +34,5 @@ export interface AIProvider {
   /**
    * Get the provider name for logging
    */
-  getProviderName(): "groq" | "deepseek";
+  getProviderName(): AIProviderName;
 }

@@ -38,9 +38,6 @@ const aiService = new AIService({
   apiKey: process.env.GROQ_API_KEY!,
   apiUrl: process.env.GROQ_API_URL || "https://api.groq.com/openai/v1",
   model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
-  fallbackApiKey: process.env.DEEPSEEK_API_KEY,
-  fallbackApiUrl: process.env.DEEPSEEK_API_URL || "https://api.deepseek.com",
-  fallbackModel: process.env.DEEPSEEK_MODEL || "deepseek-chat",
 });
 
 app.use("/api/analyze", createAnalyzeRouter(aiService));
@@ -60,9 +57,4 @@ app.use((_req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Viora Backend running on http://localhost:${PORT}`);
   console.log(`⚡ Primary provider: Groq (${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"})`);
-  if (process.env.DEEPSEEK_API_KEY) {
-    console.log(`🔄 Fallback provider: DeepSeek (${process.env.DEEPSEEK_MODEL || "deepseek-chat"})`);
-  } else {
-    console.log(`⚠️  No fallback provider configured (set DEEPSEEK_API_KEY to enable)`);
-  }
 });

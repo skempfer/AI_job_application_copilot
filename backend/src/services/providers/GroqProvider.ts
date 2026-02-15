@@ -1,5 +1,9 @@
 import OpenAI from "openai";
+import { AI_FAILURE_REASON } from "../../types/analysis.js";
+import type { AIProviderFailureReason } from "../../types/analysis.js";
+import { AIProviderError } from "./providerErrors.js";
 import type { AIProvider, ChatMessage } from "./types.js";
+import { AI_PROVIDER } from "./types.js";
 
 /**
  * Configuration for the Groq provider
@@ -44,30 +48,88 @@ export class GroqProvider implements AIProvider {
    * @throws Error if API call fails or response is empty
    */
   async generate(messages: ChatMessage[]): Promise<string> {
-    const completion = await this.client.chat.completions.create({
-      model: this.model,
-      messages: messages.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
-      temperature: 0.2,
-      max_tokens: 1500,
-    });
+    try {
+      const completion = await this.client.chat.completions.create({
+        model: this.model,
+        messages: messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        temperature: 0.2,
+        max_tokens: 1500,
+      });
 
-    const content = completion.choices[0]?.message?.content;
-    
-    if (!content) {
-      throw new Error("Groq provider returned empty response");
+      const content = completion.choices[0]?.message?.content;
+
+      if (!content) {
+        throw new Error("Groq provider returned empty response");
+      }
+
+      return content;
+    } catch (error) {
+      const reason = this.classifyFailure(error);
+      if (reason) {
+        const status = this.getStatusCode(error);
+        throw new AIProviderError({
+          provider: AI_PROVIDER.GROQ,
+          reason,
+          message: "Groq provider request failed",
+          status,
+          cause: error,
+        });
+      }
+
+      throw error;
     }
-
-    return content;
   }
 
   /**
    * Get the provider name for logging
    * @returns Provider identifier
    */
-  getProviderName(): "groq" | "deepseek" {
-    return "groq";
+  getProviderName(): "groq" {
+    return AI_PROVIDER.GROQ;
+  }
+
+  private classifyFailure(error: unknown): AIProviderFailureReason | null {
+    const status = this.getStatusCode(error);
+    const code = this.getErrorCode(error);
+    const message = this.getErrorMessage(error).toLowerCase();
+
+    if (status === 429 || code === "rate_limit_exceeded" || message.includes("rate limit")) {
+      return AI_FAILURE_REASON.RateLimit;
+    }
+
+    if (code === "insufficient_quota" || message.includes("quota")) {
+      return AI_FAILURE_REASON.QuotaExceeded;
+    }
+
+    if (status === 408 || status === 504 || code === "ETIMEDOUT" || message.includes("timeout")) {
+      return AI_FAILURE_REASON.Timeout;
+    }
+
+    if (status === 502 || status === 503 || message.includes("unavailable") || message.includes("overloaded")) {
+      return AI_FAILURE_REASON.ProviderUnavailable;
+    }
+
+    return null;
+  }
+
+  private getStatusCode(error: unknown): number | undefined {
+    return typeof (error as { status?: number })?.status === "number"
+      ? (error as { status?: number }).status
+      : undefined;
+  }
+
+  private getErrorCode(error: unknown): string | undefined {
+    return typeof (error as { code?: string })?.code === "string"
+      ? (error as { code?: string }).code
+      : undefined;
+  }
+
+  private getErrorMessage(error: unknown): string {
+    return typeof (error as { message?: string })?.message === "string"
+      ? (error as { message?: string }).message
+      : "";
   }
 }

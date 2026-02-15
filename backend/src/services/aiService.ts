@@ -6,7 +6,9 @@ import { SYSTEM_PROMPT } from "./systemPrompt.js";
 import { validateAIResponse, AIResponseValidationError } from "./aiResponseSchema.js";
 import { createAIServiceLogger, generateCorrelationId } from "./aiLogger.js";
 import { getErrorMessage } from "../i18n/index.js";
-import { AIProvider, GroqProvider, DeepSeekProvider, AIOrchestrator, ProviderResponse } from "./providers/index.js";
+import { AIProvider, GroqProvider } from "./providers/index.js";
+import { AIProviderError } from "./providers/providerErrors.js";
+import { AI_PROVIDER } from "./providers/types.js";
 
 const AMBIGUOUS_TOKENS = new Set(["go"]);
 const STOPWORDS = new Set([
@@ -90,7 +92,7 @@ function sanitizeSignals(
 
 export class AIService {
   private provider: AIProvider;
-  private hasOrchestrator: boolean;
+  private model: string;
 
   constructor(config: AIServiceConfig) {
     // Create primary provider (Groq)
@@ -100,22 +102,8 @@ export class AIService {
       model: config.model,
     });
 
-    // Create fallback provider (DeepSeek) if configured
-    if (config.fallbackApiKey) {
-      const fallbackProvider = new DeepSeekProvider({
-        apiKey: config.fallbackApiKey,
-        baseURL: config.fallbackApiUrl,
-        model: config.fallbackModel,
-      });
-
-      // Use orchestrator with fallback
-      this.provider = new AIOrchestrator(primaryProvider, fallbackProvider);
-      this.hasOrchestrator = true;
-    } else {
-      // Use primary provider only
-      this.provider = primaryProvider;
-      this.hasOrchestrator = false;
-    }
+    this.provider = primaryProvider;
+    this.model = config.model;
   }
 
   async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
@@ -129,6 +117,8 @@ export class AIService {
       cvLength: cv.length,
       jobDescriptionLength: jobDescription.length,
     });
+
+    let userPrompt = "";
 
     try {
       // Preprocessing phase
@@ -145,52 +135,29 @@ export class AIService {
       });
 
       const prompt = await buildOptimizedPrompt(processedCV, processedJob, language);
+      userPrompt = prompt;
 
       // API Request phase with provider metadata tracking
       logger.startTiming("api_request");
-      logger.logAPIRequest("provider", "groq-or-deepseek", {
+      logger.logAPIRequest(AI_PROVIDER.GROQ, this.model, {
         promptLength: prompt.length,
       });
 
-      // Get provider response with metadata
-      let providerMetadata: ProviderResponse;
-      if (this.hasOrchestrator && this.provider instanceof AIOrchestrator) {
-        providerMetadata = await this.provider.generateWithMetadata([
-          {
-            role: "system",
-            content: SYSTEM_PROMPT,
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ]);
-      } else {
-        // Single provider (no fallback configured)
-        const content = await this.provider.generate([
-          {
-            role: "system",
-            content: SYSTEM_PROMPT,
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ]);
-        providerMetadata = {
-          content,
-          providerUsed: this.provider.getProviderName(),
-          fallbackTriggered: false,
-        };
-      }
-
-      const content = providerMetadata.content;
+      const content = await this.provider.generate([
+        {
+          role: "system",
+          content: SYSTEM_PROMPT,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ]);
       const apiDuration = logger.endTiming("api_request");
       
       // Structured logging: provider usage and response time
       logger.info("Provider response received", {
-        providerUsed: providerMetadata.providerUsed,
-        fallbackTriggered: providerMetadata.fallbackTriggered,
+        providerUsed: this.provider.getProviderName(),
         responseTimeMs: apiDuration,
         duration: `${apiDuration.toFixed(2)}ms`,
       });
@@ -234,7 +201,7 @@ export class AIService {
       // Structured logging: schema validation success
       logger.logValidation(true, {
         schemaValidationSuccess: true,
-        providerUsed: providerMetadata.providerUsed,
+        providerUsed: this.provider.getProviderName(),
         duration: `${validationDuration.toFixed(2)}ms`,
         hardSkills: sanitizedSignals.hardSkillsDetected.length,
         missingRequirements: sanitizedSignals.mandatoryRequirementsMissing.length,
@@ -297,8 +264,7 @@ export class AIService {
       logger.logCompletion("analyzeJobFit", {
         success: true,
         itemsProcessed: 1,
-        provider: providerMetadata.providerUsed,
-        fallbackTriggered: providerMetadata.fallbackTriggered,
+        provider: this.provider.getProviderName(),
         responseTimeMs: apiDuration,
         schemaValidationSuccess: true,
         duration: totalDuration,
@@ -310,7 +276,17 @@ export class AIService {
         correlationId,
       });
 
-      // Handle JSON parsing errors (from either provider)
+      if (error instanceof AIProviderError) {
+        if (userPrompt) {
+          error.prompt = {
+            system: SYSTEM_PROMPT,
+            user: userPrompt,
+          };
+        }
+        throw error;
+      }
+
+      // Handle JSON parsing errors
       if (error instanceof SyntaxError) {
         logger.error("Provider returned invalid JSON", error, {
           errorType: "json_parse_error",

@@ -4,7 +4,9 @@ import fs from "fs/promises";
 import { AIService } from "../services/aiService.js";
 import { saveAnalysis } from "../services/databaseService.js";
 import { extractTextFromPDF } from "../services/cvParserService.js";
-import type { AnalysisRequest } from "../types/analysis.js";
+import { AI_FALLBACK_PROVIDER } from "../types/analysis.js";
+import type { AIProviderFallbackResponse, AnalysisRequest } from "../types/analysis.js";
+import { AIProviderError } from "../services/providers/providerErrors.js";
 import { getErrorMessage, getLanguageFromRequest } from "../i18n/index.js";
 
 export function createAnalyzeRouter(aiService: AIService): Router {
@@ -21,7 +23,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
       }
 
       if (!jobDescription || typeof jobDescription !== "string" || jobDescription.trim().length === 0) {
-        res.status(400).json({ error: getErrorMessage('jobDescriptionRequired', lang) });
         res.status(400).json({ error: getErrorMessage('jobDescriptionRequired', lang) });
         return;
       }
@@ -88,6 +89,27 @@ export function createAnalyzeRouter(aiService: AIService): Router {
     } catch (error) {
       console.error("Error analyzing job fit:", error);
       const lang = getLanguageFromRequest((req.body as AnalysisRequest)?.language);
+
+      if (error instanceof AIProviderError && error.prompt) {
+        const fallbackResponse: AIProviderFallbackResponse = {
+          success: false,
+          fallback: AI_FALLBACK_PROVIDER.Firebase,
+          reason: error.reason,
+          message: "Primary AI provider unavailable",
+          prompt: error.prompt,
+        };
+
+        res.status(200).json(fallbackResponse);
+        return;
+      }
+
+      if (error instanceof AIProviderError) {
+        res.status(500).json({
+          error: getErrorMessage('internalServerError', lang),
+          details: "Provider fallback prompt missing",
+        });
+        return;
+      }
 
       if (error instanceof Error) {
         res.status(500).json({

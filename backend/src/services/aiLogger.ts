@@ -1,3 +1,5 @@
+import type { AIProviderName } from "./providers/types.js";
+
 /**
  * Structured Logging Module for AI Service
  * 
@@ -31,8 +33,7 @@ export interface LogMetrics {
   itemsProcessed?: number;
   provider?: string;
   errors?: number;
-  providerUsed?: "groq" | "deepseek";
-  fallbackTriggered?: boolean;
+  providerUsed?: AIProviderName;
   responseTimeMs?: number;
   schemaValidationSuccess?: boolean;
 }
