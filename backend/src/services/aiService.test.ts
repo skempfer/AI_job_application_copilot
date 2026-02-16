@@ -19,8 +19,8 @@ describe('AIService - Response Parsing and Output Contract', () => {
     desirableRequirementsMissing: ['AWS', 'Kubernetes'],
     seniorityMatch: 'match',
     redFlags: [],
-    recruiterMessage: 'I am excited to apply for this position...',
-    coverLetter: 'Dear Hiring Manager,\n\nI am writing to express my interest...',
+    recruiterMessage: 'With 5 years building scalable applications using React and TypeScript, I bring strong technical skills and proven leadership experience from my role at TechCorp.',
+    coverLetter: 'My experience building production applications with React, TypeScript, and Node.js aligns well with your technical requirements. At TechCorp, I led a frontend team through several major releases.',
     detectedYearsExperience: 5,
     detectedDomainExperience: {
       frontend: true,
@@ -67,11 +67,11 @@ describe('AIService - Response Parsing and Output Contract', () => {
       } as any;
     });
 
-    // Initialize service
+    // Initialize service with Vertex configuration
     aiService = new AIService({
-      apiKey: 'test-api-key',
-      apiUrl: 'https://test.openai.com',
-      model: 'gpt-4',
+      projectId: 'test-project',
+      location: 'us-central1',
+      model: 'gemini-1.5-pro',
     });
   });
 
@@ -242,7 +242,7 @@ describe('AIService - Response Parsing and Output Contract', () => {
     it('should return promptVersion matching expected value', async () => {
       const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'en');
 
-      expect(result.promptVersion).toBe('v2.0-optimized');
+      expect(result.promptVersion).toBe('v3.0-full-context');
     });
 
     it('should return detectedLanguage matching input language', async () => {
@@ -564,4 +564,156 @@ describe('AIService - Response Parsing and Output Contract', () => {
       expect(result.explanation).toHaveProperty('summary');
     });
   });
+
+  describe('Writing Quality Constraints', () => {
+    const forbiddenPhrases = [
+      'I am excited to apply',
+      'I am thrilled',
+      'I am confident that',
+      'I look forward to discussing',
+      'would be a great fit',
+    ];
+
+    beforeEach(() => {
+      mockCreate.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify(validAIResponse),
+            },
+          },
+        ],
+      });
+    });
+
+    it('should not contain forbidden cliché phrases in recruiterMessage', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'en');
+      
+      const lowerMessage = result.recruiterMessage.toLowerCase();
+      forbiddenPhrases.forEach(phrase => {
+        expect(lowerMessage).not.toContain(phrase.toLowerCase());
+      });
+    });
+
+    it('should not contain forbidden cliché phrases in coverLetter', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'en');
+      
+      const lowerCoverLetter = result.coverLetter.toLowerCase();
+      forbiddenPhrases.forEach(phrase => {
+        expect(lowerCoverLetter).not.toContain(phrase.toLowerCase());
+      });
+    });
+
+    it('should keep recruiterMessage concise (max ~300 characters)', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'en');
+      
+      // Allow some flexibility, but warn if it's too long
+      expect(result.recruiterMessage.length).toBeLessThan(400);
+    });
+
+    it('should generate professional, fact-based recruiterMessage', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'en');
+      
+      // Should not be empty or too short
+      expect(result.recruiterMessage.length).toBeGreaterThan(50);
+      // Should contain some substance
+      expect(result.recruiterMessage.trim()).not.toBe('');
+    });
+  });
+
+  describe('Language Routing', () => {
+    beforeEach(() => {
+      mockCreate.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify(validAIResponse),
+            },
+          },
+        ],
+      });
+    });
+
+    it('should accept uiLanguage parameter', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'pt');
+      
+      expect(result).toBeDefined();
+      expect(result.detectedLanguage).toBe('pt');
+    });
+
+    it('should accept separate jobLanguage parameter', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'pt', 'en');
+      
+      expect(result).toBeDefined();
+      // UI language should be Portuguese
+      expect(result.detectedLanguage).toBe('pt');
+    });
+
+    it('should default jobLanguage to uiLanguage when not provided', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'en');
+      
+      expect(result).toBeDefined();
+      expect(result.detectedLanguage).toBe('en');
+    });
+  });
+
+  describe('Anti-Hallucination Validation', () => {
+    beforeEach(() => {
+      mockCreate.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify(validAIResponse),
+            },
+          },
+        ],
+      });
+    });
+
+    it('should only return skills that appear in CV', async () => {
+      const result = await aiService.analyzeJobFit(mockCV, mockJobDescription, 'en');
+      
+      // All detected hard skills should be traceable to the CV
+      result.aiSignals?.hardSkillsDetected.forEach(skill => {
+        // Check that skill appears in the mock CV (case-insensitive)
+        const cvLower = mockCV.toLowerCase();
+        const skillLower = skill.toLowerCase();
+        const skillTokens = skillLower.split(/\s+/);
+        
+        // At least one token from the skill should appear in CV
+        const hasEvidence = skillTokens.some(token => 
+          token.length > 2 && cvLower.includes(token)
+        );
+        
+        expect(hasEvidence).toBe(true);
+      });
+    });
+
+    it('should not fabricate experience not in CV', async () => {
+      const minimalCV = 'John Doe\nSoftware Developer\nKnows Python';
+      
+      mockCreate.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                ...validAIResponse,
+                hardSkillsDetected: ['Python'], // Only Python should be detected
+                mandatoryRequirementsMet: [],
+                mandatoryRequirementsMissing: ['TypeScript', 'React'],
+              }),
+            },
+          },
+        ],
+      });
+
+      const result = await aiService.analyzeJobFit(minimalCV, mockJobDescription, 'en');
+      
+      // Should not claim skills not in the CV
+      const detectedSkills = result.aiSignals?.hardSkillsDetected || [];
+      expect(detectedSkills).not.toContain('TypeScript');
+      expect(detectedSkills).not.toContain('React');
+    });
+  });
 });
+

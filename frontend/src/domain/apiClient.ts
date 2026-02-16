@@ -2,7 +2,15 @@ import { detectLanguage } from '../utils/languageDetection';
 import type { AnalysisResult, AIProviderFallbackResponse } from '../types/analysis';
 import { handleProviderFallback } from '../services/fallbackAIService';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+// Get API URL from environment variable, with fallback for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003';
+
+/**
+ * Get API base URL
+ */
+function getApiBaseUrl(): string {
+  return API_BASE_URL;
+}
 
 /**
  * Type guard to check if response is an AIProviderFallbackResponse
@@ -36,6 +44,8 @@ interface AnalyzeJobFitRequest {
   cv: string;
   jobDescription: string;
   language: 'pt' | 'en';
+  uiLanguage: 'pt' | 'en';
+  jobLanguage?: 'pt' | 'en';
   resumeUrl?: string;
 }
 
@@ -61,6 +71,7 @@ interface AnalyzeJobFitResponse extends AnalysisResult {
  *
  * @param cv - Candidate's resume text
  * @param jobDescription - Job description
+ * @param uiLanguage - Language selected by user in UI (for analysis fields)
  * @param resumeUrl - Optional PDF resume URL
  * @returns Typed analysis result with detected language
  * @throws Error with status code on API failure (non-200 response)
@@ -68,21 +79,26 @@ interface AnalyzeJobFitResponse extends AnalysisResult {
 export async function analyzeJobFit(
   cv: string,
   jobDescription: string,
+  uiLanguage: 'pt' | 'en' = 'en',
   resumeUrl: string | null = null
 ): Promise<AnalyzeJobFitResponse> {
-  const detectedLanguage = detectLanguage(jobDescription) as 'pt' | 'en';
+  const detectedJobLanguage = detectLanguage(jobDescription) as 'pt' | 'en';
 
   const payload: AnalyzeJobFitRequest = {
     cv: cv.trim(),
     jobDescription: jobDescription.trim(),
-    language: detectedLanguage,
+    language: detectedJobLanguage, // Legacy support
+    uiLanguage: uiLanguage, // Language for analysis fields
+    jobLanguage: detectedJobLanguage, // Language for recruiterMessage and coverLetter
   };
 
   if (resumeUrl) {
     payload.resumeUrl = resumeUrl;
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+  const apiUrl = getApiBaseUrl();
+
+  const response = await fetch(`${apiUrl}/api/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -111,7 +127,7 @@ export async function analyzeJobFit(
     
     return {
       ...fallbackResult,
-      detectedLanguage,
+      detectedLanguage: detectedJobLanguage,
     };
   }
 
@@ -119,7 +135,7 @@ export async function analyzeJobFit(
   const analysisResult = responseData as AnalysisResult;
   return {
     ...analysisResult,
-    detectedLanguage,
+    detectedLanguage: detectedJobLanguage,
   };
 }
 
@@ -168,7 +184,9 @@ export async function analyzeWithGap(
     payload.cv = cv.trim();
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/analyze-gap`, {
+  const apiUrl = getApiBaseUrl();
+
+  const response = await fetch(`${apiUrl}/api/analyze-with-gap`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

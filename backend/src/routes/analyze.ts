@@ -14,7 +14,7 @@ export function createAnalyzeRouter(aiService: AIService): Router {
 
   router.post("/", async (req: Request, res: Response) => {
     try {
-      const { cv, jobDescription, resumeUrl, language } = req.body as AnalysisRequest & { resumeUrl?: string };
+      const { cv, jobDescription, resumeUrl, language, uiLanguage, jobLanguage } = req.body as AnalysisRequest & { resumeUrl?: string };
       const lang = getLanguageFromRequest(language);
 
       if (!resumeUrl && (!cv || typeof cv !== "string" || cv.trim().length === 0)) {
@@ -66,8 +66,19 @@ export function createAnalyzeRouter(aiService: AIService): Router {
         return;
       }
 
-      const analysisLanguage = (language as "pt" | "en" | undefined) || "en";
-      const result = await aiService.analyzeJobFit(cvText, jobDescription.trim(), analysisLanguage);
+      // Extract language parameters for proper routing
+      // Priority: uiLanguage > language > default to 'en'
+      const effectiveUiLanguage = (uiLanguage as "pt" | "en" | undefined) || 
+                                   (language as "pt" | "en" | undefined) || 
+                                   "en";
+      const effectiveJobLanguage = jobLanguage as "pt" | "en" | undefined;
+
+      const result = await aiService.analyzeJobFit(
+        cvText, 
+        jobDescription.trim(), 
+        effectiveUiLanguage,
+        effectiveJobLanguage
+      );
 
       if (process.env.USE_FIREBASE === "true") {
         try {

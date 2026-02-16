@@ -8,6 +8,8 @@ export interface AnalysisRequest {
   cv: string;
   jobDescription: string;
   language?: "pt" | "en";
+  uiLanguage?: "pt" | "en";
+  jobLanguage?: "pt" | "en";
 }
 
 export interface AISignals {

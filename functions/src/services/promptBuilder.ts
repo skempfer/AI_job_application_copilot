@@ -17,9 +17,12 @@ const PROMPT_VERSION = "v2.0-optimized";
 export function buildOptimizedPrompt(
   processedCV: ProcessedCV,
   processedJob: ProcessedJobDescription,
-  language: "pt" | "en"
+  uiLanguage: "pt" | "en",
+  jobLanguage?: "pt" | "en"
 ): string {
-  const isPt = language === "pt";
+  const isPt = uiLanguage === "pt";
+  const effectiveJobLanguage = jobLanguage || uiLanguage;
+  const isJobPt = effectiveJobLanguage === "pt";
 
   const cvSummary = formatCVSummary(processedCV, isPt);
 
@@ -31,14 +34,26 @@ export function buildOptimizedPrompt(
 
 **YOUR TASK:** Extract structured signals (do NOT calculate score).
 
+**LANGUAGE ROUTING:**
+- UI LANGUAGE (for analysis fields): ${isPt ? "Portuguese" : "English"}
+- JOB LANGUAGE (for recruiterMessage and coverLetter): ${isJobPt ? "Portuguese" : "English"}
+
+**CRITICAL LANGUAGE RULES:**
+- Write ALL analysis fields in UI LANGUAGE:
+  * fitScore explanation
+  * strengths
+  * gaps
+  * cvSuggestions
+  * explanation summary
+- Write recruiterMessage and coverLetter in JOB LANGUAGE
+- NEVER mix languages within a single field
+- Do NOT auto-detect language - use the specified languages above
+
 **STRUCTURED CANDIDATE PROFILE:**
 ${cvSummary}
 
 **STRUCTURED ROLE:**
 ${jobSummary}
-
-**MESSAGE LANGUAGE:** ${isPt ? "Portuguese" : "English"}
-Write recruiterMessage and coverLetter in the language above.
 
 **SIGNALS TO EXTRACT:**
 
@@ -88,15 +103,45 @@ The analysis must be based ONLY on the structured data provided:
 - Fabricate metrics, percentages, or undocumented results
 - Mention companies or projects not listed in achievements
 - Infer years of experience beyond what is estimated
+- Infer scale (e.g., "millions of users") unless explicitly stated
+- Invent responsibilities, metrics, or impact not documented
+- Assume technology proficiency without evidence
+- Reuse phrases from the job description
+- Paraphrase company marketing language
+- Restate the company mission
 
 ✅ GOLDEN RULE:
 "If it is not in the structured data provided, DO NOT MENTION IT."
+
+**WRITING CONSTRAINTS (recruiterMessage and coverLetter):**
+
+⛔ FORBIDDEN CLICHÉ PHRASES:
+- "I am excited to apply"
+- "I am thrilled"
+- "I am confident that"
+- "I look forward to discussing"
+- "would be a great fit"
+- Emotional exaggeration
+- Generic buzzwords
+- Flattery
+
+✅ WRITING GUIDELINES:
+- Focus strictly on candidate evidence from profile
+- Keep tone concise, professional, and human
+- Recruiter message must be short (max ~300 characters)
+- No long paragraphs in recruiterMessage
+- No excessive enthusiasm
+- Be specific and fact-based
+- Sound like a real professional, not AI-generated
 
 **PRE-WRITING CHECKLIST:**
 1. Is every mentioned skill in hardSkillsDetected?
 2. Is every mentioned achievement in the list?
 3. Am I fabricating metrics or percentages?
 4. Is the tone honest and realistic?
+5. Did I avoid all forbidden cliché phrases?
+6. Am I using job language for recruiterMessage and coverLetter?
+7. Did I avoid copying job description phrases?
 
 **REQUIRED COVER LETTER STRUCTURE (3-5 paragraphs, 400-500 words):**
 

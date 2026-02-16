@@ -39,12 +39,17 @@ export class AIService {
    * 4. Send to AI (far fewer tokens)
    * 5. Extract signals and compute score
    */
-  async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
+  async analyzeJobFit(
+    cv: string,
+    jobDescription: string,
+    uiLanguage: "pt" | "en" = "en",
+    jobLanguage?: "pt" | "en"
+  ): Promise<AnalysisResult> {
     const processedCV = preprocessCV(cv);
 
     const processedJob = preprocessJobDescription(jobDescription);
 
-    const prompt = buildOptimizedPrompt(processedCV, processedJob, language);
+    const prompt = buildOptimizedPrompt(processedCV, processedJob, uiLanguage, jobLanguage);
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -97,7 +102,7 @@ export class AIService {
         coverLetter: signals.coverLetter,
         explanation,
         promptVersion: "v2.0-optimized",
-        detectedLanguage: language,
+        detectedLanguage: uiLanguage,
       };
 
       return result;

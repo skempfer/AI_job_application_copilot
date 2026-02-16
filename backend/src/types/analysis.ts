@@ -8,6 +8,8 @@ export interface AnalysisRequest {
   cv: string;
   jobDescription: string;
   language?: "pt" | "en";
+  uiLanguage?: "pt" | "en";
+  jobLanguage?: "pt" | "en";
 }
 
 export const AI_FAILURE_REASON = {
@@ -148,7 +150,9 @@ export interface GapAnalysisResult {
 }
 
 export interface AIServiceConfig {
-  apiKey: string;
-  apiUrl: string;
   model: string;
+  projectId?: string;
+  location?: string;
+  apiKey?: string;
+  apiUrl?: string;
 }

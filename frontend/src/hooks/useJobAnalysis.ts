@@ -1,15 +1,87 @@
 import { useState } from 'react';
 import { analyzeJobFit, analyzeWithGap } from '../domain/apiClient';
-import { validateInputs, formatAnalysisResult } from '../domain/analyzer';
 import type { AnalysisResult, FormattedAnalysisResult, GapAnalysisResult } from '../types/analysis';
 import { trackEvent } from '../lib/analytics';
 import { secureAnalysisResult } from '../lib/typeGuards';
+import { getScoreColor, getScoreBadgeClass } from '../utils/scoreHelpers';
+import { useLanguage } from './useLanguage';
+
+/**
+ * Validate user inputs for job analysis
+ */
+function validateInputs(cv: string, jobDescription: string, resumeUrl: string | null) {
+  if (!cv || cv.trim().length === 0) {
+    return { valid: false, error: 'CV is required' };
+  }
+
+  if (!jobDescription || jobDescription.trim().length === 0) {
+    return { valid: false, error: 'Job description is required' };
+  }
+
+  if (cv.trim().length < 50 && !resumeUrl) {
+    return { valid: false, error: 'CV must be at least 50 characters or include a resume PDF' };
+  }
+
+  if (jobDescription.trim().length < 50) {
+    return { valid: false, error: 'Job description must be at least 50 characters' };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Get decision text based on decision type
+ */
+function getDecisionText(decision: 'apply' | 'apply_with_fixes' | 'skip'): string {
+  const texts = {
+    apply: 'Strong match - Apply now!',
+    apply_with_fixes: 'Good match - Apply after improvements',
+    skip: 'Not recommended - Consider other opportunities'
+  };
+  return texts[decision];
+}
+
+/**
+ * Get decision icon based on decision type
+ */
+function getDecisionIcon(decision: 'apply' | 'apply_with_fixes' | 'skip'): string {
+  const icons = {
+    apply: '✅',
+    apply_with_fixes: '⚠️',
+    skip: '❌'
+  };
+  return icons[decision];
+}
+
+/**
+ * Format analysis result for UI display
+ */
+function formatAnalysisResult(result: AnalysisResult): FormattedAnalysisResult {
+  const scorePercent = result.fitScore * 100;
+  
+  return {
+    ...result,
+    fitScore: result.fitScore,
+    decision: result.decision,
+    strengths: result.strengths || [],
+    gaps: result.gaps || [],
+    cvSuggestions: result.cvSuggestions || [],
+    recruiterMessage: result.recruiterMessage || '',
+    coverLetter: result.coverLetter || '',
+    explanation: result.explanation,
+    scoreColor: getScoreColor(scorePercent),
+    scoreBadgeClass: getScoreBadgeClass(scorePercent),
+    decisionText: getDecisionText(result.decision),
+    decisionIcon: getDecisionIcon(result.decision),
+  };
+}
 
 /**
  * Custom hook for managing job analysis state and logic
  * Extracts complex analysis workflow from App component
  */
 export function useJobAnalysis() {
+  const { language: uiLanguage } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [result, setResult] = useState<FormattedAnalysisResult | null>(null);
@@ -31,7 +103,7 @@ export function useJobAnalysis() {
     setLoading(true);
 
     try {
-      const rawResult = await analyzeJobFit(cv, jobDescription, resumeUrl);
+      const rawResult = await analyzeJobFit(cv, jobDescription, uiLanguage, resumeUrl);
       const analysisResult = secureAnalysisResult(rawResult);
 
       setAnalysisResult(analysisResult);

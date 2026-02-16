@@ -101,8 +101,19 @@ export function createAnalyzeRouter(aiService: AIService): Router {
         return;
       }
 
-      const analysisLanguage = (language as "pt" | "en" | undefined) || "en";
-      const result = await aiService.analyzeJobFit(cvText, jobDescription.trim(), analysisLanguage);
+      // Extract language parameters for proper routing
+      // Priority: uiLanguage > language > default to 'en'
+      const effectiveUiLanguage = (req.body.uiLanguage as "pt" | "en" | undefined) || 
+                                   (language as "pt" | "en" | undefined) || 
+                                   "en";
+      const effectiveJobLanguage = req.body.jobLanguage as "pt" | "en" | undefined;
+
+      const result = await aiService.analyzeJobFit(
+        cvText, 
+        jobDescription.trim(), 
+        effectiveUiLanguage,
+        effectiveJobLanguage
+      );
 
       if (process.env.USE_FIREBASE === "true") {
         try {

@@ -1,14 +1,14 @@
 import type { AnalysisResult, AIServiceConfig, AISignals } from "../types/analysis.js";
 import { calculateFitScore, generateExplanation, determineDecision } from "./scoring.js";
 import { preprocessCV, preprocessJobDescription } from "./preprocessing.js";
-import { buildOptimizedPrompt } from "./promptBuilder.js";
+import { buildOptimizedPrompt, estimateTokenCount } from "./promptBuilder.js";
 import { SYSTEM_PROMPT } from "./systemPrompt.js";
 import { validateAIResponse, AIResponseValidationError } from "./aiResponseSchema.js";
 import { createAIServiceLogger, generateCorrelationId } from "./aiLogger.js";
 import { getErrorMessage } from "../i18n/index.js";
-import { AIProvider, GroqProvider } from "./providers/index.js";
+import { GroqProvider, VertexProvider } from "./providers/index.js";
 import { AIProviderError } from "./providers/providerErrors.js";
-import { AI_PROVIDER } from "./providers/types.js";
+import { AI_PROVIDER, AIProviderName } from "./providers/types.js";
 
 const AMBIGUOUS_TOKENS = new Set(["go"]);
 const STOPWORDS = new Set([
@@ -60,12 +60,11 @@ function sanitizeSignals(
   cvText: string,
   cvSkills: string[],
   yearsExperience: number | null,
-  yearsTotal: number,
   mandatoryRequirementsCount: number
 ): AISignals {
   const filterByCv = (items: string[]) => items.filter((item) => hasCvEvidence(item, cvText, cvSkills));
   const redFlagPatterns = {
-    yearsMissing: /insufficient data.*years|years-of-experience|yearsofexperience|yearsTotal/i,
+    yearsMissing: /insufficient data.*years|years-of-experience|yearsofexperience/i,
     requirementsMissing: /no mandatory requirements|no specific requirements extracted|missing requirements/i,
   };
 
@@ -74,7 +73,7 @@ function sanitizeSignals(
       return false;
     }
 
-    if ((yearsExperience !== null || yearsTotal > 0) && redFlagPatterns.yearsMissing.test(flag)) {
+    if (yearsExperience !== null && redFlagPatterns.yearsMissing.test(flag)) {
       return false;
     }
 
@@ -91,29 +90,42 @@ function sanitizeSignals(
 }
 
 export class AIService {
-  private provider: AIProvider;
+  private primaryProvider: GroqProvider;
+  private fallbackProvider: VertexProvider;
   private model: string;
 
   constructor(config: AIServiceConfig) {
-    // Create primary provider (Groq)
-    const primaryProvider = new GroqProvider({
-      apiKey: config.apiKey,
-      baseURL: config.apiUrl,
+    // Primary provider: Groq (faster, cheaper, reliable for job analysis)
+    this.primaryProvider = new GroqProvider({
+      apiKey: process.env.GROQ_API_KEY || "",
+      baseURL: process.env.GROQ_API_URL || "https://api.groq.com/openai/v1",
+      model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+    });
+
+    // Fallback provider: Vertex AI (for when Groq has issues or quota limits)
+    this.fallbackProvider = new VertexProvider({
+      projectId: config.projectId || process.env.VERTEX_PROJECT_ID || "",
+      location: config.location || process.env.VERTEX_LOCATION || "us-central1",
       model: config.model,
     });
 
-    this.provider = primaryProvider;
     this.model = config.model;
   }
 
-  async analyzeJobFit(cv: string, jobDescription: string, language: "pt" | "en" = "en"): Promise<AnalysisResult> {
+  async analyzeJobFit(
+    cv: string,
+    jobDescription: string,
+    uiLanguage: "pt" | "en" = "en",
+    jobLanguage?: "pt" | "en"
+  ): Promise<AnalysisResult> {
     // Create correlation ID for tracing this request
     const correlationId = generateCorrelationId();
     const logger = createAIServiceLogger("analyzeJobFit", correlationId);
 
     logger.startTiming("full_analysis");
     logger.info("Starting job fit analysis", {
-      language,
+      uiLanguage,
+      jobLanguage: jobLanguage || uiLanguage,
       cvLength: cv.length,
       jobDescriptionLength: jobDescription.length,
     });
@@ -121,10 +133,10 @@ export class AIService {
     let userPrompt = "";
 
     try {
-      // Preprocessing phase
+      // Preprocessing phase - extract structured signals
       logger.startTiming("preprocessing");
-      const processedCV = await preprocessCV(cv);
-      const processedJob = await preprocessJobDescription(jobDescription);
+      const processedCV = preprocessCV(cv);
+      const processedJob = preprocessJobDescription(jobDescription);
       const preprocessingDuration = logger.endTiming("preprocessing");
 
       logger.info("Preprocessing completed", {
@@ -134,30 +146,89 @@ export class AIService {
         mandatoryReqs: processedJob.mandatoryRequirements.length,
       });
 
-      const prompt = await buildOptimizedPrompt(processedCV, processedJob, language);
+      // Build prompt with FULL context + structured signals
+      const prompt = buildOptimizedPrompt(cv, jobDescription, processedCV, processedJob, uiLanguage, jobLanguage);
       userPrompt = prompt;
 
-      // API Request phase with provider metadata tracking
-      logger.startTiming("api_request");
-      logger.logAPIRequest(AI_PROVIDER.GROQ, this.model, {
-        promptLength: prompt.length,
+      // Token monitoring
+      const systemTokens = estimateTokenCount(SYSTEM_PROMPT);
+      const userTokens = estimateTokenCount(prompt);
+      const totalInputTokens = systemTokens + userTokens;
+
+      logger.info("Token usage estimation", {
+        systemPromptTokens: systemTokens,
+        userPromptTokens: userTokens,
+        totalInputTokens,
+        cvTextLength: cv.length,
+        jobTextLength: jobDescription.length,
       });
 
-      const content = await this.provider.generate([
-        {
-          role: "system",
-          content: SYSTEM_PROMPT,
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ]);
+      // Warn if approaching token limits (Vertex AI typically supports 30k+ input tokens)
+      if (totalInputTokens > 25000) {
+        logger.warn("High token usage detected", {
+          totalInputTokens,
+          threshold: 25000,
+          message: "Approaching model token limit - consider optimizing input",
+        });
+      }
+
+      // API Request phase - try Groq first, then Vertex as fallback
+      logger.startTiming("api_request");
+      
+      let content: string;
+      let providerUsed: AIProviderName = AI_PROVIDER.GROQ;
+      
+      try {
+        logger.logAPIRequest(AI_PROVIDER.GROQ, process.env.GROQ_MODEL || "llama-3.3-70b-versatile", {
+          promptLength: prompt.length,
+          estimatedInputTokens: totalInputTokens,
+        });
+
+        content = await this.primaryProvider.generate([
+          {
+            role: "system",
+            content: SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ]);
+        
+        logger.info("Primary provider (Groq) succeeded", {
+          duration: `${logger.endTiming("api_request").toFixed(2)}ms`,
+        });
+      } catch (groqError) {
+        logger.warn("Primary provider (Groq) failed, trying fallback (Vertex AI)", groqError as Error);
+        
+        logger.startTiming("api_request");
+        logger.logAPIRequest(AI_PROVIDER.VERTEX, this.model, {
+          promptLength: prompt.length,
+          estimatedInputTokens: totalInputTokens,
+        });
+
+        content = await this.fallbackProvider.generate([
+          {
+            role: "system",
+            content: SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ]);
+        
+        providerUsed = AI_PROVIDER.VERTEX;
+        logger.info("Fallback provider (Vertex AI) succeeded", {
+          duration: `${logger.endTiming("api_request").toFixed(2)}ms`,
+        });
+      }
+      
       const apiDuration = logger.endTiming("api_request");
       
       // Structured logging: provider usage and response time
       logger.info("Provider response received", {
-        providerUsed: this.provider.getProviderName(),
+        providerUsed,
         responseTimeMs: apiDuration,
         duration: `${apiDuration.toFixed(2)}ms`,
       });
@@ -183,9 +254,8 @@ export class AIService {
         jsonLength: cleanJson.length,
       });
 
-      // Validation phase - applies to BOTH primary and fallback providers
+      // Validation phase
       // Invalid schema will throw AIResponseValidationError, caught below
-      // We do NOT accept malformed responses from any provider
       logger.startTiming("validation");
       const signals = validateAIResponse(parsedData);
       const sanitizedSignals = sanitizeSignals(
@@ -193,7 +263,6 @@ export class AIService {
         cv,
         processedCV.skills,
         processedCV.yearsExperience,
-        processedCV.yearsTotal,
         processedJob.mandatoryRequirements.length
       );
       const validationDuration = logger.endTiming("validation");
@@ -201,7 +270,7 @@ export class AIService {
       // Structured logging: schema validation success
       logger.logValidation(true, {
         schemaValidationSuccess: true,
-        providerUsed: this.provider.getProviderName(),
+        providerUsed,
         duration: `${validationDuration.toFixed(2)}ms`,
         hardSkills: sanitizedSignals.hardSkillsDetected.length,
         missingRequirements: sanitizedSignals.mandatoryRequirementsMissing.length,
@@ -238,8 +307,8 @@ export class AIService {
         recruiterMessage: sanitizedSignals.recruiterMessage,
         coverLetter: sanitizedSignals.coverLetter,
         explanation,
-        promptVersion: "v2.0-optimized",
-        detectedLanguage: language,
+        promptVersion: "v3.0-full-context",
+        detectedLanguage: uiLanguage,
         preprocessedCV: {
           yearsExperience: processedCV.yearsExperience,
           yearsExperienceConfidence: processedCV.yearsExperienceConfidence,
@@ -264,7 +333,7 @@ export class AIService {
       logger.logCompletion("analyzeJobFit", {
         success: true,
         itemsProcessed: 1,
-        provider: this.provider.getProviderName(),
+        provider: providerUsed,
         responseTimeMs: apiDuration,
         schemaValidationSuccess: true,
         duration: totalDuration,
@@ -293,7 +362,7 @@ export class AIService {
           schemaValidationSuccess: false,
           message: "Response was not valid JSON - rejecting malformed response",
         });
-        throw new Error(getErrorMessage('aiParsingFailed', language, { details: error.message }));
+        throw new Error(getErrorMessage('aiParsingFailed', uiLanguage, { details: error.message }));
       }
 
       // Handle schema validation errors (from either provider)
@@ -308,7 +377,7 @@ export class AIService {
 
         // Map specific violation patterns to user-friendly messages
         const specificErrorKey = this.mapViolationToErrorKey(error.violations);
-        throw new Error(getErrorMessage(specificErrorKey as any, language));
+        throw new Error(getErrorMessage(specificErrorKey as any, uiLanguage));
       }
 
       throw error;

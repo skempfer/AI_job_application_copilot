@@ -40,7 +40,7 @@ describe('API Client - Fallback Response Handling', () => {
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
-      const result = await analyzeJobFit('My CV', 'Job description');
+      const result = await analyzeJobFit('My CV', 'Job description', 'en');
 
       expect(result.fitScore).toBe(0.85);
       expect(result.decision).toBe('apply');
@@ -64,7 +64,7 @@ describe('API Client - Fallback Response Handling', () => {
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
-      const result = await analyzeJobFit('CV', 'Job');
+      const result = await analyzeJobFit('CV', 'Job', 'en');
 
       expect(result.detectedLanguage).toBe('en');
     });
@@ -107,7 +107,7 @@ describe('API Client - Fallback Response Handling', () => {
         degradedResult
       );
 
-      const result = await analyzeJobFit('CV', 'Job description');
+      const result = await analyzeJobFit('CV', 'Job description', 'en');
 
       expect(fallbackService.handleProviderFallback).toHaveBeenCalledWith(
         fallbackResponse
@@ -148,7 +148,7 @@ describe('API Client - Fallback Response Handling', () => {
         mockResult
       );
 
-      await analyzeJobFit('CV', 'Job');
+      await analyzeJobFit('CV', 'Job', 'en');
 
       const callArgs = (fallbackService.handleProviderFallback as jest.Mock)
         .mock.calls[0][0];
@@ -199,7 +199,7 @@ describe('API Client - Fallback Response Handling', () => {
           mockResult
         );
 
-        await analyzeJobFit('CV', 'Job');
+        await analyzeJobFit('CV', 'Job', 'en');
 
         expect(fallbackService.handleProviderFallback).toHaveBeenCalled();
       }
@@ -216,7 +216,7 @@ describe('API Client - Fallback Response Handling', () => {
         }),
       });
 
-      await expect(analyzeJobFit('CV', 'Job')).rejects.toThrow(
+      await expect(analyzeJobFit('CV', 'Job', 'en')).rejects.toThrow(
         'Internal server error'
       );
       expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
@@ -230,7 +230,7 @@ describe('API Client - Fallback Response Handling', () => {
       });
 
       try {
-        await analyzeJobFit('CV', 'Job');
+        await analyzeJobFit('CV', 'Job', 'en');
         fail('Should have thrown');
       } catch (error: any) {
         expect(error.status).toBe(502);
@@ -244,7 +244,7 @@ describe('API Client - Fallback Response Handling', () => {
         json: jest.fn().mockResolvedValueOnce({}),
       });
 
-      await expect(analyzeJobFit('CV', 'Job')).rejects.toThrow('HTTP Error: 429');
+      await expect(analyzeJobFit('CV', 'Job', 'en')).rejects.toThrow('HTTP Error: 429');
       expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
     });
   });
@@ -267,7 +267,7 @@ describe('API Client - Fallback Response Handling', () => {
         json: jest.fn().mockResolvedValueOnce(normalResponse),
       });
 
-      const result = await analyzeJobFit('CV', 'Job');
+      const result = await analyzeJobFit('CV', 'Job', 'en');
 
       expect(result.fitScore).toBe(0.8);
       expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
@@ -304,7 +304,7 @@ describe('API Client - Fallback Response Handling', () => {
         mockResult
       );
 
-      const result = await analyzeJobFit('CV', 'Job');
+      const result = await analyzeJobFit('CV', 'Job', 'en');
 
       expect(fallbackService.handleProviderFallback).toHaveBeenCalled();
       expect(result.fitScore).toBe(0.5);
@@ -329,7 +329,7 @@ describe('API Client - Fallback Response Handling', () => {
       });
 
       // The type guard should reject this because it checks success === false
-      await analyzeJobFit('CV', 'Job');
+      await analyzeJobFit('CV', 'Job', 'en');
 
       // It should be treated as a normal response
       expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
@@ -353,7 +353,7 @@ describe('API Client - Fallback Response Handling', () => {
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
-      await analyzeJobFit('My CV text', 'Senior role');
+      await analyzeJobFit('My CV text', 'Senior role', 'en');
 
       const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
       expect(fetchCall[0]).toContain('/api/analyze');
@@ -364,6 +364,8 @@ describe('API Client - Fallback Response Handling', () => {
       expect(body.cv).toBe('My CV text');
       expect(body.jobDescription).toBe('Senior role');
       expect(body.language).toBe('en');
+      expect(body.uiLanguage).toBe('en');
+      expect(body.jobLanguage).toBe('en');
     });
 
     it('includes resume URL in request when provided', async () => {
@@ -382,7 +384,7 @@ describe('API Client - Fallback Response Handling', () => {
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
-      await analyzeJobFit('CV', 'Job', 'https://example.com/resume.pdf');
+      await analyzeJobFit('CV', 'Job', 'en', 'https://example.com/resume.pdf');
 
       const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
       expect(body.resumeUrl).toBe('https://example.com/resume.pdf');
@@ -404,7 +406,7 @@ describe('API Client - Fallback Response Handling', () => {
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
-      await analyzeJobFit('CV', 'Job', null);
+      await analyzeJobFit('CV', 'Job', 'en', null);
 
       const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
       expect(body.resumeUrl).toBeUndefined();
