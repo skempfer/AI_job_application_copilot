@@ -65,7 +65,7 @@ ${jobSummary}
 6. **desirableRequirementsMissing**: Desired requirements the candidate DOES NOT HAVE
 7. **seniorityMatch**: "above" (overqualified), "match" (ideal), or "below" (underqualified)
 8. **redFlags**: Critical issues (e.g., missing minimum experience, missing mandatory skill, too junior/senior)
-9. **recruiterMessage**: Personalized strategic message (4-6 sentences) to send to a recruiter
+9. **recruiterMessage**: Short LinkedIn-style outreach message sent after submitting the application
 10. **coverLetter**: Formal cover letter (3-5 paragraphs, 400-500 words)
 
 **CRITERIA:**
@@ -87,8 +87,8 @@ The analysis must be based ONLY on the structured data provided:
 - Never refer to "the candidate"
 
 2️⃣ Greeting and Closing
-- Start with a natural professional greeting ("Hello," / "Hi [Name],")
-- End with a clear invitation to talk + simple farewell
+- Cover letter only: start with a natural professional greeting ("Hello," / "Hi [Name],")
+- Cover letter only: end with a clear invitation to talk + simple farewell
 
 3️⃣ Natural Language
 - No empty cliches ("dynamic environment", "cutting-edge technology")
@@ -113,7 +113,30 @@ The analysis must be based ONLY on the structured data provided:
 ✅ GOLDEN RULE:
 "If it is not in the structured data provided, DO NOT MENTION IT."
 
-**WRITING CONSTRAINTS (recruiterMessage and coverLetter):**
+**RECRUITER MESSAGE RULES (MANDATORY):**
+
+Purpose:
+- Short LinkedIn-style outreach message sent AFTER submitting the application
+- Not a CV summary, not a cover letter, not a job description paraphrase
+
+Structure (max 3 sentences):
+1) Context: mention the application was submitted
+2) One concise relevant signal (experience, domain, or alignment)
+3) Simple, neutral call-to-action (e.g., happy to connect)
+
+Constraints:
+- Maximum ~300 characters
+- No enthusiasm cliches (avoid: "excited", "thrilled", "delighted")
+- No generic self-descriptions (avoid: "I'm a senior full-stack engineer with 5+ years...")
+- Do not restate years of experience unless directly relevant
+- Do not repeat job description phrases
+- Do not mention company mission statements
+- No exaggeration, no invented details
+- Tone: concise, professional, natural, direct, calm, confident, conversational
+- Must follow JOB LANGUAGE
+- Never mix languages
+
+**WRITING CONSTRAINTS (coverLetter):**
 
 ⛔ FORBIDDEN CLICHÉ PHRASES:
 - "I am excited to apply"
@@ -128,8 +151,6 @@ The analysis must be based ONLY on the structured data provided:
 ✅ WRITING GUIDELINES:
 - Focus strictly on candidate evidence from profile
 - Keep tone concise, professional, and human
-- Recruiter message must be short (max ~300 characters)
-- No long paragraphs in recruiterMessage
 - No excessive enthusiasm
 - Be specific and fact-based
 - Sound like a real professional, not AI-generated
