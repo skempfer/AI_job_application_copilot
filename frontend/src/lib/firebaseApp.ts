@@ -1,4 +1,5 @@
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,6 +13,35 @@ export const firebaseConfig = {
 
 export const hasFirebaseConfig = Object.values(firebaseConfig).every((value) => Boolean(value));
 
+/**
+ * Initialize App Check with reCAPTCHA v3
+ * Protects Firebase Vertex AI calls from abuse
+ */
+function initializeAppCheckIfNeeded(app: FirebaseApp): void {
+  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  
+  if (!recaptchaSiteKey) {
+    if (import.meta.env.DEV) {
+      console.warn(
+        '[AppCheck] reCAPTCHA site key not found. Set VITE_RECAPTCHA_SITE_KEY in .env'
+      );
+    }
+    return;
+  }
+
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+  } catch (error) {
+    // App Check may already be initialized
+    if (import.meta.env.DEV) {
+      console.debug('[AppCheck] Already initialized or unavailable:', error);
+    }
+  }
+}
+
 export function getFirebaseApp(): FirebaseApp | null {
   if (!hasFirebaseConfig) {
     return null;
@@ -22,7 +52,12 @@ export function getFirebaseApp(): FirebaseApp | null {
   }
 
   try {
-    return initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+    
+    // Initialize App Check for Firebase Vertex AI security
+    initializeAppCheckIfNeeded(app);
+    
+    return app;
   } catch {
     return null;
   }

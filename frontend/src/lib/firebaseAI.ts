@@ -1,13 +1,10 @@
 import {
-  type App,
   type Firestore,
   connectFirestoreEmulator,
   getFirestore,
-  initializeFirestore,
 } from "firebase/firestore";
 import type {
   AIProviderFailureReason,
-  AIFallbackProvider,
   AIProviderFallbackResponse,
 } from "../types/analysis";
 import { getFirebaseApp } from "./firebaseApp";
@@ -33,7 +30,7 @@ function getDb(): Firestore | null {
     db = getFirestore(app);
 
     // Use emulator in development for testing
-    if (ENV.isDev && !db._initialized) {
+    if (ENV.isDev) {
       try {
         connectFirestoreEmulator(db, "localhost", 8080);
       } catch {
@@ -109,12 +106,15 @@ export async function queryFirestoreForFallback(
 /**
  * Store a successful analysis result in Firestore for future fallback use
  *
- * @param prompt - The original system + user prompt
- * @param result - The analysis result from the primary provider
+ * Note: prompt and result parameters are preserved for future implementation
+ * but currently not used as this feature is not yet implemented.
+ *
+ * @param _prompt - The original system + user prompt (reserved for future use)
+ * @param _result - The analysis result from the primary provider (reserved for future use)
  */
 export async function storeAnalysisInFirestore(
-  prompt: { system: string; user: string },
-  result: unknown
+  _prompt: { system: string; user: string },
+  _result: unknown
 ): Promise<boolean> {
   const db = getDb();
   if (!db) {

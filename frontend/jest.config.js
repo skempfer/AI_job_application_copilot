@@ -15,13 +15,20 @@ export default {
     '!src/vite-env.d.ts',
   ],
   coverageDirectory: 'coverage',
-  transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
+  globals: {
+    'ts-jest': {
       useESM: true,
       tsconfig: {
+        module: 'esnext',
         jsx: 'react-jsx',
         types: ['jest', '@testing-library/jest-dom', 'node'],
       },
+    },
+  },
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {
+      useESM: true,
+      isolatedModules: true,
     }],
     '^.+\\.jsx?$': ['ts-jest', {
       useESM: true,
