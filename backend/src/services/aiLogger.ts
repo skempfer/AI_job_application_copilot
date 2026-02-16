@@ -248,16 +248,6 @@ export function createAIServiceLogger(operation: string, correlationId?: string)
 }
 
 /**
- * Create a logger for preprocessing operations
- */
-export function createPreprocessingLogger(operation: string): AILogger {
-  return new AILogger({
-    module: 'Preprocessing',
-    operation,
-  });
-}
-
-/**
  * Helper to log without exposing sensitive data
  * Sanitizes CV and job description data
  */

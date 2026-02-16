@@ -6,7 +6,6 @@
 import {
   AILogger,
   createAIServiceLogger,
-  createPreprocessingLogger,
   sanitizeForLogging,
   generateCorrelationId,
 } from './aiLogger';
@@ -245,16 +244,6 @@ describe('Logger Factory Functions', () => {
 
       const callArgs = (console.log as jest.Mock).mock.calls[0];
       expect(callArgs[1]).toHaveProperty('correlationId', 'corr-123');
-    });
-  });
-
-  describe('createPreprocessingLogger', () => {
-    it('should create logger with Preprocessing module', () => {
-      const logger = createPreprocessingLogger('extractSkills');
-      logger.info('Test');
-
-      const callArgs = (console.log as jest.Mock).mock.calls[0];
-      expect(callArgs[1]).toHaveProperty('module', 'Preprocessing');
     });
   });
 });

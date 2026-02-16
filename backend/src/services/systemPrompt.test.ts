@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT, getSystemPrompt } from './systemPrompt';
+import { SYSTEM_PROMPT } from './systemPrompt';
 
 describe('System Prompt Module', () => {
   describe('SYSTEM_PROMPT constant', () => {
@@ -15,26 +15,26 @@ describe('System Prompt Module', () => {
     });
 
     it('should include data handling principles', () => {
-      expect(SYSTEM_PROMPT).toContain('DATA HANDLING PRINCIPLES');
+      expect(SYSTEM_PROMPT).toContain('EVIDENCE-BASED DATA HANDLING');
       expect(SYSTEM_PROMPT.toLowerCase()).toContain('fabricate');
-      expect(SYSTEM_PROMPT.toLowerCase()).toContain('structured input');
+      expect(SYSTEM_PROMPT.toLowerCase()).toContain('use only information');
     });
 
     it('should include validation rules', () => {
-      expect(SYSTEM_PROMPT).toContain('VALIDATION');
-      expect(SYSTEM_PROMPT.toLowerCase()).toContain('array');
+      expect(SYSTEM_PROMPT).toContain('VALIDATION REQUIREMENTS');
+      expect(SYSTEM_PROMPT.toLowerCase()).toContain('cv evidence');
       expect(SYSTEM_PROMPT.toLowerCase()).toContain('redflag');
     });
 
     it('should prohibit hallucination', () => {
-      expect(SYSTEM_PROMPT).toMatch(/do not fabricate/i);
-      expect(SYSTEM_PROMPT).toMatch(/do not make assumptions/i);
+      expect(SYSTEM_PROMPT).toMatch(/never fabricate/i);
+      expect(SYSTEM_PROMPT).toMatch(/do not fill gaps with assumptions/i);
     });
 
-    it('should prohibit recalculating deterministic signals', () => {
-      expect(SYSTEM_PROMPT).toMatch(/do not recalculate deterministic signals/i);
-      expect(SYSTEM_PROMPT).toContain('yearsExperience');
-      expect(SYSTEM_PROMPT).toContain('domainExperience');
+    it('should prohibit recalculating preprocessed signals', () => {
+      expect(SYSTEM_PROMPT).toMatch(/do not recalculate/i);
+      expect(SYSTEM_PROMPT).toMatch(/preprocessed signals/i);
+      expect(SYSTEM_PROMPT).toMatch(/years of experience|domain flags/i);
     });
 
     it('should enforce JSON-only output', () => {
@@ -47,49 +47,17 @@ describe('System Prompt Module', () => {
       expect(SYSTEM_PROMPT).toContain('job fit analysis assistant');
     });
 
-    it('should not contain task-specific instructions', () => {
-      // System prompt should not contain task-specific details
-      // These belong in the user prompt
-      expect(SYSTEM_PROMPT).not.toContain('candidate profile');
-      expect(SYSTEM_PROMPT).not.toContain('mandatory requirement');
-      expect(SYSTEM_PROMPT).not.toContain('cover letter');
-      expect(SYSTEM_PROMPT).not.toContain('recruiter message');
+    it('should contain writing constraints for output', () => {
+      // System prompt can mention output fields as constraints
+      expect(SYSTEM_PROMPT).toContain('recruiterMessage');
+      expect(SYSTEM_PROMPT).toContain('coverLetter');
+      expect(SYSTEM_PROMPT).toContain('WRITING CONSTRAINTS');
     });
 
     it('should not contain placeholders or variables', () => {
       // System prompt should be static and invariant
       expect(SYSTEM_PROMPT).not.toContain('${');
       expect(SYSTEM_PROMPT).not.toContain('{{');
-    });
-  });
-
-  describe('getSystemPrompt function', () => {
-    it('should return the same prompt as SYSTEM_PROMPT constant', () => {
-      const result = getSystemPrompt();
-      expect(result).toBe(SYSTEM_PROMPT);
-    });
-
-    it('should return same prompt for openai provider', () => {
-      const result = getSystemPrompt('openai');
-      expect(result).toBe(SYSTEM_PROMPT);
-    });
-
-    it('should return consistent results', () => {
-      const result1 = getSystemPrompt();
-      const result2 = getSystemPrompt();
-      const result3 = getSystemPrompt('openai');
-
-      expect(result1).toBe(result2);
-      expect(result2).toBe(result3);
-    });
-
-    it('should be a pure function (no side effects)', () => {
-      const before = SYSTEM_PROMPT;
-      getSystemPrompt();
-      getSystemPrompt('openai');
-      const after = SYSTEM_PROMPT;
-
-      expect(after).toBe(before);
     });
   });
 
@@ -100,10 +68,10 @@ describe('System Prompt Module', () => {
       const invariantKeywords = [
         'output format',
         'json',
-        'data handling',
+        'evidence-based',
         'validation',
         'fabricate',
-        'structured input',
+        'language rules',
       ];
 
       invariantKeywords.forEach((keyword) => {
@@ -111,11 +79,11 @@ describe('System Prompt Module', () => {
       });
     });
 
-    it('should be language-agnostic', () => {
-      // System prompt should not contain language-specific content
-      // Language selection belongs in user prompt
-      expect(SYSTEM_PROMPT).not.toMatch(/portuguese|português/i);
-      expect(SYSTEM_PROMPT).not.toMatch(/\ben\b|\bpt\b/); // language codes
+    it('should include language handling rules', () => {
+      // System prompt should define how to handle multiple languages
+      expect(SYSTEM_PROMPT).toContain('LANGUAGE RULES');
+      expect(SYSTEM_PROMPT.toLowerCase()).toContain('uilanguage');
+      expect(SYSTEM_PROMPT.toLowerCase()).toContain('joblanguage');
     });
 
     it('should not contain prompt version information', () => {
@@ -129,8 +97,10 @@ describe('System Prompt Module', () => {
     it('should have clear section headers', () => {
       const sections = [
         'OUTPUT FORMAT RULES',
-        'DATA HANDLING PRINCIPLES',
-        'VALIDATION',
+        'EVIDENCE-BASED DATA HANDLING',
+        'VALIDATION REQUIREMENTS',
+        'LANGUAGE RULES',
+        'WRITING CONSTRAINTS',
       ];
 
       sections.forEach((section) => {
@@ -145,11 +115,11 @@ describe('System Prompt Module', () => {
       expect(SYSTEM_PROMPT).toMatch(/use only/i);
     });
 
-    it('should be concise enough to minimize token usage', () => {
+    it('should be reasonably sized to minimize token usage', () => {
       // System prompt is sent with every request
-      // Should be comprehensive but not verbose
+      // Should be comprehensive but not excessively verbose
       const tokenEstimate = SYSTEM_PROMPT.split(/\s+/).length;
-      expect(tokenEstimate).toBeLessThan(300); // Reasonable upper bound
+      expect(tokenEstimate).toBeLessThan(600); // Reasonable upper bound for comprehensive rules
       expect(tokenEstimate).toBeGreaterThan(50); // Need sufficient detail
     });
   });

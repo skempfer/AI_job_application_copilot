@@ -113,17 +113,3 @@ STRICTLY FORBIDDEN:
 - Using generic emotional phrases
 - Inventing impact metrics or scale`;
 
-/**
- * Future extension point for provider-specific system prompts.
- * 
- * Different AI providers may require slightly different system prompt formats.
- * This function allows customization while maintaining core principles.
- * 
- * @param _provider - The AI provider name (currently 'openai' and 'vertex' supported)
- * @returns The system prompt optimized for the specified provider
- */
-export function getSystemPrompt(_provider: 'openai' | 'vertex' = 'openai'): string {
-  // Currently all providers use the same prompt
-  // In the future, this could return provider-specific variations
-  return SYSTEM_PROMPT;
-}
