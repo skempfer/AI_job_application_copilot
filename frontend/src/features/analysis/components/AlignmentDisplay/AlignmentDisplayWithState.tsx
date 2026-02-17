@@ -7,42 +7,12 @@ import { useAnalysisDisplayState } from './useAnalysisDisplayState';
 import './AlignmentDisplay.css';
 
 interface AlignmentDisplayWithStateProps {
-  /**
-   * The analyzed alignment data
-   */
   uiModel: AlignmentUIModel | null;
-  /**
-   * Whether data is currently loading
-   */
   isLoading?: boolean;
-  /**
-   * Error that occurred during analysis
-   */
   error?: Error | null;
-  /**
-   * Custom loading message (overrides staged messages)
-   */
   loadingMessage?: string;
 }
 
-/**
- * Enhanced AlignmentDisplay component with loading and state management
- *
- * Handles four distinct states:
- * 1. Loading - Shows animated loading component with staged messages
- * 2. Empty - Shows helpful empty state message
- * 3. Error - Shows error message
- * 4. Display - Shows full analysis results
- *
- * Example:
- * ```tsx
- * <AlignmentDisplayWithState
- *   uiModel={analysisResult}
- *   isLoading={analyzing}
- *   error={analysisError}
- * />
- * ```
- */
 export const AlignmentDisplayWithState = memo<
   AlignmentDisplayWithStateProps
 >(({ uiModel, isLoading = false, error, loadingMessage }) => {

@@ -5,30 +5,12 @@ import { AIProviderError } from "./providerErrors.js";
 import type { AIProvider, ChatMessage } from "./types.js";
 import { AI_PROVIDER } from "./types.js";
 
-/**
- * Configuration for the Groq provider
- */
 export interface GroqProviderConfig {
   apiKey: string;
   baseURL: string;
   model: string;
 }
 
-/**
- * Groq AI provider implementation
- * Uses OpenAI SDK with Groq's compatible API endpoint
- * 
- * Responsibilities:
- * - Make API request to Groq
- * - Return raw text response
- * - Propagate errors without swallowing
- * 
- * NOT responsible for:
- * - JSON parsing
- * - Schema validation
- * - Business logic
- * - Error handling beyond propagation
- */
 export class GroqProvider implements AIProvider {
   private client: OpenAI;
   private model: string;
@@ -41,12 +23,6 @@ export class GroqProvider implements AIProvider {
     this.model = config.model;
   }
 
-  /**
-   * Generate a response from Groq
-   * @param messages - Array of chat messages
-   * @returns Raw text response
-   * @throws Error if API call fails or response is empty
-   */
   async generate(messages: ChatMessage[]): Promise<string> {
     try {
       const completion = await this.client.chat.completions.create({
@@ -83,10 +59,6 @@ export class GroqProvider implements AIProvider {
     }
   }
 
-  /**
-   * Get the provider name for logging
-   * @returns Provider identifier
-   */
   getProviderName(): "groq" {
     return AI_PROVIDER.GROQ;
   }

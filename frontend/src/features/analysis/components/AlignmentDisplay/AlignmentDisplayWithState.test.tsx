@@ -144,7 +144,6 @@ describe('AlignmentDisplayWithState', () => {
         />
       );
 
-      // When uiModel is null, component shows loading state
       expect(screen.getByText(/Parsing your CV/i)).toBeInTheDocument();
     });
 
@@ -203,7 +202,6 @@ describe('AlignmentDisplayWithState', () => {
         />
       );
 
-      // When uiModel is null, it shows loading state, not empty state
       expect(screen.getByText(/Parsing your CV/i)).toBeInTheDocument();
     });
   });
@@ -219,7 +217,6 @@ describe('AlignmentDisplayWithState', () => {
         />
       );
 
-      // Check for component render (wrapper should appear)
       expect(
         container.querySelector('.alignment-display-with-state')
       ).toBeInTheDocument();
@@ -239,7 +236,6 @@ describe('AlignmentDisplayWithState', () => {
         />
       );
 
-      // Component should render without showing loading or empty states
       expect(screen.queryByText(/Parsing your CV/i)).not.toBeInTheDocument();
       expect(
         container.querySelector('.alignment-display-with-state')
@@ -370,7 +366,6 @@ describe('AlignmentDisplayWithState', () => {
         />
       );
 
-      // When uiModel is null, component shows loading state regardless of isLoading flag
       expect(screen.getByText(/Parsing your CV/i)).toBeInTheDocument();
     });
 
@@ -378,7 +373,6 @@ describe('AlignmentDisplayWithState', () => {
       const model = createMockModel();
       const { container } = render(<AlignmentDisplayWithState uiModel={model} />);
 
-      // Should show display state wrapper, not loading
       expect(
         container.querySelector('.alignment-display-with-state')
       ).toBeInTheDocument();

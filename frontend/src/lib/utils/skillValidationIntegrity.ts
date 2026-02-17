@@ -1,12 +1,3 @@
-/**
- * Development-only integrity check for technical skills
- *
- * This utility ensures that no skill injection or inference happens
- * through undetected requirement analysis or other sources.
- *
- * ONLY runs in development mode - zero overhead in production
- */
-
 import type { AnalysisResult, AlignmentUIModel } from '../../types/analysis';
 
 interface IntegrityCheckResult {
@@ -15,19 +6,6 @@ interface IntegrityCheckResult {
   errors: string[];
 }
 
-/**
- * Validates that all displayed skills came from aiSignals.hardSkillsDetected
- *
- * Throws error in development if:
- * - A skill in UI doesn't exist in aiSignals
- * - Skills came from response.strengths fallback
- * - requirement parsing added skills implicitly
- *
- * @param uiModel - The UI model being rendered
- * @param response - The raw API response
- * @returns Validation result with any warnings/errors
- * @throws Error in development if integrity is violated
- */
 export function validateSkillsIntegrity(
   uiModel: AlignmentUIModel,
   response: AnalysisResult
@@ -38,14 +16,12 @@ export function validateSkillsIntegrity(
     errors: [],
   };
 
-  // PRODUCTION: Skip validation entirely
   if (process.env.NODE_ENV !== 'development') {
     return result;
   }
 
   const signals = response.aiSignals;
   if (!signals) {
-    // No signals available - UI should be empty of skills
     if ((uiModel.hardSkills?.length ?? 0) > 0 || (uiModel.softSkills?.length ?? 0) > 0) {
       result.isValid = false;
       result.errors.push(
@@ -57,7 +33,6 @@ export function validateSkillsIntegrity(
     return result;
   }
 
-  // HARD SKILLS VALIDATION
   const validatedHardSkills = new Set(
     (signals.hardSkillsDetected || [])
       .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
@@ -77,7 +52,6 @@ export function validateSkillsIntegrity(
     }
   }
 
-  // SOFT SKILLS VALIDATION
   const validatedSoftSkills = new Set(
     (signals.softSkillsEvidence || [])
       .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
@@ -97,7 +71,6 @@ export function validateSkillsIntegrity(
     }
   }
 
-  // CHECK: If response.strengths exist but weren't used
   if (
     response.strengths?.length > 0 &&
     validatedHardSkills.size > 0 &&
@@ -109,7 +82,6 @@ export function validateSkillsIntegrity(
     );
   }
 
-  // CHECK: Suspicious patterns that indicate inference
   const allRequirements = [
     ...(signals.mandatoryRequirementsMet || []),
     ...(signals.mandatoryRequirementsMissing || []),
@@ -126,7 +98,6 @@ export function validateSkillsIntegrity(
   for (const requirement of allRequirements) {
     for (const pattern of suspiciousPatterns) {
       if (pattern.test(requirement)) {
-        // Check if ANY part of this requirement escaped into skills
         for (const skill of uiModel.hardSkills || []) {
           const requirementParts = requirement.split(/\s+or\s+/i).map((p) => p.trim().toLowerCase());
           if (requirementParts.some((part) => skill.toLowerCase().includes(part))) {
@@ -140,7 +111,6 @@ export function validateSkillsIntegrity(
     }
   }
 
-  // THROW in development if critical errors found
   if (!result.isValid && result.errors.length > 0) {
     const errorMessages = result.errors.join('\n\n');
     throw new Error(`[SkillsIntegrityError] ${errorMessages}`);
@@ -149,12 +119,6 @@ export function validateSkillsIntegrity(
   return result;
 }
 
-/**
- * Log development warnings without throwing
- * Use this to track suspicious patterns that don't yet fail validation
- *
- * @param result - Validation result from validateSkillsIntegrity
- */
 export function logIntegrityWarnings(result: IntegrityCheckResult): void {
   if (process.env.NODE_ENV !== 'development') {
     return;
@@ -169,9 +133,6 @@ export function logIntegrityWarnings(result: IntegrityCheckResult): void {
   }
 }
 
-/**
- * Type guard: Ensure response has required signals
- */
 export function hasValidSignals(response: AnalysisResult): boolean {
   return Boolean(
     response.aiSignals &&

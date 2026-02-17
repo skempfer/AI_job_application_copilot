@@ -2,9 +2,6 @@ import * as admin from "firebase-admin";
 
 let firebaseInitialized = false;
 
-/**
- * Initialize Firebase Admin SDK for Cloud Functions
- */
 export function initializeFirebaseAdmin(): void {
   if (firebaseInitialized) {
     return;

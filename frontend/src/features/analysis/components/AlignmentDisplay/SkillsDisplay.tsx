@@ -7,14 +7,6 @@ interface SkillsDisplayProps {
   yearsConfidence: 'high' | 'medium' | 'low';
 }
 
-/**
- * Displays detected skills and experience summary
- *
- * Shows:
- * - Hard skills (technical)
- * - Soft skills (interpersonal)
- * - Years of experience with confidence level
- */
 export const SkillsDisplay = memo<SkillsDisplayProps>(
   ({ hardSkills, softSkills, yearsExperience, yearsConfidence }) => {
     const hasSkills = (hardSkills?.length ?? 0) > 0 || (softSkills?.length ?? 0) > 0;

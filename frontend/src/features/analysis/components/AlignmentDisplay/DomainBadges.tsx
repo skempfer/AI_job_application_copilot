@@ -5,16 +5,6 @@ interface DomainBadgesProps {
   domains: DetectedDomainUIItem[];
 }
 
-/**
- * Displays detected domain roles as badges
- *
- * Input: [
- *   { domain: "backend", label: "Backend", badgeClass: "badge-purple" },
- *   { domain: "devops", label: "DevOps", badgeClass: "badge-orange" }
- * ]
- *
- * Output: Colored badges in a row
- */
 export const DomainBadges = memo<DomainBadgesProps>(({ domains }) => {
   if (domains.length === 0) {
     return null;

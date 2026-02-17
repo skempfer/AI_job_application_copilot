@@ -5,12 +5,6 @@ interface SeniorityBadgeProps {
   info: SeniorityUIInfo;
 }
 
-/**
- * Displays seniority alignment with badge and explanation
- *
- * Input: { match: "above", label: "Senior Match", badgeClass: "badge-success", ... }
- * Output: Badge with color-coded styling and explanation
- */
 export const SeniorityBadge = memo<SeniorityBadgeProps>(({ info }) => {
   return (
     <div className="seniority-badge">

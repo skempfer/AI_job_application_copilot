@@ -14,8 +14,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// No required environment variables - Groq API key optional for production
-
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
@@ -50,7 +48,6 @@ const server = app.listen(PORT, () => {
   console.log(`⚡ AI Model: ${process.env.AI_MODEL_DEFAULT || "llama-3.3-70b-versatile (economic)"}`);
 });
 
-// Graceful shutdown
 const gracefulShutdown = (signal: string) => {
   console.log(`\n${signal} received, closing server gracefully...`);
   server.close(() => {
@@ -58,7 +55,6 @@ const gracefulShutdown = (signal: string) => {
     process.exit(0);
   });
 
-  // Force exit after 10 seconds
   setTimeout(() => {
     console.error("❌ Forced shutdown after timeout");
     process.exit(1);
@@ -68,7 +64,6 @@ const gracefulShutdown = (signal: string) => {
 process.on("SIGINT", () => gracefulShutdown("SIGINT (Ctrl+C)"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
-// Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
   console.error("❌ Uncaught Exception:", error);
   gracefulShutdown("uncaughtException");

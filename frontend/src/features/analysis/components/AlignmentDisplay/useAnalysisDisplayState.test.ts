@@ -5,7 +5,6 @@ import {
 } from './useAnalysisDisplayState';
 import type { AlignmentUIModel } from '../../../../types/analysis';
 
-// Mock model factory
 const createMockModel = (
   overrides?: Partial<AlignmentUIModel>
 ): AlignmentUIModel => ({
@@ -337,7 +336,7 @@ describe('useAnalysisDisplayState', () => {
       const model = createMockModel({
         hardSkills: [],
         softSkills: [],
-        yearsExperience: 0, // Zero but not null
+        yearsExperience: 0,
         recruiterMessage: '',
       });
 
@@ -345,7 +344,7 @@ describe('useAnalysisDisplayState', () => {
         useAnalysisDisplayState(model, false, undefined)
       );
 
-      expect(result.current.isEmpty).toBe(false); // 0 is content
+      expect(result.current.isEmpty).toBe(false);
     });
 
     it('handles model with empty string message', () => {
@@ -353,7 +352,7 @@ describe('useAnalysisDisplayState', () => {
         hardSkills: [],
         softSkills: [],
         yearsExperience: null,
-        recruiterMessage: '', // Empty string
+        recruiterMessage: '',
       });
 
       const { result } = renderHook(() =>

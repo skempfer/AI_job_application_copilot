@@ -37,7 +37,6 @@
   color: #94a3b8;
 }
 
-/* Overlay variant - Fullscreen with semi-transparent background */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -66,7 +65,6 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .loading-spinner {
     /* Static display without animations */

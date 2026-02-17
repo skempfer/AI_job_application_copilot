@@ -1,36 +1,3 @@
-/**
- * System Prompt for AI Job Fit Analysis
- * 
- * This module contains the system-level instructions for the AI model.
- * These instructions are INVARIANT and apply to all analysis requests.
- * 
- * RESPONSIBILITIES:
- * - Define output format constraints (JSON-only, no markdown)
- * - Establish data handling principles (no hallucination, no fabrication)
- * - Set validation requirements
- * 
- * DO NOT include task-specific logic here.
- * Task-specific instructions belong in the user prompt (promptBuilder.ts).
- * 
- * ARCHITECTURE RATIONALE:
- * Separating system instructions from user prompts:
- * 1. Improves maintainability - change system behavior in one place
- * 2. Reduces token usage - system prompt is sent once, cached by provider
- * 3. Enhances clarity - clear separation of concerns
- * 4. Enables future multi-provider support - only system prompt needs adaptation
- */
-
-/**
- * System-level instructions for the AI model.
- * 
- * These rules apply to ALL requests and define:
- * - How the AI should format its output
- * - How the AI should handle data
- * - What the AI should NOT do (hallucination prevention)
- * - Evidence-based reasoning requirements
- * 
- * @constant
- */
 export const SYSTEM_PROMPT = `You are a specialized job fit analysis assistant with strict evidence-based reasoning.
 
 OUTPUT FORMAT RULES:

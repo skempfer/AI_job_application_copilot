@@ -1,8 +1,3 @@
-/**
- * Splash Screen - Styles
- * Premium, minimalist splash screen for app startup
- */
-
 .splash-screen {
   position: fixed;
   inset: 0;
@@ -60,7 +55,6 @@ html.dark .splash-subtitle {
   color: #94a3b8;
 }
 
-/* Individual word animation - appears one by one */
 .subtitle-word {
   display: inline-block;
   opacity: 0;
@@ -114,7 +108,6 @@ html.dark .splash-subtitle {
   }
 }
 
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .splash-content,
   .splash-logo,

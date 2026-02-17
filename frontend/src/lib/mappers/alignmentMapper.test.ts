@@ -114,16 +114,15 @@ describe('Alignment Mapper', () => {
     it('detects mandatory missing requirements', () => {
       const uiModel = mapAlignmentResponseToUIModel(mockAnalysisResult);
 
-      // Check that hasAnyMissingMandatory flag works
       expect(typeof uiModel.hasAnyMissingMandatory).toBe('boolean');
     });
 
     it('sets empty state flags correctly', () => {
       const uiModel = mapAlignmentResponseToUIModel(mockAnalysisResult);
 
-      expect(uiModel.hasRedFlags).toBe(false); // No red flags in mock
-      expect(uiModel.hasDetectedDomains).toBe(true); // Has backend and devops
-      expect(uiModel.hasAnyMissingMandatory).toBe(false); // No missing mandatory in mock
+      expect(uiModel.hasRedFlags).toBe(false);
+      expect(uiModel.hasDetectedDomains).toBe(true);
+      expect(uiModel.hasAnyMissingMandatory).toBe(false);
     });
 
     it('handles all domains detected', () => {
@@ -217,7 +216,6 @@ describe('Alignment Mapper', () => {
 
       const uiModel = mapAlignmentResponseToUIModel(resultNoExplanation);
 
-      // Should not crash
       expect(uiModel.fitScore).toBe(85);
     });
   });
@@ -274,7 +272,6 @@ describe('Alignment Mapper', () => {
 
       const uiModel = mapAlignmentResponseToUIModel(resultWithNulls);
 
-      // Should filter out nulls gracefully
       expect(uiModel.hardSkills).toBeDefined();
     });
 

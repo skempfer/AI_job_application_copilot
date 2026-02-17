@@ -1,10 +1,3 @@
-/**
- * AI Model Configuration
- * 
- * Centralized configuration for AI model selection
- * Default is set to the most cost-efficient model
- */
-
 export const SUPPORTED_MODELS = {
   LLAMA_3_3_70B: {
     name: "llama-3.3-70b-versatile",

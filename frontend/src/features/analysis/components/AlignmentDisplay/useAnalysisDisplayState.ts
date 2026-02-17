@@ -1,20 +1,8 @@
 import { useMemo } from 'react';
 import type { AlignmentUIModel } from '../../../../types/analysis';
 
-/**
- * State representing different phases of analysis display
- */
 export type AnalysisDisplayState = 'loading' | 'empty' | 'display' | 'error';
 
-/**
- * Hook managing analysis display state lifecycle
- *
- * Handles transitions between:
- * - loading: Data being fetched/processed
- * - empty: No meaningful content to display
- * - display: Ready to show full analysis
- * - error: Error occurred during analysis
- */
 export const useAnalysisDisplayState = (
   uiModel: AlignmentUIModel | null | undefined,
   isLoading: boolean,
@@ -28,7 +16,6 @@ export const useAnalysisDisplayState = (
   loadingStage: number;
 } => {
   return useMemo(() => {
-    // Error state takes priority
     if (error) {
       return {
         state: 'error',
@@ -40,7 +27,6 @@ export const useAnalysisDisplayState = (
       };
     }
 
-    // Loading state
     if (isLoading || !uiModel) {
       return {
         state: 'loading',
@@ -52,7 +38,6 @@ export const useAnalysisDisplayState = (
       };
     }
 
-    // Determine if model has meaningful content
     const hasContent =
       (uiModel.hardSkills?.length ?? 0) > 0 ||
       (uiModel.softSkills?.length ?? 0) > 0 ||
@@ -71,7 +56,6 @@ export const useAnalysisDisplayState = (
       hasContent,
     });
 
-    // Empty state
     if (!hasContent) {
       console.log('[useAnalysisDisplayState] -> EMPTY state');
       return {
@@ -84,7 +68,6 @@ export const useAnalysisDisplayState = (
       };
     }
 
-    // Display state
     console.log('[useAnalysisDisplayState] -> DISPLAY state');
     return {
       state: 'display',
@@ -97,21 +80,9 @@ export const useAnalysisDisplayState = (
   }, [uiModel, isLoading, error]);
 };
 
-/**
- * Hook managing loading stage progression during analysis
- *
- * Stages:
- * 0 - Parsing CV (0-1 seconds)
- * 1 - Analyzing requirements (1-2 seconds)
- * 2 - Generating insights (2-3 seconds)
- * 3 - Complete
- */
 export const useLoadingStages = (isLoading: boolean): number => {
   return useMemo(() => {
-    if (!isLoading) return 3; // Complete
-
-    // In real implementation, this would be driven by actual API progress
-    // For now, frontend stages are handled by LoadingState component
-    return 0; // Default to first stage
+    if (!isLoading) return 3;
+    return 0;
   }, [isLoading]);
 };

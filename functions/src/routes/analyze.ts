@@ -100,8 +100,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
         return;
       }
 
-      // Extract language parameters for proper routing
-      // Priority: uiLanguage > language > default to 'en'
       const effectiveUiLanguage = (req.body.uiLanguage as "pt" | "en" | undefined) || 
                                    (language as "pt" | "en" | undefined) || 
                                    "en";

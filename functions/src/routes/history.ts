@@ -4,10 +4,6 @@ import { getAnalysisHistory, getAnalysisById, getAnalyticsStats } from "../servi
 export function createHistoryRouter(): Router {
   const router = Router();
 
-  /**
-   * GET /api/history
-   * Returns analysis history
-   */
   router.get("/", async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
@@ -33,10 +29,6 @@ export function createHistoryRouter(): Router {
     }
   });
 
-  /**
-   * GET /api/history/:id
-   * Returns a specific analysis
-   */
   router.get("/:id", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -62,10 +54,6 @@ export function createHistoryRouter(): Router {
     }
   });
 
-  /**
-   * GET /api/history/analytics/stats
-   * Returns analysis statistics
-   */
   router.get("/analytics/stats", async (_req: Request, res: Response) => {
     try {
       const stats = await getAnalyticsStats();

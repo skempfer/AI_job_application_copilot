@@ -9,10 +9,6 @@ import { getErrorMessage, getLanguageFromRequest } from "../i18n/index.js";
 import { checkRateLimit, incrementUsage } from "../services/rateLimitService.js";
 import { logAnalysisUsage } from "../services/usageLoggingService.js";
 
-/**
- * Extract client IP address from request
- * Respects X-Forwarded-For header for proxied requests
- */
 function getClientIP(req: Request): string {
   const xForwardedFor = req.headers["x-forwarded-for"];
   if (xForwardedFor) {
@@ -30,12 +26,10 @@ export function createAnalyzeRouter(aiService: AIService): Router {
       const clientIP = getClientIP(req);
       const lang = getLanguageFromRequest((req.body as AnalysisRequest)?.language);
 
-      // Check rate limit
       const rateLimit = checkRateLimit(clientIP);
       if (!rateLimit.allowed) {
         logAnalysisUsage(clientIP, false, "rate_limited", {});
 
-        // Calculate time remaining until reset
         const nowMs = Date.now();
         const resetTimeMs = rateLimit.resetTime.getTime();
         const remainingMs = Math.max(0, resetTimeMs - nowMs);
@@ -106,7 +100,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
         return;
       }
 
-      // Extract language parameters for proper routing
       const effectiveUiLanguage = (uiLanguage as "pt" | "en" | undefined) ||
         (language as "pt" | "en" | undefined) ||
         "en";
@@ -121,7 +114,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
       );
       const responseTimeMs = Date.now() - startTime;
 
-      // Log usage
       const cacheHit = (result as any).cacheHit === true;
       logAnalysisUsage(clientIP, cacheHit, "llama-3.3-70b-versatile", {
         responseTimeMs,
@@ -129,7 +121,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
         jobDescriptionLength: jobDescription.length,
       });
 
-      // Increment rate limit counter (after successful analysis)
       incrementUsage(clientIP);
 
       if (process.env.USE_FIREBASE === "true") {
@@ -154,7 +145,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
       console.error("Error analyzing job fit:", error);
       const lang = getLanguageFromRequest((req.body as AnalysisRequest)?.language);
 
-      // Log error with usage info
       logAnalysisUsage(clientIP, false, "error", {});
 
       if (error instanceof AIProviderError) {

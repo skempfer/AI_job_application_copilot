@@ -1,7 +1,3 @@
-/**
- * Score utility functions
- */
-
 export function clampScore(score: number): number {
   return Math.max(0, Math.min(100, score));
 }
@@ -13,9 +9,6 @@ export function getScoreBadgeClass(score: number): string {
   return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/20 dark:text-red-200 dark:border-red-700';
 }
 
-/**
- * Get color name for score (for legacy usage)
- */
 export function getScoreColor(score: number): string {
   if (score >= 80) return 'green';
   if (score >= 60) return 'yellow';
@@ -23,9 +16,6 @@ export function getScoreColor(score: number): string {
   return 'red';
 }
 
-/**
- * Constants for score boundaries
- */
 export const SCORE_BOUNDARIES = {
   MIN: 0,
   MAX: 100,

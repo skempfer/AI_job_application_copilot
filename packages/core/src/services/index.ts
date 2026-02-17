@@ -1,4 +1,3 @@
-// Core services exports
 export { AIService } from './aiService.js';
 export { analyzeGap, GapAnalyzerError } from './gapAnalyzerService.js';
 export { parseCVToStructuredData, extractTextFromPDF, CVParserError } from './cvParserService.js';
@@ -11,17 +10,13 @@ export { SYSTEM_PROMPT } from './systemPrompt.js';
 export { createAIServiceLogger, generateCorrelationId, sanitizeForLogging } from './aiLogger.js';
 export { parseJsonStrict, normalizeStringArray } from './aiJsonUtils.js';
 
-// Cache service
 export { generateCacheHash, getCachedAnalysis, cacheAnalysis, getCacheStats, clearCache } from './cacheService.js';
 
-// Provider exports
 export { GroqProvider, AIProviderError } from './providers/index.js';
 export type { AIProvider, ChatMessage, AIProviderName, GroqProviderConfig } from './providers/index.js';
 
-// Config exports
 export * from '../config/modelConfig.js';
 
-// Type exports
 export type { 
   AnalysisResult,
   AIServiceConfig,

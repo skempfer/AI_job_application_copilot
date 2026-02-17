@@ -26,12 +26,10 @@ describe("rateLimitService", () => {
     it("should allow up to 2 requests per day", () => {
       const ip = "192.168.1.2";
 
-      // First request
       let result = checkRateLimit(ip);
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(2);
 
-      // Second request
       result = checkRateLimit(ip);
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(2);
@@ -40,11 +38,9 @@ describe("rateLimitService", () => {
     it("should deny requests after limit exceeded", () => {
       const ip = "192.168.1.3";
 
-      // Use up both requests
       incrementUsage(ip);
       incrementUsage(ip);
 
-      // Third request should be denied
       const result = checkRateLimit(ip);
       expect(result.allowed).toBe(false);
       expect(result.remaining).toBe(0);
@@ -54,16 +50,13 @@ describe("rateLimitService", () => {
       const ip = "192.168.1.4";
       const now = Date.now();
 
-      // First request
       incrementUsage(ip);
       incrementUsage(ip);
 let result = checkRateLimit(ip);
       expect(result.allowed).toBe(false);
 
-      // Advance 24 hours
       jest.setSystemTime(now + 24 * 60 * 60 * 1000 + 1000);
 
-      // Should be allowed again
       result = checkRateLimit(ip);
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(2);

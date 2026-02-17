@@ -282,7 +282,6 @@ describe('Analysis Flow Integration Tests', () => {
         />
       );
 
-      // LoadingState should be unmounted
       expect(screen.queryByText(/Parsing your CV/i)).not.toBeInTheDocument();
 
       expect(() => unmount()).not.toThrow();

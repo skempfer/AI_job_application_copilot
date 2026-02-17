@@ -1,33 +1,15 @@
-/**
- * CV and Job Description preprocessing service
- * Goal: Reduce tokens and improve AI parsing quality
- *
- * Simple heuristics: regex + basic parsing (no heavy libraries)
- *
- * IMPROVED: Now includes deterministic preprocessing layer with:
- * - Years of experience inference (never defaults to 0)
- * - Domain/role semantic detection using normalized synonym dictionary
- */
-
 import { extractYearsExperience, YearsExperienceConfidence } from "../preprocessing/extractYearsExperience.js";
 import { detectDomainExperience, DomainExperienceFlags } from "../preprocessing/detectDomainExperience.js";
 
-/**
- * Structured data from a preprocessed CV
- */
 export interface ProcessedCV {
-  // Extracted data
   skills: string[];
   seniority: "junior" | "mid" | "senior" | "unknown";
   companies: string[];
   achievements: string[];
 
-  // Approximate TOTAL years of professional experience with technology
-  // This is an overall estimate, NOT per-technology
   yearsExperience: number | null;
   yearsExperienceConfidence: YearsExperienceConfidence;
 
-  // Domain experience detection
   domainExperience: DomainExperienceFlags;
 }
 
@@ -53,9 +35,6 @@ const PERSONAL_DATA_PATTERNS = [
   /(?:estado civil|marital status)[\s:].+/gi,
 ];
 
-/**
- * Generic sections to remove
- */
 const GENERIC_SECTIONS = [
   /#{0,3}\s*objetivo\s*:?.*/gi,
   /#{0,3}\s*summary\s*:?.*/gi,
@@ -99,9 +78,6 @@ const SKILL_SYNONYMS: Record<string, string> = {
   "design patterns": "design patterns",
 };
 
-/**
- * Patterns to detect seniority
- */
 const SENIORITY_PATTERNS = {
   senior: /\b(senior|lead|principal|staff|architect|principal engineer|engineering manager)\b/gi,
   mid: /\b(mid-level|mid level|pleno|specialist)\b/gi,
@@ -214,7 +190,6 @@ const seniorityMatch = cleaned.match(SENIORITY_PATTERNS.senior);
 
   achievements.splice(5);
 
-  // NEW: Extract TOTAL years of professional experience using deterministic inference
   const yearsExperienceResult = extractYearsExperience(rawCV);
 
   const domainExperience = detectDomainExperience(rawCV);

@@ -153,7 +153,6 @@ function estimateFromEarliestYear(normalizedText: string): number | null {
   const earliestYear = Math.min(...years);
   const estimatedYears = CURRENT_YEAR - earliestYear;
 
-  // Only return if estimate is reasonable
   if (estimatedYears >= 0 && estimatedYears <= 70) {
     return estimatedYears;
   }
@@ -161,27 +160,11 @@ function estimateFromEarliestYear(normalizedText: string): number | null {
   return null;
 }
 
-/**
- * Validates that a year is within reasonable bounds
- *
- * Years should be between 1990 and current year
- * (professional CVs unlikely to mention earlier dates)
- *
- * @param year - Year to validate
- * @returns true if year is reasonable
- */
 function isReasonableYear(year: number): boolean {
   const isValid = year >= 1990 && year <= CURRENT_YEAR;
   return isValid;
 }
 
-/**
- * Gets the current year used for calculations
- *
- * Exposed for testing purposes
- *
- * @returns Current calendar year
- */
 export function getCurrentYear(): number {
   return CURRENT_YEAR;
 }

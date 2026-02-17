@@ -71,7 +71,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     render(<AlignmentDisplay uiModel={model} />);
 
-    // Component should render despite missing requirements
     expect(screen.getByText('Perfect Match')).toBeInTheDocument();
   });
 
@@ -83,7 +82,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     render(<AlignmentDisplay uiModel={model} />);
 
-    // Should render without domains section
     expect(screen.getByText('Perfect Match')).toBeInTheDocument();
   });
 
@@ -117,7 +115,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     render(<AlignmentDisplay uiModel={model} />);
 
-    // Should still render without crashing
     expect(screen.getByText('Perfect Match')).toBeInTheDocument();
   });
 
@@ -129,7 +126,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     render(<AlignmentDisplay uiModel={model} />);
 
-    // Should still render
     expect(screen.getByText('Perfect Match')).toBeInTheDocument();
   });
 
@@ -163,7 +159,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     render(<AlignmentDisplay uiModel={model} />);
 
-    // Should display critical state styling
     const container = screen.getByText('Perfect Match').closest('.alignment-display');
     expect(container?.className).toContain('alignment-display--');
   });
@@ -186,7 +181,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
       hasDetectedDomains: false,
     });
 
-    // Should either render empty state or minimal content
     const { container } = render(<AlignmentDisplay uiModel={model} />);
     expect(container.firstChild).toBeInTheDocument();
   });
@@ -250,7 +244,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     render(<AlignmentDisplay uiModel={model} />);
 
-    // Should render fine without suggestions
     expect(screen.getByText('Perfect Match')).toBeInTheDocument();
   });
 
@@ -287,7 +280,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     const { container } = render(<AlignmentDisplay uiModel={model} />);
 
-    // Critical state should have appropriate class
     const display = container.querySelector('.alignment-display');
     expect(display?.className).toMatch(/alignment-display--/);
   });
@@ -333,7 +325,6 @@ describe('AlignmentDisplay - Edge Cases', () => {
 
     const { container } = render(<AlignmentDisplay uiModel={model} />);
 
-    // Check that all requirement items are rendered
     const requirementItems = container.querySelectorAll('.requirement-item');
     expect(requirementItems.length).toBeGreaterThan(0);
   });

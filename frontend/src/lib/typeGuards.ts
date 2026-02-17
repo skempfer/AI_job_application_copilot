@@ -1,8 +1,3 @@
-/**
- * Type guards and validation functions for analysis data
- * Ensures type safety at runtime and prevents undefined access
- */
-
 import type {
   AnalysisResult,
   PreprocessedCV,
@@ -10,16 +5,10 @@ import type {
   SeniorityMatch,
 } from '../types/analysis';
 
-/**
- * Validates that a value is a valid SeniorityMatch
- */
 export function isSeniorityMatch(value: unknown): value is SeniorityMatch {
   return value === 'below' || value === 'match' || value === 'above';
 }
 
-/**
- * Validates domain experience object
- */
 export function isDomainExperience(value: unknown): value is DomainExperience {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -36,9 +25,6 @@ export function isDomainExperience(value: unknown): value is DomainExperience {
   );
 }
 
-/**
- * Validates preprocessed CV data
- */
 export function isPreprocessedCV(value: unknown): value is PreprocessedCV {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -61,9 +47,6 @@ export function isPreprocessedCV(value: unknown): value is PreprocessedCV {
   );
 }
 
-/**
- * Validates analysis result structure
- */
 export function isAnalysisResult(value: unknown): value is AnalysisResult {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -84,9 +67,6 @@ export function isAnalysisResult(value: unknown): value is AnalysisResult {
   );
 }
 
-/**
- * Safely extracts string array, defaults to empty array
- */
 export function safeStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -94,9 +74,6 @@ export function safeStringArray(value: unknown): string[] {
   return value.filter((item) => typeof item === 'string');
 }
 
-/**
- * Safely extracts number, defaults to null
- */
 export function safeNumber(value: unknown): number | null {
   if (typeof value === 'number' && !isNaN(value)) {
     return value;
@@ -104,20 +81,14 @@ export function safeNumber(value: unknown): number | null {
   return null;
 }
 
-/**
- * Safely extracts seniority match, validates enum value
- */
 export function safeSeniorityMatch(value: unknown): SeniorityMatch {
   if (isSeniorityMatch(value)) {
     return value;
   }
   console.warn('[Type Guard] Invalid seniority match value:', value);
-  return 'match'; // Default to neutral
+  return 'match';
 }
 
-/**
- * Safely extracts domain experience with defaults
- */
 export function safeDomainExperience(value: unknown): DomainExperience {
   if (isDomainExperience(value)) {
     return value;
@@ -135,9 +106,6 @@ export function safeDomainExperience(value: unknown): DomainExperience {
   };
 }
 
-/**
- * Safely extracts preprocessed CV with defaults
- */
 export function safePreprocessedCV(value: unknown): PreprocessedCV | null {
   if (isPreprocessedCV(value)) {
     return value;
@@ -151,9 +119,6 @@ export function safePreprocessedCV(value: unknown): PreprocessedCV | null {
   return null;
 }
 
-/**
- * Ensures analysis result has all required fields with safe defaults
- */
 export function secureAnalysisResult(value: unknown): AnalysisResult {
   if (isAnalysisResult(value)) {
     return value;

@@ -2,23 +2,19 @@ import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import { AlignmentErrorBoundary } from './AlignmentErrorBoundary';
 
-// Component that throws error
 const ErrorComponent = () => {
   throw new Error('Test error');
 };
 
-// Component that renders fine
 const SafeComponent = () => <div>Safe content</div>;
 
 describe('AlignmentErrorBoundary', () => {
-  // Silence console.error for error boundary testing
   const originalError = console.error;
   
   beforeEach(() => {
     console.error = jest.fn();
   });
 
-  // Restore console.error after tests
   afterEach(() => {
     console.error = originalError;
   });
@@ -99,7 +95,6 @@ describe('AlignmentErrorBoundary', () => {
   });
 
   it('applies error-boundary class', () => {
-    // Note: custom fallback doesn't use error-boundary classes
     render(
       <AlignmentErrorBoundary>
         <ErrorComponent />
@@ -147,10 +142,6 @@ describe('AlignmentErrorBoundary', () => {
     );
 
     expect(screen.getByText('Error')).toBeInTheDocument();
-
-    // Error boundaries in React don't auto-recover on rerender
-    // They require a reset via setState in parent or key change
-    // This test just verifies the boundary catches the error
   });
 
   it('maintains state in siblings when error occurs', () => {
@@ -187,7 +178,6 @@ describe('AlignmentErrorBoundary', () => {
       </AlignmentErrorBoundary>
     );
 
-    // Error boundary should be in place - checking for any of the messages
     const heading = screen.getByRole('heading', { name: /Display Error/i });
     expect(heading).toBeInTheDocument();
   });

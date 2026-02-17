@@ -119,7 +119,7 @@ describe('Skill Validation Integrity', () => {
       });
 
       const uiModel = createMockUIModel({
-        hardSkills: ['React', 'Angular'], // Angular NOT in signals
+        hardSkills: ['React', 'Angular'],
       });
 
       expect(() => validateSkillsIntegrity(uiModel, response)).toThrow(
@@ -144,7 +144,7 @@ describe('Skill Validation Integrity', () => {
       });
 
       const uiModel = createMockUIModel({
-        softSkills: ['Communication', 'Leadership'], // Leadership NOT in signals
+        softSkills: ['Communication', 'Leadership'],
       });
 
       expect(() => validateSkillsIntegrity(uiModel, response)).toThrow(
@@ -168,7 +168,7 @@ describe('Skill Validation Integrity', () => {
 
     it('should FAIL if response.strengths was used as fallback', () => {
       const response = createMockResponse({
-        strengths: ['React', 'Vue'], // These are NOT in signals
+        strengths: ['React', 'Vue'],
         aiSignals: {
           hardSkillsDetected: ['Angular'],
           softSkillsEvidence: [],
@@ -184,7 +184,7 @@ describe('Skill Validation Integrity', () => {
       });
 
       const uiModel = createMockUIModel({
-        hardSkills: ['React'], // Came from response.strengths, not signals
+        hardSkills: ['React'],
       });
 
       expect(() => validateSkillsIntegrity(uiModel, response)).toThrow(
@@ -242,9 +242,7 @@ describe('Skill Validation Integrity', () => {
 
       const result = validateSkillsIntegrity(uiModel, response);
 
-      // Should be valid because React IS in signals
       expect(result.isValid).toBe(true);
-      // But should warn about potential inference
       expect(result.warnings.length).toBeGreaterThan(0);
     });
 
@@ -270,8 +268,6 @@ describe('Skill Validation Integrity', () => {
 
       const result = validateSkillsIntegrity(uiModel, response);
 
-      // UI skills (capitalized) don't exactly match signals (lowercase)
-      // But that's expected from normalization - should pass
       expect(result.isValid).toBe(true);
     });
 
@@ -294,12 +290,11 @@ describe('Skill Validation Integrity', () => {
       });
 
       const uiModel = createMockUIModel({
-        hardSkills: ['InvalidSkill'], // This WOULD fail in dev
+        hardSkills: ['InvalidSkill'],
       });
 
       const result = validateSkillsIntegrity(uiModel, response);
 
-      // Should not throw or error in production
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });

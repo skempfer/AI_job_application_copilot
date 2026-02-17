@@ -18,10 +18,7 @@ interface SegmentedToggleProps<T extends string> {
   ariaLabel: string;
 }
 
-/**
- * SegmentedToggle - Componente de alternância para seleção exclusiva entre opções
- * @template T - Tipo das chaves de valor das opções
- */
+
 export function SegmentedToggle<T extends string>({
   options,
   value,

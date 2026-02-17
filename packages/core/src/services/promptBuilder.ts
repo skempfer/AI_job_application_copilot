@@ -1,47 +1,11 @@
-/**
- * Optimized prompt builder
- * 
- * Receives FULL CV and job description texts + structured preprocessing data
- * and builds a clear, comprehensive prompt for deep analysis.
- * 
- * ARCHITECTURE:
- * - System prompt (systemPrompt.ts) = Invariant rules + anti-hallucination instructions
- * - User prompt (this module) = Full context + structured signals + analysis instructions
- * 
- * RESPONSIBILITIES:
- * - Provide FULL CV text (no truncation)
- * - Provide FULL job description text (no truncation)
- * - Provide structured preprocessing signals as reference
- * - Define analysis algorithm
- * - Specify output format with examples
- * - Provide writing guidelines for text generation
- * 
- * Does NOT duplicate system-level rules (handled by SYSTEM_PROMPT).
- */
-
 import type { ProcessedCV, ProcessedJobDescription } from "./preprocessing.js";
 
 const PROMPT_VERSION = "v3.0-full-context";
 
-/**
- * Language labels for prompt
- */
 const LANGUAGE_LABELS = {
   pt: "Portuguese",
   en: "English",
 } as const;
-
-/**
- * Build an optimized prompt using FULL context + structured signals
- *
- * @param fullCVText - FULL CV text (no truncation)
- * @param fullJobText - FULL job description text (no truncation)
- * @param processedCV - Preprocessed candidate CV with extracted signals
- * @param processedJob - Preprocessed job description with requirements
- * @param uiLanguage - Language for analysis fields (fitScore explanation, strengths, gaps, cvSuggestions)
- * @param jobLanguage - Language for recruiterMessage and coverLetter (defaults to uiLanguage if not provided)
- * @returns Structured prompt for AI analysis with full context
- */
 export function buildOptimizedPrompt(
   fullCVText: string,
   fullJobText: string,
@@ -176,10 +140,6 @@ export function buildOptimizedPrompt(
   return sections.join('\n');
 }
 
-/**
- * Calculate approximate token count for monitoring
- * Uses rough heuristic: 1 token ≈ 4 characters
- */
 export function estimateTokenCount(text: string): number {
   return Math.ceil(text.length / 4);
 }

@@ -1,17 +1,5 @@
-/**
- * Hybrid scoring - Deterministic logic to calculate fitScore
- *
- * PRINCIPLE: AI extracts signals, code calculates score
- *
- * Same code as frontend/src/domain/scoring.js
- * Kept duplicated to avoid unnecessary dependency
- */
-
 import type { AISignals, ScoreExplanation, Decision } from '../types/analysis.js';
 
-/**
- * Weights for each signal category
- */
 const SCORING_WEIGHTS = {
   hardSkills: 0.35,           
   mandatoryRequirements: 0.30, 
@@ -68,9 +56,6 @@ function penaltyRedFlags(redFlags: string[]): number {
   return Math.min(redFlags.length * 15, 45);
 }
 
-/**
- * Calculate fit score based on AI signals
- */
 export function calculateFitScore(signals: AISignals): number {
   const hardSkillsScore = scoreHardSkills(signals.hardSkillsDetected);
   const mandatoryScore = scoreMandatoryRequirements(
@@ -97,9 +82,6 @@ export function calculateFitScore(signals: AISignals): number {
   return Math.round(finalScore);
 }
 
-/**
- * Generate a detailed score explanation
- */
 export function generateExplanation(signals: AISignals, fitScore: number): ScoreExplanation {
   const positives: string[] = [];
   const negatives: string[] = [];
@@ -153,9 +135,6 @@ export function generateExplanation(signals: AISignals, fitScore: number): Score
   };
 }
 
-/**
- * Determine decision based on score
- */
 export function determineDecision(fitScore: number): Decision {
   if (fitScore >= 70) return 'apply';
   if (fitScore >= 50) return 'apply_with_fixes';

@@ -1,5 +1,3 @@
-/* Loading State Component Styles */
-
 .loading-state {
   width: 100%;
   min-height: 300px;
@@ -41,7 +39,6 @@
   margin: 0 auto;
 }
 
-/* Spinner Animation */
 .loading-state__spinner {
   position: relative;
   width: 60px;
@@ -83,7 +80,6 @@
   }
 }
 
-/* Message Content */
 .loading-state__content {
   display: flex;
   flex-direction: column;
@@ -146,7 +142,6 @@
   }
 }
 
-/* Progress Indicator */
 .loading-state__progress {
   width: 100%;
   display: flex;
@@ -189,7 +184,6 @@
   font-weight: 500;
 }
 
-/* Completion Message */
 .loading-state__complete {
   font-size: 0.875rem;
   color: #10b981;
@@ -209,7 +203,6 @@
   }
 }
 
-/* Responsive Design */
 @media (max-width: 640px) {
   .loading-state {
     min-height: 250px;
@@ -242,7 +235,6 @@
   }
 }
 
-/* Dark Mode Support (if using prefers-color-scheme) */
 @media (prefers-color-scheme: dark) {
   .loading-state__message {
     color: #f3f4f6;
@@ -261,7 +253,6 @@
   }
 }
 
-/* Accessibility: Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   .loading-state,
   .loading-state__content,

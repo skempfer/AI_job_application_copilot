@@ -6,9 +6,6 @@ import { checkRateLimit } from '../../../utils/rateLimiter';
 import { getScoreColor, getScoreBadgeClass } from '../../../utils/scoreHelpers';
 import { useLanguage } from '../../../hooks/useLanguage';
 
-/**
- * Validate user inputs for job analysis
- */
 function validateInputs(cv: string, jobDescription: string, resumeUrl: string | null) {
   if (!cv || cv.trim().length === 0) {
     return { valid: false, error: 'CV is required' };
@@ -29,9 +26,6 @@ function validateInputs(cv: string, jobDescription: string, resumeUrl: string | 
   return { valid: true };
 }
 
-/**
- * Get decision text based on decision type
- */
 function getDecisionText(decision: 'apply' | 'apply_with_fixes' | 'skip'): string {
   const texts = {
     apply: 'Strong match - Apply now!',
@@ -41,9 +35,6 @@ function getDecisionText(decision: 'apply' | 'apply_with_fixes' | 'skip'): strin
   return texts[decision];
 }
 
-/**
- * Get decision icon based on decision type
- */
 function getDecisionIcon(decision: 'apply' | 'apply_with_fixes' | 'skip'): string {
   const icons = {
     apply: '✅',
@@ -53,9 +44,6 @@ function getDecisionIcon(decision: 'apply' | 'apply_with_fixes' | 'skip'): strin
   return icons[decision];
 }
 
-/**
- * Format analysis result for UI display
- */
 function formatAnalysisResult(result: AnalysisResult): FormattedAnalysisResult {
   const scorePercent = result.fitScore * 100;
   
@@ -76,10 +64,6 @@ function formatAnalysisResult(result: AnalysisResult): FormattedAnalysisResult {
   };
 }
 
-/**
- * Custom hook for managing job analysis state and logic
- * Extracts complex analysis workflow from App component
- */
 export function useJobAnalysis() {
   const { language: uiLanguage } = useLanguage();
   const [loading, setLoading] = useState(false);
@@ -152,10 +136,8 @@ export function useJobAnalysis() {
 
       trackEvent('analysis_error', status ? { status } : undefined);
       
-      // Map HTTP status codes to user-friendly messages
       let errorMessage: string;
       if (status === 429) {
-        // This is handled by the backend and message is already translated
         errorMessage = err instanceof Error ? err.message : 'Rate limit exceeded';
       } else if (err instanceof Error) {
         errorMessage = err.message;

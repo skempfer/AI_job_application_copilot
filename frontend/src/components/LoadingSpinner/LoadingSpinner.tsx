@@ -1,20 +1,10 @@
-/**
- * Loading Spinner - Viora branded loading state
- * Uses animated logo for visual feedback
- * 
- * Use cases:
- * - API requests in progress
- * - Data processing
- * - Background tasks
- */
-
 import { LogoAnimated } from '../Logo/LogoAnimated';
 import './LoadingSpinner.css';
 
 interface LoadingSpinnerProps {
-  show: boolean; 
-  size?: 'small' | 'medium' | 'large'; 
-  message?: string; 
+  show: boolean;
+  size?: 'small' | 'medium' | 'large';
+  message?: string;
   overlay?: boolean; 
 }
 

@@ -4,12 +4,6 @@ interface RedFlagsSectionProps {
   redFlags: string[];
 }
 
-/**
- * Displays red flags (concerns) in a visible but not dramatic way
- *
- * Red flags are important but should not overshadow the overall assessment
- * Tone: Objective, factual, not judgmental
- */
 export const RedFlagsSection = memo<RedFlagsSectionProps>(({ redFlags }) => {
   if (!redFlags || redFlags.length === 0) {
     return null;

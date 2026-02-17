@@ -10,7 +10,6 @@ describe('LoadingState Component', () => {
     try {
       jest.runOnlyPendingTimers();
     } catch {
-      // Timers may not be active in all tests
     }
     jest.useRealTimers();
   });
@@ -110,12 +109,10 @@ describe('LoadingState Component', () => {
   it('applies fade-out class when transitioning stages', () => {
     const { container, rerender } = render(<LoadingState stage={0} />);
 
-    // Stage changes trigger fade-out
     act(() => {
       rerender(<LoadingState stage={1} />);
     });
 
-    // Fade-out is applied briefly then removed, check for element existence
     const loadingState = container.querySelector('.loading-state');
     expect(loadingState).toBeInTheDocument();
   });
@@ -139,7 +136,6 @@ describe('LoadingState Component', () => {
 
     expect(screen.getByText('Parsing your CV...')).toBeInTheDocument();
 
-    // Advance timers by 2 seconds + transition time
     act(() => {
       jest.advanceTimersByTime(2300);
     });

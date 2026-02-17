@@ -1,22 +1,8 @@
-/**
- * Viora Animated Logo Component
- * Subtle, premium animation: ring draw + core pulse
- * 
- * Use cases:
- * - Splash screen on app load
- * - Loading state indicator
- * - Hero animation during first interaction
- * 
- * Animations:
- * - Ring: Smooth stroke draw (1.2s)
- * - Core: Subtle pulse effect (1.5s infinite)
- */
-
 import './LogoAnimated.css';
 
 interface LogoAnimatedProps {
-  size?: number; 
-  strokeColor?: string; 
+  size?: number;
+  strokeColor?: string;
   coreColor?: string; 
   showAnimation?: boolean;
   className?: string;

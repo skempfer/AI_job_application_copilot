@@ -11,11 +11,6 @@ import { Language } from '../../../i18n';
 import { Theme } from '../../../contexts/ThemeContext';
 import './Header.css';
 
-/**
- * Header - Application header with Viora branding
- * Displays logo and tagline, with responsive design
- * Accessibility: Uses semantic banner role for screen readers
- */
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { t, language, setLanguage } = useLanguage();

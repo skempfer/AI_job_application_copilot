@@ -1,21 +1,14 @@
 import { detectLanguage } from '../utils/languageDetection';
 import type { AnalysisResult } from '../types/analysis';
 
-// Get API URL from environment variable, with fallback for development
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003';
 
-/**
- * Get API base URL
- */
 function getApiBaseUrl(): string {
   return API_BASE_URL;
 }
 
 
 
-/**
- * API request payload for job fit analysis
- */
 interface AnalyzeJobFitRequest {
   cv: string;
   jobDescription: string;
@@ -25,24 +18,10 @@ interface AnalyzeJobFitRequest {
   resumeUrl?: string;
 }
 
-/**
- * API response for job fit analysis
- * Includes detected language for frontend consumption
- */
 interface AnalyzeJobFitResponse extends AnalysisResult {
   detectedLanguage: 'pt' | 'en';
 }
 
-/**
- * Analyzes job fit via API with strict typing
- *
- * @param cv - Candidate's resume text
- * @param jobDescription - Job description
- * @param uiLanguage - Language selected by user in UI (for analysis fields)
- * @param resumeUrl - Optional PDF resume URL
- * @returns Typed analysis result with detected language
- * @throws Error with status code on API failure (non-200 response)
- */
 export async function analyzeJobFit(
   cv: string,
   jobDescription: string,
@@ -54,9 +33,9 @@ export async function analyzeJobFit(
   const payload: AnalyzeJobFitRequest = {
     cv: cv.trim(),
     jobDescription: jobDescription.trim(),
-    language: detectedJobLanguage, // Legacy support
-    uiLanguage: uiLanguage, // Language for analysis fields
-    jobLanguage: detectedJobLanguage, // Language for recruiterMessage and coverLetter
+    language: detectedJobLanguage,
+    uiLanguage: uiLanguage,
+    jobLanguage: detectedJobLanguage,
   };
 
   if (resumeUrl) {
@@ -89,9 +68,6 @@ export async function analyzeJobFit(
   };
 }
 
-/**
- * Gap analysis result type
- */
 export interface GapAnalysisResponse {
   matchScore: number;
   missingCriticalSkills: string[];
@@ -109,14 +85,6 @@ export interface GapAnalysisResponse {
   };
 }
 
-/**
- * Analyzes gap between CV and job requirements
- * @param jobDescription - Job description
- * @param resumePath - Optional path to PDF resume
- * @param cv - Optional CV text as fallback
- * @returns Gap analysis results
- * @throws Error with status code on API failure
- */
 export async function analyzeWithGap(
   jobDescription: string,
   resumePath: string | null = null,

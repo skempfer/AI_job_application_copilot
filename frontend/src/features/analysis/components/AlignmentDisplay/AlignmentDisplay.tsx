@@ -20,15 +20,6 @@ interface AlignmentDisplayProps {
   uiModel: AlignmentUIModel;
 }
 
-/**
- * Main alignment display component
- *
- * EDGE CASE HANDLING:
- * - Wrapped in error boundary (catches rendering errors)
- * - Shows empty state if no meaningful content
- * - Defensive access to all optional fields
- * - Graceful degradation when parts fail
- */
 const AlignmentDisplayContent = memo<AlignmentDisplayProps>(({ uiModel }) => {
   console.log('[AlignmentDisplayContent] Received model:', {
     hardSkillsCount: uiModel.hardSkills.length,

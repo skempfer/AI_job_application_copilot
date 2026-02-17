@@ -12,11 +12,6 @@ export const firebaseConfig = {
 };
 
 export const hasFirebaseConfig = Object.values(firebaseConfig).every((value) => Boolean(value));
-
-/**
- * Initialize App Check with reCAPTCHA v3
- * Protects Firebase Vertex AI calls from abuse
- */
 function initializeAppCheckIfNeeded(app: FirebaseApp): void {
   const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
   
@@ -35,7 +30,6 @@ function initializeAppCheckIfNeeded(app: FirebaseApp): void {
       isTokenAutoRefreshEnabled: true,
     });
   } catch (error) {
-    // App Check may already be initialized
     if (import.meta.env.DEV) {
       console.debug('[AppCheck] Already initialized or unavailable:', error);
     }
@@ -54,7 +48,6 @@ export function getFirebaseApp(): FirebaseApp | null {
   try {
     const app = initializeApp(firebaseConfig);
     
-    // Initialize App Check for Firebase Vertex AI security
     initializeAppCheckIfNeeded(app);
     
     return app;

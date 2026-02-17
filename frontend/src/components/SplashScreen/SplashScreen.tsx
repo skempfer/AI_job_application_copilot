@@ -1,21 +1,11 @@
-/**
- * Splash Screen - First impression for Viora
- * Displays animated logo with message during app initialization
- * 
- * Use cases:
- * - App startup/loading
- * - Brand introduction
- * - Loading state with feedback
- */
-
 import { LogoAnimated } from '../Logo/LogoAnimated';
 import './SplashScreen.css';
 
 interface SplashScreenProps {
-  show: boolean; // Control visibility
-  message?: string; // Optional loading message
-  subtitle?: string; // Optional subtitle
-  duration?: number; // Auto-hide after duration (ms), 0 = no auto-hide
+  show: boolean;
+  message?: string;
+  subtitle?: string;
+  duration?: number;
 }
 
 export function SplashScreen({
@@ -28,7 +18,6 @@ export function SplashScreen({
 
   return (
     <div className="splash-screen" role="status" aria-label={message || 'Loading application'}>
-      {/* Fade out animation after duration */}
       {duration > 0 && (
         <style>{`
           .splash-screen {
@@ -43,17 +32,14 @@ export function SplashScreen({
       )}
 
       <div className="splash-content">
-        {/* Animated Logo */}
         <div className="splash-logo">
           <LogoAnimated size={80} showAnimation={true} />
         </div>
 
-        {/* Message */}
         {message && (
           <h1 className="splash-message">{message}</h1>
         )}
 
-        {/* Subtitle - Words appear one by one */}
         {subtitle && (
           <p className="splash-subtitle">
             {subtitle.split(' ').map((word, index) => (

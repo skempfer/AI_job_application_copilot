@@ -3,11 +3,6 @@ import { getTimeUntilReset, isRateLimited } from '../../../../utils/rateLimiter'
 import { useLanguage } from '../../../../hooks/useLanguage';
 import './RateLimitMessage.css';
 
-/**
- * RateLimitMessage Component
- * Displays a friendly rate limit message with live countdown timer
- * Supports multi-language display based on user's selected language
- */
 export function RateLimitMessage() {
   const { t } = useLanguage();
   const [isLimited, setIsLimited] = useState(false);

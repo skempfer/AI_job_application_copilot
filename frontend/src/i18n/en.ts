@@ -1,42 +1,34 @@
 export const en = {
-  // Header
   appTitle: 'Viora',
   appTagline: 'Clarity for smarter career decisions',
   
-  // Input labels
   cvLabel: 'Your CV',
   cvPlaceholder: 'Paste your complete CV here...\n\nInclude:\n- Professional experiences\n- Technical skills\n- Relevant projects\n- Academic background',
   jobLabel: 'Job Description',
   jobPlaceholder: 'Paste the complete job description here...\n\nInclude:\n- Required skills\n- Responsibilities\n- Experience level\n- Benefits and expectations',
   
-  // Buttons
   analyzeButton: '🔍 Analyze Job Fit',
   analyzingButton: 'Analyzing...',
   
-  // Results section
   completeAnalysis: 'Complete Analysis',
   fitScore: 'Fit Score',
   recommendation: 'Recommendation',
   
-  // Decision texts
   applyText: 'Apply for this position',
   applyWithFixesText: 'Apply after CV adjustments',
   skipText: 'Skip this position',
   
-  // Result details
   strengths: 'Your Strengths',
   gaps: 'Gaps to Address',
   suggestions: 'How to Adjust Your CV',
   recruiterMessage: 'Suggested Message to Recruiter',
   
-  // Explanations
   scoreExplanation: 'Score Breakdown',
   positivePoints: 'Positive points',
   negativePoints: 'Negative points',
   summary: 'Summary',
   noCriticalIssues: 'No critical issues identified',
   
-  // Analysis Components
   overallAlignment: 'Overall Alignment',
   holisticView: 'Holistic view',
   overallAlignmentDesc: 'Analyzes your complete profile, experience, seniority, and overall alignment with the job.',
@@ -48,7 +40,6 @@ export const en = {
   criticalSkillsMissing: 'Critical skills missing',
   nextTechnologies: 'Next technologies to learn',
   
-  // Consolidated Analysis
   analysisSummary: 'Analysis Summary',
   synthesisAnalyses: 'Synthesis of both analyses for a more confident decision',
   excellentCandidate: 'Excellent Candidate',
@@ -66,7 +57,6 @@ export const en = {
   mentioningSkills: 'by specifically mentioning the skills you have',
   personalizeMessage: '💡 Personalize this message before sending',
   
-  // Category translations for grouped items
   hardSkills: 'Hard Skills',
   requirementsMet: 'Requirements met',
   bonusQualifications: 'Bonus Qualifications',
@@ -75,7 +65,6 @@ export const en = {
   redFlags: 'Red Flags',
   other: 'Other',
   
-  // Settings
   language: 'Language',
   theme: 'Theme',
   english: 'English',
@@ -83,7 +72,6 @@ export const en = {
   light: 'Light',
   dark: 'Dark',
   
-  // Error messages
   errorTitle: 'Oops! Something went wrong',
   cvError: 'Please provide a CV with at least 100 characters. Include professional experience, skills, and education.',
   jobError: 'Please provide a complete job description. Include requirements, responsibilities, and expected level.',
@@ -91,19 +79,15 @@ export const en = {
   dismissError: 'Dismiss',
   dailyLimitExceeded: 'You have reached your daily free analysis limit. Please try again later.',
   
-  // Specific AI error messages
   aiProcessingError: 'There was a problem processing your analysis. This may be due to poorly formatted content in the CV or job description.',
   aiFormatError: 'AI response was not in the expected format. Try again or better format your CV.',
   aiGenericError: 'Analysis error. Try with a more detailed CV or a more complete job description.',
   
-  // Validation
   characters: 'characters',
   
-  // Empty state
   readyToStart: 'Ready to start?',
   emptyStateText: 'Paste your CV and job description above, then click "Analyze Job Fit"',
 
-  // Cover letter
   coverLetterTitle: 'Cover Letter',
   copy: 'Copy',
   download: 'Download',
@@ -111,7 +95,6 @@ export const en = {
   readFull: 'Read Full',
   collapse: 'Collapse',
   
-  // Resume Upload
   cvUploadLabel: 'CV Upload (Optional)',
   uploadingText: 'Uploading...',
   uploadSuccess: 'Upload successful • Click to replace',
@@ -123,14 +106,12 @@ export const en = {
   fileSizeError: 'File must not exceed 5MB',
   uploadError: 'Upload error',
   
-  // Footer
   dataPrivacy: '🔒 Your data is not stored. Analysis done via Groq API (free, ultra-fast).',
   footerOwnership: 'Owned and operated by Dominion Code LTDA.',
   footerEngineering: 'Product & Engineering by',
   termsLink: 'Terms of Service',
   privacyLink: 'Privacy',
 
-  // Terms of Service
   backToHome: 'Back to Home',
   termsTitle: 'Terms of Service',
   termsLastUpdated: 'Last updated',
@@ -159,11 +140,9 @@ export const en = {
   termsContactTitle: 'Contact',
   termsContactText: 'Questions, suggestions, or concerns about these terms? Get in touch:',
 
-  // Privacy
   privacyTitle: 'Privacy Policy',
   privacyComingSoon: 'Content coming soon.',
 
-  // Rate Limit
   rateLimitTitle: 'Daily limit reached!',
   rateLimitMessage: 'You can analyze again in',
 };

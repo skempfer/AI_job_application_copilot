@@ -5,9 +5,6 @@ interface RequirementItemProps {
   item: RequirementUIItem;
 }
 
-/**
- * Single requirement item with status indicator
- */
 const RequirementItem = memo<RequirementItemProps>(({ item }) => {
   const statusIcon = item.status === 'met' ? '✓' : '✗';
   const statusClass = item.status === 'met' ? 'requirement-item--met' : 'requirement-item--missing';
@@ -28,9 +25,6 @@ interface RequirementCategoryProps {
   variant: 'met' | 'missing';
 }
 
-/**
- * Category of requirements with items
- */
 const RequirementCategory = memo<RequirementCategoryProps>(
   ({ title, items, variant }) => {
     if (items.length === 0) {
@@ -58,15 +52,6 @@ interface RequirementsSectionProps {
   requirements: RequirementsUIModel;
 }
 
-/**
- * Displays all requirements grouped by category and status
- *
- * Structure:
- * - Mandatory Met (green)
- * - Mandatory Missing (red)
- * - Desirable Met (blue)
- * - Desirable Missing (gray)
- */
 export const RequirementsSection = memo<RequirementsSectionProps>(({ requirements }) => {
   const hasMandatory =
     (requirements.mandatory.met?.length ?? 0) > 0 ||

@@ -1,10 +1,3 @@
-/**
- * AI Analysis Cache Service
- * 
- * Caches analysis results based on hash of normalized CV + job description + prompt version
- * Prevents repeated AI calls for identical inputs
- */
-
 import crypto from "crypto";
 import type { AnalysisResult } from "../types/analysis.js";
 

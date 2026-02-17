@@ -39,22 +39,14 @@ function hasCvEvidence(item: string, cvText: string, cvSkills: string[]): boolea
   const cvLower = cvText.toLowerCase();
   const normalizedSkills = cvSkills.map((skill) => skill.toLowerCase());
 
-  // EXACT MATCH FIRST - strict validation for skills
   if (normalizedSkills.includes(normalizedItem)) return true;
 
-  // Token-based matching (for multi-word or abbreviated skills)
-  // CRITICAL FIX: Do NOT allow "React Native" to match because CV has "React"
-  // Instead: Check if ALL meaningful tokens from the item exist in CV
-  // This prevents "React Native" from matching just "React"
   const tokens = normalizedItem.match(/[a-z0-9+#.]+/g) ?? [];
   const meaningfulTokens = tokens
     .map(normalizeToken)
     .filter((token) => token.length >= 3 || /[#.+]/.test(token))
     .filter((token) => token && !STOPWORDS.has(token) && !AMBIGUOUS_TOKENS.has(token));
 
-  // For token-based matching: ALL meaningful tokens must appear in CV (not just one)
-  // Example: "React Native" requires both "react" AND "native" in CV for match
-  //          If CV only has "react", it doesn't match "react native"
   if (meaningfulTokens.length > 0) {
     return meaningfulTokens.every((token) => cvLower.includes(token));
   }
@@ -101,10 +93,8 @@ export class AIService {
   private model: string;
 
   constructor(_config: AIServiceConfig) {
-    // Validate and get configured model
     const model = validateModelConfig();
 
-    // Single provider: Groq (cost-optimized for job analysis)
     this.provider = new GroqProvider({
       apiKey: process.env.GROQ_API_KEY || "",
       baseURL: process.env.GROQ_API_URL || "https://api.groq.com/openai/v1",
@@ -120,7 +110,6 @@ export class AIService {
     uiLanguage: "pt" | "en" = "en",
     jobLanguage?: "pt" | "en"
   ): Promise<AnalysisResult> {
-    // Create correlation ID for tracing this request
     const correlationId = generateCorrelationId();
     const logger = createAIServiceLogger("analyzeJobFit", correlationId);
 
@@ -135,7 +124,6 @@ export class AIService {
     let userPrompt = "";
 
     try {
-      // Check cache before processing
       const cachedResult = getCachedAnalysis(cv, jobDescription, "v3.0-full-context");
       if (cachedResult) {
         logger.info("Cache hit detected", {
@@ -153,7 +141,6 @@ export class AIService {
         return cachedResult;
       }
 
-      // Preprocessing phase - extract structured signals
       logger.startTiming("preprocessing");
       const processedCV = preprocessCV(cv);
       const processedJob = preprocessJobDescription(jobDescription);
@@ -166,11 +153,9 @@ export class AIService {
         mandatoryReqs: processedJob.mandatoryRequirements.length,
       });
 
-      // Build prompt with FULL context + structured signals
       const prompt = buildOptimizedPrompt(cv, jobDescription, processedCV, processedJob, uiLanguage, jobLanguage);
       userPrompt = prompt;
 
-      // Token monitoring
       const systemTokens = estimateTokenCount(SYSTEM_PROMPT);
       const userTokens = estimateTokenCount(prompt);
       const totalInputTokens = systemTokens + userTokens;
@@ -183,7 +168,6 @@ export class AIService {
         jobTextLength: jobDescription.length,
       });
 
-      // Warn if approaching token limits
       if (totalInputTokens > 25000) {
         logger.warn("High token usage detected", {
           totalInputTokens,
@@ -192,7 +176,6 @@ export class AIService {
         });
       }
 
-      // API Request phase - call Groq provider
       logger.startTiming("api_request");
 
       logger.logAPIRequest(AI_PROVIDER.GROQ, this.model, {
@@ -219,7 +202,6 @@ export class AIService {
         duration: `${apiDuration.toFixed(2)}ms`,
       });
 
-      // Parsing phase - parse JSON response
       logger.startTiming("json_parsing");
       const cleanJson = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 
@@ -239,7 +221,6 @@ export class AIService {
         jsonLength: cleanJson.length,
       });
 
-      // Validation phase
       logger.startTiming("validation");
       const signals = validateAIResponse(parsedData);
       const sanitizedSignals = sanitizeSignals(
@@ -260,7 +241,6 @@ export class AIService {
         redFlags: sanitizedSignals.redFlags.length,
       });
 
-      // Scoring phase
       logger.startTiming("scoring");
       const fitScore = calculateFitScore(sanitizedSignals);
       const explanation = generateExplanation(sanitizedSignals, fitScore);
@@ -311,7 +291,6 @@ export class AIService {
         },
       };
 
-      // Cache the result before returning
       cacheAnalysis(cv, jobDescription, result, this.model, "v3.0-full-context");
 
       const totalDuration = logger.endTiming("full_analysis");
@@ -340,7 +319,6 @@ export class AIService {
         throw error;
       }
 
-      // Handle JSON parsing errors
       if (error instanceof SyntaxError) {
         logger.error("Provider returned invalid JSON", error, {
           errorType: "json_parse_error",
@@ -350,7 +328,6 @@ export class AIService {
         throw new Error(`AI parsing failed: ${error.message}`);
       }
 
-      // Handle schema validation errors
       if (error instanceof AIResponseValidationError) {
         logger.error("Provider returned response that failed schema validation", error, {
           errorType: "schema_validation_error",

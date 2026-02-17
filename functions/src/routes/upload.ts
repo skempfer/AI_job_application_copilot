@@ -7,7 +7,6 @@ import { uploadResumeToFirebase, cleanupLocalFile } from "../services/storageSer
 const uploadDir = "/tmp/uploads";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-// Ensure upload directory exists (created lazily on first use)
 function ensureUploadDir() {
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });

@@ -122,13 +122,11 @@ describe('Alignment Defensive Utilities', () => {
     });
 
     it('priority is warning with missing requirements', () => {
-      // When seniority is warning OR critical state exists, priority becomes warning
       expect(getPriorityLevel(modelCritical)).toBe('warning');
     });
 
     it('recommendation addresses experience level', () => {
       const msg = getRecommendationMessage(modelCritical);
-      // When seniority priority is warning, focus on experience level
       expect(msg).toContain('experience level');
     });
   });
@@ -202,7 +200,7 @@ describe('Alignment Defensive Utilities', () => {
     });
 
     it('has content despite no domains', () => {
-      expect(hasContent(modelBelow)).toBe(true); // Has skills and message
+      expect(hasContent(modelBelow)).toBe(true);
     });
   });
 
@@ -236,13 +234,11 @@ describe('Alignment Defensive Utilities', () => {
     };
 
     it('returns warning priority due to red flags', () => {
-      // Red flags trigger warning state, which returns 'warning' priority
       expect(getPriorityLevel(modelAboveWithFlags)).toBe('warning');
     });
 
     it('recommendation addresses fit concerns', () => {
       const msg = getRecommendationMessage(modelAboveWithFlags);
-      // When there are red flags, should highlight them
       expect(msg).toMatch(/requirements|concerns|willingness/i);
     });
   });
@@ -384,7 +380,6 @@ describe('Alignment Defensive Utilities', () => {
         hasDetectedDomains: false,
       };
 
-      // Only seniority explanation exists, but it's always present
       expect(hasContent(model)).toBe(false);
     });
   });

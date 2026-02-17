@@ -1,16 +1,3 @@
-/**
- * Test route: Validate preprocessing without calling the AI
- *
- * POST /api/test-preprocessing
- *
- * Returns:
- * - Raw CV
- * - Preprocessed CV
- * - Raw Job Description
- * - Preprocessed Job Description
- * - Final prompt that would be sent to the AI
- */
-
 import { Router, Request, Response } from "express";
 import { preprocessCV, preprocessJobDescription, buildOptimizedPrompt } from "@viora/core";
 import type { AnalysisRequest } from "../types/analysis.js";

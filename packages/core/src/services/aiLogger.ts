@@ -1,21 +1,5 @@
 import type { AIProviderName } from "./providers/types.js";
 
-/**
- * Structured Logging Module for AI Service
- * 
- * Provides consistent, structured logging with:
- * - Operation context (module, function, correlation ID)
- * - Response time measurements
- * - Non-sensitive data logging
- * - Structured error reporting
- * 
- * PRINCIPLES:
- * - Log levels: debug, info, warn, error
- * - Never log: API keys, sensitive user data, full CV/job descriptions
- * - Always log: operation timing, response counts, error details
- * - Consistent format for parsing and monitoring
- */
-
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogContext {
@@ -38,10 +22,6 @@ export interface LogMetrics {
   schemaValidationSuccess?: boolean;
 }
 
-/**
- * Structured logger for AI operations
- * Wraps console methods with consistent formatting and context
- */
 export class AILogger {
   private context: LogContext;
   private startTimes: Map<string, number> = new Map();
@@ -50,19 +30,10 @@ export class AILogger {
     this.context = context;
   }
 
-  /**
-   * Start timing an operation
-   * @param operationName - Identifier for the operation
-   */
   startTiming(operationName: string): void {
     this.startTimes.set(operationName, performance.now());
   }
 
-  /**
-   * End timing and calculate duration
-   * @param operationName - Identifier for the operation
-   * @returns Duration in milliseconds
-   */
   endTiming(operationName: string): number {
     const startTime = this.startTimes.get(operationName);
     if (!startTime) {
@@ -75,38 +46,23 @@ export class AILogger {
     return duration;
   }
 
-  /**
-   * Debug level logging
-   */
   debug(message: string, metadata?: Record<string, any>): void {
     this.log('debug', message, metadata);
   }
 
-  /**
-   * Info level logging
-   */
   info(message: string, metadata?: Record<string, any>): void {
     this.log('info', message, metadata);
   }
 
-  /**
-   * Warn level logging
-   */
   warn(message: string, metadata?: Record<string, any>): void {
     this.log('warn', message, metadata);
   }
 
-  /**
-   * Error level logging
-   */
   error(message: string, error?: Error | unknown, metadata?: Record<string, any>): void {
     const errorDetails = this.formatError(error);
     this.log('error', message, { ...metadata, ...errorDetails });
   }
 
-  /**
-   * Log API request details
-   */
   logAPIRequest(provider: string, model: string, metadata?: Record<string, any>): void {
     this.info('API request', {
       provider,
@@ -117,9 +73,6 @@ export class AILogger {
     });
   }
 
-  /**
-   * Log schema validation results
-   */
   logValidation(isValid: boolean, details?: Record<string, any>): void {
     if (isValid) {
       this.debug('Schema validation passed', details);
@@ -128,9 +81,6 @@ export class AILogger {
     }
   }
 
-  /**
-   * Log rate limit information
-   */
   logRateLimit(statusCode: number, retryAfter?: number, metadata?: Record<string, any>): void {
     this.warn('Rate limit encountered', {
       statusCode,
@@ -139,9 +89,6 @@ export class AILogger {
     });
   }
 
-  /**
-   * Log operation completion with metrics
-   */
   logCompletion(operationName: string, metrics: Partial<LogMetrics>): void {
     const duration = this.endTiming(operationName);
     const level = metrics.success ? 'info' : 'warn';
@@ -156,9 +103,6 @@ export class AILogger {
     });
   }
 
-  /**
-   * Private helper to format log output
-   */
   private log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
     const timestamp = new Date().toISOString();
     const prefix = this.createPrefix(level);
@@ -191,9 +135,6 @@ export class AILogger {
     }
   }
 
-  /**
-   * Create visual prefix for log level
-   */
   private createPrefix(level: LogLevel): string {
     const prefixes = {
       debug: '🔧',
@@ -204,9 +145,6 @@ export class AILogger {
     return prefixes[level];
   }
 
-  /**
-   * Create context string from module and operation
-   */
   private createContextString(): string {
     const parts = [this.context.module];
     if (this.context.operation) {
@@ -215,9 +153,6 @@ export class AILogger {
     return `[${parts.join('.')}]`;
   }
 
-  /**
-   * Format error for logging (without sensitive data)
-   */
   private formatError(error: Error | unknown): Record<string, any> {
     if (error instanceof Error) {
       return {
@@ -235,9 +170,6 @@ export class AILogger {
   }
 }
 
-/**
- * Create a logger for AI Service operations
- */
 export function createAIServiceLogger(operation: string, correlationId?: string): AILogger {
   return new AILogger({
     module: 'AIService',
@@ -246,10 +178,6 @@ export function createAIServiceLogger(operation: string, correlationId?: string)
   });
 }
 
-/**
- * Helper to log without exposing sensitive data
- * Sanitizes CV and job description data
- */
 export function sanitizeForLogging(data: unknown, maxLength: number = 100): string {
   if (typeof data === 'string') {
     return `${data.substring(0, maxLength)}${data.length > maxLength ? '...' : ''}`;
@@ -263,9 +191,6 @@ export function sanitizeForLogging(data: unknown, maxLength: number = 100): stri
   return String(data).substring(0, maxLength);
 }
 
-/**
- * Correlation ID generator for tracing requests
- */
 export function generateCorrelationId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }

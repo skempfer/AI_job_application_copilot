@@ -1,10 +1,6 @@
 import { memo } from 'react';
 import './ResultsLoadingFallback.css';
 
-/**
- * ResultsLoadingFallback - Skeleton loader for lazy-loaded result components
- * Used as Suspense fallback while ResultsDisplay, GapAnalysisDisplay, etc. are loading
- */
 export const ResultsLoadingFallback = memo(() => {
   return (
     <div className="results-loading-fallback" role="status" aria-label="Loading results">

@@ -1,22 +1,5 @@
-/**
- * AI Response Schema and Validation
- * 
- * Defines the strict schema for AI response validation using Zod.
- * Ensures type safety and runtime validation of AI-generated responses.
- * 
- * ARCHITECTURE:
- * - Schema is single source of truth for AI output structure
- * - Validation happens immediately after JSON parsing
- * - Any validation error is logged and thrown (no silent failures)
- * - Schema can be evolved independently of TypeScript types
- */
-
 import { z } from 'zod';
 
-/**
- * Domain experience object schema
- * Boolean flags for different domain areas
- */
 const DomainExperienceSchema = z.object({
   frontend: z.boolean(),
   backend: z.boolean(),
@@ -26,18 +9,6 @@ const DomainExperienceSchema = z.object({
   product: z.boolean(),
 });
 
-/**
- * Core schema for AI Signals response
- * 
- * Required fields:
- * - All array fields for classification (hard skills, requirements, etc.)
- * - seniorityMatch: Seniority assessment (above/match/below)
- * - Text fields: recruiterMessage and coverLetter (non-empty)
- * 
- * Optional fields:
- * - Detected values from preprocessing (may be null)
- * - Domain experience (may be null if not detected)
- */
 export const AISignalsSchema = z.object({
   hardSkillsDetected: z.array(z.string()).describe('Technical skills identified in CV'),
   softSkillsEvidence: z.array(z.string()).describe('Soft skills and non-technical strengths'),
@@ -50,17 +21,12 @@ export const AISignalsSchema = z.object({
   recruiterMessage: z.string().min(1).describe('Message to send to recruiter about fit'),
   coverLetter: z.string().min(1).describe('Generated cover letter draft'),
 
-  // Optional preprocessed data
   detectedYearsExperience: z.number().nullable().optional().describe('Extracted years of experience'),
   detectedDomainExperience: DomainExperienceSchema.nullable().optional().describe('Detected domain areas'),
 });
 
 export type AISignalsValidated = z.infer<typeof AISignalsSchema>;
 
-/**
- * Custom error class for validation failures
- * Provides structured error reporting without exposing internal details
- */
 export class AIResponseValidationError extends Error {
   public readonly violations: z.ZodIssue[];
   public readonly receivedData: unknown;
@@ -74,13 +40,6 @@ export class AIResponseValidationError extends Error {
   }
 }
 
-/**
- * Validate AI response against schema
- * 
- * @param data - Raw parsed AI response
- * @returns Validated AISignals object
- * @throws AIResponseValidationError if validation fails
- */
 export function validateAIResponse(data: unknown): AISignalsValidated {
   try {
     return AISignalsSchema.parse(data);
@@ -92,13 +51,6 @@ export function validateAIResponse(data: unknown): AISignalsValidated {
   }
 }
 
-/**
- * Safe validation with detailed error info
- * Returns validation result without throwing
- * 
- * @param data - Raw parsed AI response
- * @returns Object with isValid flag and either validated data or error details
- */
 export function validateAIResponseSafe(data: unknown):
   | { isValid: true; data: AISignalsValidated }
   | { isValid: false; error: AIResponseValidationError } {
@@ -113,10 +65,6 @@ export function validateAIResponseSafe(data: unknown):
   }
 }
 
-/**
- * Get schema documentation for debugging
- * Returns a summary of expected schema structure
- */
 export function getAISignalsSchemaDocumentation(): string {
   return `AI RESPONSE SCHEMA:
 

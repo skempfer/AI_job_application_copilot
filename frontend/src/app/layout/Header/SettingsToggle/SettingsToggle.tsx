@@ -2,10 +2,6 @@ import { useLanguage } from '../../../../hooks/useLanguage';
 import { useTheme } from '../../../../hooks/useTheme';
 import './SettingsToggle.css';
 
-/**
- * SettingsToggle - Simple UI controls for language and theme
- * Provides explicit buttons for language selection and theme toggle
- */
 export function SettingsToggle() {
   const { language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();

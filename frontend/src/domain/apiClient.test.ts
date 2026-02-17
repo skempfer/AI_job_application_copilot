@@ -1,10 +1,8 @@
 import { analyzeJobFit } from '../domain/apiClient';
 import type { AnalysisResult } from '../types/analysis';
 
-// Mock fetch
 global.fetch = jest.fn();
 
-// Mock language detection
 jest.mock('../utils/languageDetection', () => ({
   detectLanguage: jest.fn(() => 'en'),
 }));

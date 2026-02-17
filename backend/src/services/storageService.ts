@@ -2,13 +2,6 @@ import { getStorageBucket } from "../config/firebase.js";
 import fs from "fs";
 import path from "path";
 
-/**
- * Upload a resume file to Firebase Storage
- *
- * @param filePath - Local path of the file to upload
- * @param userId - User ID (used to organize files)
- * @returns Signed public URL for the file in Firebase Storage
- */
 export async function uploadResumeToFirebase(
   filePath: string,
   userId: string
@@ -49,11 +42,6 @@ export async function uploadResumeToFirebase(
   }
 }
 
-/**
- * Remove a local file after a successful upload
- *
- * @param filePath - Path of the file to remove
- */
 export async function cleanupLocalFile(filePath: string): Promise<void> {
   try {
     if (fs.existsSync(filePath)) {

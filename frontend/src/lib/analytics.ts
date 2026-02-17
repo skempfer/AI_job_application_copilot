@@ -45,7 +45,6 @@ async function getAnalyticsInstance(): Promise<Analytics | null> {
         const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         
-        // Enable debug mode in development
         if (ENV.isDev && firebaseConfig.measurementId) {
           (window as any).gtag('config', firebaseConfig.measurementId, {
             'debug_mode': true

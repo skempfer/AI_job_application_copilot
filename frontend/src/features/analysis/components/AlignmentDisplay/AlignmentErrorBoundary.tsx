@@ -11,13 +11,6 @@ interface State {
   error?: Error;
 }
 
-/**
- * Error Boundary for alignment display components
- *
- * Catches rendering errors and prevents complete UI crash
- * Logs error for debugging
- * Shows fallback UI instead of white screen
- */
 export class AlignmentErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
