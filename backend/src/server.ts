@@ -45,7 +45,31 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Viora Backend running on http://localhost:${PORT}`);
   console.log(`⚡ AI Model: ${process.env.AI_MODEL_DEFAULT || "llama-3.3-70b-versatile (economic)"}`);
+});
+
+// Graceful shutdown
+const gracefulShutdown = (signal: string) => {
+  console.log(`\n${signal} received, closing server gracefully...`);
+  server.close(() => {
+    console.log("✅ Server closed, port released");
+    process.exit(0);
+  });
+
+  // Force exit after 10 seconds
+  setTimeout(() => {
+    console.error("❌ Forced shutdown after timeout");
+    process.exit(1);
+  }, 10000);
+};
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT (Ctrl+C)"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  console.error("❌ Uncaught Exception:", error);
+  gracefulShutdown("uncaughtException");
 });
