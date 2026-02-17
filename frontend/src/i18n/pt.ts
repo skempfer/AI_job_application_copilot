@@ -84,10 +84,12 @@ export const pt = {
   dark: 'Escuro',
   
   // Error messages
+  errorTitle: 'Ops! Algo deu errado',
   cvError: 'Por favor, forneça um CV com pelo menos 100 caracteres. Inclua experiência profissional, skills e formação.',
   jobError: 'Por favor, forneça uma descrição completa da vaga. Inclua requisitos, responsabilidades e nível esperado.',
   analyzeError: 'Não conseguimos processar sua análise. Verifique se o CV e a descrição estão bem formatados e tente novamente.',
   dismissError: 'Descartar',
+  dailyLimitExceeded: 'Você atingiu seu limite de análises gratuitas diárias. Por favor, tente novamente mais tarde.',
   
   // Specific AI error messages
   aiProcessingError: 'Houve um problema ao processar sua análise. Isso pode ser devido a conteúdo mal formatado no CV ou vaga.',
@@ -162,6 +164,6 @@ export const pt = {
   privacyComingSoon: 'Conteúdo em breve.',
 
   // Rate Limit
-  rateLimitTitle: 'Deixe a IA gratuita respirar um pouco!',
-  rateLimitMessage: 'Volte em',
+  rateLimitTitle: 'Limite diário atingido!',
+  rateLimitMessage: 'Você pode analisar novamente em',
 };

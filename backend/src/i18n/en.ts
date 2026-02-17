@@ -39,6 +39,9 @@ export const en = {
     // Database errors (non-critical, for logging)
     databaseSaveError: 'Error saving to database (non-critical)',
     databaseFetchError: 'Error fetching from database',
+    
+    // Rate limit errors
+    dailyLimitExceeded: 'You have reached your daily free analysis limit. Your limit will reset in {{hours}}h {{minutes}}m.',
   }
 };
 

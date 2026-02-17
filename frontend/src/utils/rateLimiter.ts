@@ -1,12 +1,12 @@
 /**
  * Client-side Rate Limiter Utility
- * Limits requests to 4, then enforces 15-minute cooldown using sessionStorage
- * After 4 requests, user must wait the full 15-minute window before next request
+ * Limits requests to 2, then enforces 24-hour cooldown using sessionStorage
+ * After 2 requests, user must wait the full 24-hour window before next request
  */
 
 const RATE_LIMIT_KEY = 'viora_request_rate_limit';
-const MAX_REQUESTS = 4;
-const TIME_WINDOW = 15 * 60 * 1000; // 15 minutes in milliseconds
+const MAX_REQUESTS = 2;
+const TIME_WINDOW = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 const META_MESSAGE =
   "Hey there 👀 I knew you'd open this. Please don't delete this key just to bypass the limit. Have mercy on the free AI.";
@@ -37,7 +37,7 @@ export function checkRateLimit(): { allowed: boolean; message?: string } {
 
       return {
         allowed: false,
-        message: `Rate limit exceeded. You can analyze again in ${timeUntilReset} seconds. (${MAX_REQUESTS} analyses per 15 minutes)`,
+        message: `Rate limit exceeded. You can analyze again in ${timeUntilReset} seconds. (${MAX_REQUESTS} analyses per 24 hours)`,
       };
     }
 

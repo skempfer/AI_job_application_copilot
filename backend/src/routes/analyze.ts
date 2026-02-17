@@ -29,15 +29,26 @@ export function createAnalyzeRouter(aiService: AIService): Router {
   router.post("/", async (req: Request, res: Response) => {
     try {
       const clientIP = getClientIP(req);
+      const lang = getLanguageFromRequest((req.body as AnalysisRequest)?.language);
 
       // Check rate limit
       const rateLimit = checkRateLimit(clientIP);
       if (!rateLimit.allowed) {
         logAnalysisUsage(clientIP, false, "rate_limited", {});
 
+        // Calculate time remaining until reset
+        const nowMs = Date.now();
+        const resetTimeMs = rateLimit.resetTime.getTime();
+        const remainingMs = Math.max(0, resetTimeMs - nowMs);
+        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
         res.status(429).json({
           error: "daily_limit_exceeded",
-          message: "You have reached the free analysis limit for today.",
+          message: getErrorMessage('dailyLimitExceeded', lang, {
+            hours: hours.toString(),
+            minutes: minutes.toString(),
+          }),
           remaining: 0,
           resetTime: rateLimit.resetTime.toISOString(),
         });
@@ -45,7 +56,6 @@ export function createAnalyzeRouter(aiService: AIService): Router {
       }
 
       const { cv, jobDescription, resumeUrl, language, uiLanguage, jobLanguage } = req.body as AnalysisRequest & { resumeUrl?: string };
-      const lang = getLanguageFromRequest(language);
 
       if (!resumeUrl && (!cv || typeof cv !== "string" || cv.trim().length === 0)) {
         res.status(400).json({ error: getErrorMessage('cvRequired', lang) });

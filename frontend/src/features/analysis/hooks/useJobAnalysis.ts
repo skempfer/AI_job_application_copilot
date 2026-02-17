@@ -151,7 +151,18 @@ export function useJobAnalysis() {
         : undefined;
 
       trackEvent('analysis_error', status ? { status } : undefined);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error during analysis';
+      
+      // Map HTTP status codes to user-friendly messages
+      let errorMessage: string;
+      if (status === 429) {
+        // This is handled by the backend and message is already translated
+        errorMessage = err instanceof Error ? err.message : 'Rate limit exceeded';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      } else {
+        errorMessage = 'Unknown error during analysis';
+      }
+      
       setError(errorMessage);
     } finally {
       setLoading(false);

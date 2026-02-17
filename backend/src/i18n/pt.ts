@@ -39,5 +39,8 @@ export const pt = {
     // Database errors (non-critical, for logging)
     databaseSaveError: 'Erro ao salvar no banco de dados (não crítico)',
     databaseFetchError: 'Erro ao buscar do banco de dados',
+    
+    // Rate limit errors
+    dailyLimitExceeded: 'Você atingiu seu limite de análises gratuitas diárias. Seu limite será reiniciado em {{hours}}h {{minutes}}m.',
   }
 };

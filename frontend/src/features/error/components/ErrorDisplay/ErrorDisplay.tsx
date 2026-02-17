@@ -16,7 +16,7 @@ export const ErrorDisplay = memo<ErrorDisplayProps>(({ message, onDismiss }) => 
         <div className="error-content">
           <span className="error-icon">❌</span>
           <div>
-            <h3 className="error-title">Analysis Error</h3>
+            <h3 className="error-title">{t('errorTitle')}</h3>
             <p className="error-message">{message}</p>
           </div>
         </div>
