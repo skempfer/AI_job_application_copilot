@@ -40,21 +40,27 @@ function hasCvEvidence(item: string, cvText: string, cvSkills: string[]): boolea
   const cvLower = cvText.toLowerCase();
   const normalizedSkills = cvSkills.map((skill) => skill.toLowerCase());
 
+  // EXACT MATCH FIRST - strict validation for skills
   if (normalizedSkills.includes(normalizedItem)) return true;
 
-  for (const skill of normalizedSkills) {
-    if (skill.length >= 3 && normalizedItem.includes(skill)) {
-      return true;
-    }
-  }
-
+  // Token-based matching (for multi-word or abbreviated skills)
+  // CRITICAL FIX: Do NOT allow "React Native" to match because CV has "React"
+  // Instead: Check if ALL meaningful tokens from the item exist in CV
+  // This prevents "React Native" from matching just "React"
   const tokens = normalizedItem.match(/[a-z0-9+#.]+/g) ?? [];
   const meaningfulTokens = tokens
     .map(normalizeToken)
     .filter((token) => token.length >= 3 || /[#.+]/.test(token))
     .filter((token) => token && !STOPWORDS.has(token) && !AMBIGUOUS_TOKENS.has(token));
 
-  return meaningfulTokens.some((token) => cvLower.includes(token));
+  // For token-based matching: ALL meaningful tokens must appear in CV (not just one)
+  // Example: "React Native" requires both "react" AND "native" in CV for match
+  //          If CV only has "react", it doesn't match "react native"
+  if (meaningfulTokens.length > 0) {
+    return meaningfulTokens.every((token) => cvLower.includes(token));
+  }
+
+  return false;
 }
 
 function sanitizeSignals(

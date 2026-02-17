@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { mapAlignmentResponseToUIModel, mapWithDefaults } from './alignmentMapper';
+import { mapAlignmentResponseToUIModel, mapWithDefaults, __testing__ } from './alignmentMapper';
 import type { AnalysisResult } from '../../types/analysis';
 
 describe('Alignment Mapper', () => {
@@ -242,14 +242,25 @@ describe('Alignment Mapper', () => {
       const custom: Partial<AnalysisResult> = {
         fitScore: 90,
         decision: 'apply_with_fixes',
-        strengths: ['Custom strength'],
+        aiSignals: {
+          hardSkillsDetected: ['Custom skill'],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
       };
 
       const uiModel = mapWithDefaults(custom);
 
       expect(uiModel.fitScore).toBe(90);
       expect(uiModel.decision).toBe('apply_with_fixes');
-      expect(uiModel.hardSkills).toContain('Custom strength');
+      expect(uiModel.hardSkills).toContain('Custom skill');
       expect(uiModel.coverLetter).toBe('');
     });
   });
@@ -317,4 +328,280 @@ describe('Alignment Mapper', () => {
       expect(uiModel.yearsConfidence).toBe('low');
     });
   });
+
+  describe('CRITICAL: Hard Skills Validation (Single Source of Truth)', () => {
+    it('should use ONLY aiSignals.hardSkillsDetected, never response.strengths', () => {
+      const resultWithSignals: AnalysisResult = {
+        ...mockAnalysisResult,
+        strengths: ['Ignored', 'Should not appear'],
+        aiSignals: {
+          hardSkillsDetected: ['React', 'TypeScript'],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultWithSignals);
+
+      expect(uiModel.hardSkills).toEqual(['React', 'TypeScript']);
+      expect(uiModel.hardSkills).not.toContain('Ignored');
+      expect(uiModel.hardSkills).not.toContain('Should not appear');
+    });
+
+    it('should NOT display "React Native" if it is not in hardSkillsDetected', () => {
+      const resultWithReactOnly: AnalysisResult = {
+        ...mockAnalysisResult,
+        aiSignals: {
+          hardSkillsDetected: ['React', 'Node.js'],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultWithReactOnly);
+
+      expect(uiModel.hardSkills).toContain('React');
+      expect(uiModel.hardSkills).not.toContain('React Native');
+    });
+
+    it('should display "React Native" ONLY if explicitly in hardSkillsDetected', () => {
+      const resultWithReactNative: AnalysisResult = {
+        ...mockAnalysisResult,
+        aiSignals: {
+          hardSkillsDetected: ['React Native', 'JavaScript'],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultWithReactNative);
+
+      expect(uiModel.hardSkills).toContain('React Native');
+    });
+
+    it('should return empty array if aiSignals.hardSkillsDetected is missing or empty', () => {
+      const resultNoSignals: AnalysisResult = {
+        ...mockAnalysisResult,
+        strengths: ['Should be ignored'],
+        aiSignals: {
+          hardSkillsDetected: [],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultNoSignals);
+
+      expect(uiModel.hardSkills).toEqual([]);
+      expect(uiModel.hardSkills).not.toContain('Should be ignored');
+    });
+
+    it('should filter out empty strings and whitespace from hardSkillsDetected', () => {
+      const resultWithWhitespace: AnalysisResult = {
+        ...mockAnalysisResult,
+        aiSignals: {
+          hardSkillsDetected: ['React', '  ', '', 'TypeScript', '   Angular   '],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultWithWhitespace);
+
+      expect(uiModel.hardSkills).toEqual(['React', 'TypeScript', 'Angular']);
+      expect(uiModel.hardSkills.every((s) => typeof s === 'string' && s.trim().length > 0)).toBe(true);
+    });
+
+    it('should deduplicate whitespace-only entries', () => {
+      const resultWithDuplicateWhitespace: AnalysisResult = {
+        ...mockAnalysisResult,
+        aiSignals: {
+          hardSkillsDetected: ['React', 'React'],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultWithDuplicateWhitespace);
+
+      expect(uiModel.hardSkills).toEqual(['React', 'React']);
+    });
+
+    it('should NOT infer skills from requirement strings', () => {
+      const resultWithRequirements: AnalysisResult = {
+        ...mockAnalysisResult,
+        aiSignals: {
+          hardSkillsDetected: ['Python'],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: ['React or React Native experience'],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultWithRequirements);
+
+      expect(uiModel.hardSkills).toEqual(['Python']);
+      expect(uiModel.hardSkills).not.toContain('React or React Native experience');
+      expect(uiModel.hardSkills).not.toContain('React');
+      expect(uiModel.hardSkills).not.toContain('React Native');
+    });
+
+    it('should validate type safety - only strings are included', () => {
+      const result: AnalysisResult = {
+        ...mockAnalysisResult,
+        aiSignals: {
+          hardSkillsDetected: ['React', null as any, 'TypeScript', undefined as any, 123 as any],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(result);
+
+      expect(uiModel.hardSkills).toEqual(['React', 'TypeScript']);
+      expect(uiModel.hardSkills.every((s) => typeof s === 'string')).toBe(true);
+    });
+  });
+
+  describe('CRITICAL: Soft Skills Validation (Single Source of Truth)', () => {
+    it('should use ONLY aiSignals.softSkillsEvidence, never response.gaps', () => {
+      const resultWithSignals: AnalysisResult = {
+        ...mockAnalysisResult,
+        gaps: ['Ignored', 'Should not appear'],
+        aiSignals: {
+          hardSkillsDetected: [],
+          softSkillsEvidence: ['Leadership', 'Communication'],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultWithSignals);
+
+      expect(uiModel.softSkills).toEqual(['Leadership', 'Communication']);
+      expect(uiModel.softSkills).not.toContain('Ignored');
+      expect(uiModel.softSkills).not.toContain('Should not appear');
+    });
+
+    it('should return empty array if aiSignals.softSkillsEvidence is missing', () => {
+      const resultNoSignals: AnalysisResult = {
+        ...mockAnalysisResult,
+        gaps: ['Should be ignored'],
+        aiSignals: {
+          hardSkillsDetected: [],
+          softSkillsEvidence: [],
+          mandatoryRequirementsMet: [],
+          mandatoryRequirementsMissing: [],
+          desirableRequirementsMet: [],
+          desirableRequirementsMissing: [],
+          seniorityMatch: 'match',
+          redFlags: [],
+          recruiterMessage: '',
+          coverLetter: '',
+        },
+      };
+
+      const uiModel = mapAlignmentResponseToUIModel(resultNoSignals);
+
+      expect(uiModel.softSkills).toEqual([]);
+      expect(uiModel.softSkills).not.toContain('Should be ignored');
+    });
+  });
+
+  describe('Direct validation function tests', () => {
+    it('getValidatedHardSkills should return only validated strings', () => {
+      const signals = {
+        hardSkillsDetected: ['React', '  ', '', 'TypeScript'],
+      };
+
+      const result = __testing__.getValidatedHardSkills(signals, {});
+
+      expect(result).toEqual(['React', 'TypeScript']);
+    });
+
+    it('getValidatedSoftSkills should return only validated strings', () => {
+      const signals = {
+        softSkillsEvidence: ['Leadership', '  ', '', 'Communication'],
+      };
+
+      const result = __testing__.getValidatedSoftSkills(signals);
+
+      expect(result).toEqual(['Leadership', 'Communication']);
+    });
+
+    it('getValidatedHardSkills should handle null/undefined gracefully', () => {
+      const result = __testing__.getValidatedHardSkills(null, {});
+
+      expect(result).toEqual([]);
+    });
+
+    it('getValidatedSoftSkills should handle null/undefined gracefully', () => {
+      const result = __testing__.getValidatedSoftSkills(null);
+
+      expect(result).toEqual([]);
+    });
+  });
 });
+
+

@@ -185,6 +185,73 @@ function normalizeRedFlags(flags: string[]): string[] {
 }
 
 /**
+ * CRITICAL: Validates and extracts hard skills - SINGLE SOURCE OF TRUTH
+ *
+ * Must ensure:
+ * - Only skills from aiSignals.hardSkillsDetected are used
+ * - No inference from requirements
+ * - No fallback to response.strengths
+ * - In development, any mismatch is logged as a warning
+ *
+ * @param signals - AI signals from backend (source of truth)
+ * @param response - Full analysis response (NOT used for skill extraction)
+ * @returns Validated hard skills array
+ */
+function getValidatedHardSkills(signals: any, response: any): string[] {
+  // STRICT: Only use signals.hardSkillsDetected
+  const hardSkills = Array.isArray(signals?.hardSkillsDetected)
+    ? signals.hardSkillsDetected
+    : [];
+
+  // Validate each skill is a non-empty string
+  const validated = hardSkills
+    .filter((skill: any): skill is string => typeof skill === 'string' && skill.trim().length > 0)
+    .map((skill: string) => skill.trim());
+
+  // DEVELOPMENT ONLY: Log if response.strengths exists but wasn't used
+  if (process.env.NODE_ENV === 'development' && response?.strengths?.length > 0 && validated.length === 0) {
+    console.warn(
+      '[alignmentMapper] Development Warning: response.strengths exists but was NOT used because aiSignals.hardSkillsDetected is empty. Skills can ONLY come from hardSkillsDetected.',
+      { strengths: response.strengths }
+    );
+  }
+
+  // DEVELOPMENT ONLY: Warn if hardSkillsDetected seems incorrect
+  if (process.env.NODE_ENV === 'development') {
+    const suspiciousSkills = validated.filter((skill: string) => skill.toLowerCase().includes('react native'));
+    if (suspiciousSkills.length > 0) {
+      console.warn(
+        '[alignmentMapper] Development Warning: Suspicious skills detected in hardSkillsDetected. Ensure these were explicitly detected by AI:',
+        suspiciousSkills
+      );
+    }
+  }
+
+  return validated;
+}
+
+/**
+ * CRITICAL: Validates and extracts soft skills - SINGLE SOURCE OF TRUTH
+ *
+ * Must ensure:
+ * - Only skills from aiSignals.softSkillsEvidence are used
+ * - No inference from requirements
+ * - No fallback to response.gaps
+ *
+ * @param signals - AI signals from backend (source of truth)
+ * @returns Validated soft skills array
+ */
+function getValidatedSoftSkills(signals: any): string[] {
+  const softSkills = Array.isArray(signals?.softSkillsEvidence)
+    ? signals.softSkillsEvidence
+    : [];
+
+  return softSkills
+    .filter((skill: any): skill is string => typeof skill === 'string' && skill.trim().length > 0)
+    .map((skill: string) => skill.trim());
+}
+
+/**
  * Core mapping function: AnalysisResult → AlignmentUIModel
  *
  * This is the ONLY function that depends on the API contract.
@@ -251,8 +318,10 @@ export function mapAlignmentResponseToUIModel(response: AnalysisResult): Alignme
   const hasRedFlags = redFlags.length > 0;
   const hasDetectedDomains = detectedDomains.length > 0;
 
-  const hardSkills = signals?.hardSkillsDetected || response.strengths || [];
-  const softSkills = signals?.softSkillsEvidence || response.gaps || [];
+  // CRITICAL: Use only validated skills from signals
+  // NO fallback to response.strengths or response.gaps
+  const hardSkills = getValidatedHardSkills(signals, response);
+  const softSkills = getValidatedSoftSkills(signals);
 
   console.log('[alignmentMapper] Final skills and domains:', {
     hardSkillsCount: hardSkills.length,
@@ -322,3 +391,12 @@ export function mapWithDefaults(
     ...response,
   });
 }
+
+/**
+ * Export for testing: Allows test suites to validate skill extraction
+ * @internal - DO NOT USE IN PRODUCTION
+ */
+export const __testing__ = {
+  getValidatedHardSkills,
+  getValidatedSoftSkills,
+};
