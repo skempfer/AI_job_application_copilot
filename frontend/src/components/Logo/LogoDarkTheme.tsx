@@ -1,3 +1,9 @@
+interface LogoDarkThemeProps {
+  width?: number;
+  height?: number;
+  className?: string;
+}
+
 export function LogoDarkTheme({
   width = 200,
   height = 56,

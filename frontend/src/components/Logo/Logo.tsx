@@ -1,3 +1,9 @@
+interface LogoProps {
+  width?: number;
+  height?: number;
+  className?: string;
+}
+
 export function Logo({ width = 240, height = 64, className = '' }: LogoProps) {
   return (
     <svg

@@ -1,3 +1,10 @@
+interface LogoMonoProps {
+  width?: number;
+  height?: number;
+  className?: string;
+  isDark?: boolean;
+}
+
 export function LogoMono({
   width = 200,
   height = 56,
