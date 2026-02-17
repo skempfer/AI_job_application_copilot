@@ -4,16 +4,46 @@ import fs from "fs/promises";
 import { AIService } from "../services/aiService.js";
 import { saveAnalysis } from "../services/databaseService.js";
 import { extractTextFromPDF } from "../services/cvParserService.js";
-import { AI_FALLBACK_PROVIDER } from "../types/analysis.js";
-import type { AIProviderFallbackResponse, AnalysisRequest } from "../types/analysis.js";
+import type { AnalysisRequest } from "../types/analysis.js";
 import { AIProviderError } from "../services/providers/providerErrors.js";
 import { getErrorMessage, getLanguageFromRequest } from "../i18n/index.js";
+import { checkRateLimit, incrementUsage } from "../services/rateLimitService.js";
+import { logAnalysisUsage } from "../services/usageLoggingService.js";
+
+/**
+ * Extract client IP address from request
+ * Respects X-Forwarded-For header for proxied requests
+ */
+function getClientIP(req: Request): string {
+  const xForwardedFor = req.headers["x-forwarded-for"];
+  if (xForwardedFor) {
+    const ips = typeof xForwardedFor === "string" ? xForwardedFor.split(",") : xForwardedFor;
+    return ips[0].trim();
+  }
+  return req.ip || req.socket.remoteAddress || "unknown";
+}
 
 export function createAnalyzeRouter(aiService: AIService): Router {
   const router = Router();
 
   router.post("/", async (req: Request, res: Response) => {
     try {
+      const clientIP = getClientIP(req);
+
+      // Check rate limit
+      const rateLimit = checkRateLimit(clientIP);
+      if (!rateLimit.allowed) {
+        logAnalysisUsage(clientIP, false, "rate_limited", {});
+
+        res.status(429).json({
+          error: "daily_limit_exceeded",
+          message: "You have reached the free analysis limit for today.",
+          remaining: 0,
+          resetTime: rateLimit.resetTime.toISOString(),
+        });
+        return;
+      }
+
       const { cv, jobDescription, resumeUrl, language, uiLanguage, jobLanguage } = req.body as AnalysisRequest & { resumeUrl?: string };
       const lang = getLanguageFromRequest(language);
 
@@ -36,13 +66,14 @@ export function createAnalyzeRouter(aiService: AIService): Router {
         res.status(400).json({ error: getErrorMessage('jobDescriptionTooShort', lang) });
         return;
       }
+
       let cvText = cv?.trim() || "";
 
       if (!cvText && resumeUrl) {
         try {
           const uploadDir = path.resolve(process.cwd(), "tmp", "uploads");
           const pdfPath = path.resolve(uploadDir, resumeUrl);
-          
+
           if (!pdfPath.startsWith(uploadDir)) {
             throw new Error(getErrorMessage('invalidResumePath', lang));
           }
@@ -50,7 +81,7 @@ export function createAnalyzeRouter(aiService: AIService): Router {
           if (path.extname(pdfPath).toLowerCase() !== ".pdf") {
             throw new Error(getErrorMessage('invalidFileType', lang));
           }
-          
+
           await fs.access(pdfPath, fs.constants.F_OK).catch(() => {
             throw new Error(getErrorMessage('fileNotFound', lang, { filename: resumeUrl }));
           });
@@ -67,18 +98,30 @@ export function createAnalyzeRouter(aiService: AIService): Router {
       }
 
       // Extract language parameters for proper routing
-      // Priority: uiLanguage > language > default to 'en'
-      const effectiveUiLanguage = (uiLanguage as "pt" | "en" | undefined) || 
-                                   (language as "pt" | "en" | undefined) || 
-                                   "en";
+      const effectiveUiLanguage = (uiLanguage as "pt" | "en" | undefined) ||
+        (language as "pt" | "en" | undefined) ||
+        "en";
       const effectiveJobLanguage = jobLanguage as "pt" | "en" | undefined;
 
+      const startTime = Date.now();
       const result = await aiService.analyzeJobFit(
-        cvText, 
-        jobDescription.trim(), 
+        cvText,
+        jobDescription.trim(),
         effectiveUiLanguage,
         effectiveJobLanguage
       );
+      const responseTimeMs = Date.now() - startTime;
+
+      // Log usage
+      const cacheHit = (result as any).cacheHit === true;
+      logAnalysisUsage(clientIP, cacheHit, "llama-3.3-70b-versatile", {
+        responseTimeMs,
+        cvLength: cvText.length,
+        jobDescriptionLength: jobDescription.length,
+      });
+
+      // Increment rate limit counter (after successful analysis)
+      incrementUsage(clientIP);
 
       if (process.env.USE_FIREBASE === "true") {
         try {
@@ -95,29 +138,20 @@ export function createAnalyzeRouter(aiService: AIService): Router {
           console.error("⚠️  Error saving to database (non-critical):", dbError);
         }
       }
-      
+
       res.json(result);
     } catch (error) {
+      const clientIP = getClientIP(req);
       console.error("Error analyzing job fit:", error);
       const lang = getLanguageFromRequest((req.body as AnalysisRequest)?.language);
 
-      if (error instanceof AIProviderError && error.prompt) {
-        const fallbackResponse: AIProviderFallbackResponse = {
-          success: false,
-          fallback: AI_FALLBACK_PROVIDER.Firebase,
-          reason: error.reason,
-          message: "Primary AI provider unavailable",
-          prompt: error.prompt,
-        };
-
-        res.status(200).json(fallbackResponse);
-        return;
-      }
+      // Log error with usage info
+      logAnalysisUsage(clientIP, false, "error", {});
 
       if (error instanceof AIProviderError) {
         res.status(500).json({
           error: getErrorMessage('internalServerError', lang),
-          details: "Provider fallback prompt missing",
+          details: error.message,
         });
         return;
       }

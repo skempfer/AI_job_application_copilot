@@ -22,24 +22,6 @@ export const AI_FAILURE_REASON = {
 export type AIProviderFailureReason =
   (typeof AI_FAILURE_REASON)[keyof typeof AI_FAILURE_REASON];
 
-export const AI_FALLBACK_PROVIDER = {
-  Firebase: "firebase",
-} as const;
-
-export type AIFallbackProvider =
-  (typeof AI_FALLBACK_PROVIDER)[keyof typeof AI_FALLBACK_PROVIDER];
-
-export interface AIProviderFallbackResponse {
-  success: false;
-  fallback: AIFallbackProvider;
-  reason: AIProviderFailureReason;
-  message: string;
-  prompt: {
-    system: string;
-    user: string;
-  };
-}
-
 /**
  * Signals extracted by the AI (no score calculation)
  * The AI only identifies and classifies skills/requirements

@@ -1,6 +1,5 @@
 import { detectLanguage } from '../utils/languageDetection';
-import type { AnalysisResult, AIProviderFallbackResponse } from '../types/analysis';
-import { handleProviderFallback } from '../services/fallbackAIService';
+import type { AnalysisResult } from '../types/analysis';
 
 // Get API URL from environment variable, with fallback for development
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003';
@@ -12,30 +11,7 @@ function getApiBaseUrl(): string {
   return API_BASE_URL;
 }
 
-/**
- * Type guard to check if response is an AIProviderFallbackResponse
- */
-function isAIProviderFallbackResponse(
-  data: unknown
-): data is AIProviderFallbackResponse {
-  if (typeof data !== 'object' || data === null) {
-    return false;
-  }
-  const obj = data as Record<string, unknown>;
-  
-  // Check all required fields exist and have correct types
-  if (obj.success !== false) return false;
-  if (obj.fallback !== 'firebase') return false;
-  if (typeof obj.reason !== 'string') return false;
-  if (typeof obj.message !== 'string') return false;
-  if (typeof obj.prompt !== 'object' || obj.prompt === null) return false;
-  
-  const prompt = obj.prompt as Record<string, unknown>;
-  if (typeof prompt.system !== 'string') return false;
-  if (typeof prompt.user !== 'string') return false;
-  
-  return true;
-}
+
 
 /**
  * API request payload for job fit analysis
@@ -59,15 +35,6 @@ interface AnalyzeJobFitResponse extends AnalysisResult {
 
 /**
  * Analyzes job fit via API with strict typing
- * Handles both primary provider success and fallback to Firebase Vertex AI
- *
- * Flow:
- * 1. Call backend with CV and job description
- * 2. If backend succeeds (HTTP 200): return analysis result
- * 3. If backend fails with fallback response (HTTP 200, fallback=firebase):
- *    - Call Firebase Vertex AI with preserved prompts
- *    - Return analysis result from Firebase
- * 4. If both fail: return degraded response with safe defaults
  *
  * @param cv - Candidate's resume text
  * @param jobDescription - Job description
@@ -115,23 +82,6 @@ export async function analyzeJobFit(
   }
 
   const responseData = (await response.json()) as unknown;
-
-  // Check if response is a fallback response from backend
-  if (isAIProviderFallbackResponse(responseData)) {
-    console.log(
-      '[apiClient.analyzeJobFit] Backend provider failed, attempting Firebase fallback...'
-    );
-    
-    // Attempt to use Firebase Vertex AI with the preserved prompts
-    const fallbackResult = await handleProviderFallback(responseData);
-    
-    return {
-      ...fallbackResult,
-      detectedLanguage: detectedJobLanguage,
-    };
-  }
-
-  // Normal success response
   const analysisResult = responseData as AnalysisResult;
   return {
     ...analysisResult,

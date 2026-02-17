@@ -67,11 +67,9 @@ describe('AIService - Response Parsing and Output Contract', () => {
       } as any;
     });
 
-    // Initialize service with Vertex configuration
+    // Initialize service with economic model configuration
     aiService = new AIService({
-      projectId: 'test-project',
-      location: 'us-central1',
-      model: 'gemini-1.5-pro',
+      model: 'llama-3.3-70b-versatile',
     });
   });
 

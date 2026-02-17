@@ -16,21 +16,18 @@ import { detectDomainExperience, DomainExperienceFlags } from "../preprocessing/
  * Structured data from a preprocessed CV
  */
 export interface ProcessedCV {
-  // Original fields
+  // Extracted data
   skills: string[];
   seniority: "junior" | "mid" | "senior" | "unknown";
-  experienceBySkill: Record<string, number>;
   companies: string[];
   achievements: string[];
 
-  // DEPRECATED: Use yearsExperience instead (was defaulting to 0)
-  yearsTotal: number;
-
-  // NEW: Deterministic years experience inference
+  // Approximate TOTAL years of professional experience with technology
+  // This is an overall estimate, NOT per-technology
   yearsExperience: number | null;
   yearsExperienceConfidence: YearsExperienceConfidence;
 
-  // NEW: Domain experience detection
+  // Domain experience detection
   domainExperience: DomainExperienceFlags;
 }
 
@@ -103,15 +100,13 @@ const SKILL_SYNONYMS: Record<string, string> = {
 };
 
 /**
- * Patterns to detect seniority and years of experience
+ * Patterns to detect seniority
  */
 const SENIORITY_PATTERNS = {
   senior: /\b(senior|lead|principal|staff|architect|principal engineer|engineering manager)\b/gi,
   mid: /\b(mid-level|mid level|pleno|specialist)\b/gi,
   junior: /\b(junior|entry|estagiário|trainee|graduate)\b/gi,
 };
-
-const YEARS_PATTERN = /(\d{1,2})\s*(?:\+|\s)?(?:years?|anos?|yrs?)\s*(?:of\s+)?(?:experience|experiência|exp\.?)?/gi;
 
 
 export function preprocessCV(rawCV: string): ProcessedCV {
@@ -131,7 +126,7 @@ export function preprocessCV(rawCV: string): ProcessedCV {
     .replace(/\s+$/gm, "") 
     .trim();
 
-  const seniorityMatch = cleaned.match(SENIORITY_PATTERNS.senior);
+const seniorityMatch = cleaned.match(SENIORITY_PATTERNS.senior);
   const midMatch = cleaned.match(SENIORITY_PATTERNS.mid);
   const juniorMatch = cleaned.match(SENIORITY_PATTERNS.junior);
 
@@ -139,17 +134,6 @@ export function preprocessCV(rawCV: string): ProcessedCV {
   if (seniorityMatch) seniority = "senior";
   else if (midMatch) seniority = "mid";
   else if (juniorMatch) seniority = "junior";
-
-  const yearsMatches = cleaned.matchAll(YEARS_PATTERN);
-  let yearsTotal = 0;
-  const yearsArray: number[] = [];
-  for (const match of yearsMatches) {
-    const years = parseInt(match[1], 10);
-    if (!isNaN(years)) yearsArray.push(years);
-  }
-  if (yearsArray.length > 0) {
-    yearsTotal = Math.max(...yearsArray); 
-  }
 
   const skillsSet = new Set<string>();
   const commonTechs = [
@@ -230,45 +214,16 @@ export function preprocessCV(rawCV: string): ProcessedCV {
 
   achievements.splice(5);
 
-  const experienceBySkill: Record<string, number> = {};
-  const skillYearsPattern = /(\d{1,2})\s*(?:\+|\s)?(?:years?|anos?)\s+(?:of\s+)?(.+?)(?:\.|,|;|\n|$)/gi;
-
-  let match;
-  while ((match = skillYearsPattern.exec(cleaned)) !== null) {
-    const years = parseInt(match[1], 10);
-    let skill = match[2]?.trim() ?? "";
-
-    if (skill && years && skill.length < 50) {
-      skill = skill.toLowerCase();
-      for (const [key, value] of Object.entries(SKILL_SYNONYMS)) {
-        if (skill.includes(key)) {
-          skill = value;
-          break;
-        }
-      }
-
-      if (!experienceBySkill[skill] || experienceBySkill[skill] < years) {
-        experienceBySkill[skill] = years;
-      }
-    }
-  }
-
-  // NEW: Extract years of experience using deterministic inference
+  // NEW: Extract TOTAL years of professional experience using deterministic inference
   const yearsExperienceResult = extractYearsExperience(rawCV);
-
-  if (yearsTotal === 0 && yearsExperienceResult.yearsExperience !== null) {
-    yearsTotal = yearsExperienceResult.yearsExperience;
-  }
 
   const domainExperience = detectDomainExperience(rawCV);
 
   return {
     skills: Array.from(skillsSet).sort(),
     seniority,
-    experienceBySkill,
     companies: Array.from(companies).slice(0, 10),
     achievements,
-    yearsTotal,
     yearsExperience: yearsExperienceResult.yearsExperience,
     yearsExperienceConfidence: yearsExperienceResult.confidence,
     domainExperience,

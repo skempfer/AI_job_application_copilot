@@ -128,8 +128,7 @@ export class GroqProvider implements AIProvider {
   }
 
   private getErrorMessage(error: unknown): string {
-    return typeof (error as { message?: string })?.message === "string"
-      ? (error as { message?: string }).message
-      : "";
+    const message = (error as { message?: string })?.message;
+    return typeof message === "string" ? message : "";
   }
 }

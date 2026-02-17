@@ -50,7 +50,7 @@ export function createTestPreprocessingRouter(): Router {
       const processedJob = preprocessJobDescription(jobDescription);
 
       const analyzeLanguage = (language as "pt" | "en") || "pt";
-      const prompt = buildOptimizedPrompt(processedCV, processedJob, analyzeLanguage);
+      const prompt = buildOptimizedPrompt(cv, jobDescription, processedCV, processedJob, analyzeLanguage);
 
       res.json({
         success: true,

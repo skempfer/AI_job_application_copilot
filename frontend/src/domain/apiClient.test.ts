@@ -1,9 +1,5 @@
 import { analyzeJobFit } from '../domain/apiClient';
-import * as fallbackService from '../services/fallbackAIService';
-import type { AIProviderFallbackResponse, AnalysisResult } from '../types/analysis';
-
-// Mock the fallback service
-jest.mock('../services/fallbackAIService');
+import type { AnalysisResult } from '../types/analysis';
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -45,7 +41,6 @@ describe('API Client - Fallback Response Handling', () => {
       expect(result.fitScore).toBe(0.85);
       expect(result.decision).toBe('apply');
       expect(result.detectedLanguage).toBe('en');
-      expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
     });
 
     it('includes detected language in response', async () => {
@@ -70,142 +65,6 @@ describe('API Client - Fallback Response Handling', () => {
     });
   });
 
-  describe('analyzeJobFit with fallback response', () => {
-    it('detects fallback response and calls fallback service', async () => {
-      const fallbackResponse: AIProviderFallbackResponse = {
-        success: false,
-        fallback: 'firebase',
-        reason: 'rate_limit',
-        message: 'Groq rate limit exceeded',
-        prompt: {
-          system: 'Analyze job fit',
-          user: 'Check if I match',
-        },
-      };
-
-      const degradedResult: AnalysisResult = {
-        fitScore: 0.5,
-        decision: 'apply',
-        recruiterMessage: 'Service temporarily unavailable',
-        coverLetter: 'Cover letter template',
-        strengths: [],
-        gaps: [],
-        cvSuggestions: [],
-        explanation: {
-          positives: ['You applied'],
-          negatives: ['Service unavailable'],
-          summary: 'Try again later',
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValueOnce(fallbackResponse),
-      });
-
-      (fallbackService.handleProviderFallback as jest.Mock).mockResolvedValueOnce(
-        degradedResult
-      );
-
-      const result = await analyzeJobFit('CV', 'Job description', 'en');
-
-      expect(fallbackService.handleProviderFallback).toHaveBeenCalledWith(
-        fallbackResponse
-      );
-      expect(result.fitScore).toBe(0.5);
-      expect(result.decision).toBe('apply');
-      expect(result.detectedLanguage).toBe('en');
-    });
-
-    it('passes complete fallback response to fallback service', async () => {
-      const fallbackResponse: AIProviderFallbackResponse = {
-        success: false,
-        fallback: 'firebase',
-        reason: 'provider_unavailable',
-        message: 'Groq unavailable',
-        prompt: {
-          system: 'System prompt content',
-          user: 'User prompt content',
-        },
-      };
-
-      const mockResult: AnalysisResult = {
-        fitScore: 0.5,
-        decision: 'apply',
-        recruiterMessage: 'Fallback response',
-        coverLetter: 'Letter',
-        strengths: [],
-        gaps: [],
-        cvSuggestions: [],
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValueOnce(fallbackResponse),
-      });
-
-      (fallbackService.handleProviderFallback as jest.Mock).mockResolvedValueOnce(
-        mockResult
-      );
-
-      await analyzeJobFit('CV', 'Job', 'en');
-
-      const callArgs = (fallbackService.handleProviderFallback as jest.Mock)
-        .mock.calls[0][0];
-
-      expect(callArgs.reason).toBe('provider_unavailable');
-      expect(callArgs.prompt.system).toBe('System prompt content');
-      expect(callArgs.prompt.user).toBe('User prompt content');
-    });
-
-    it('handles multiple failure reasons from backend', async () => {
-      const reasons: Array<'rate_limit' | 'quota_exceeded' | 'provider_unavailable' | 'timeout'> = [
-        'rate_limit',
-        'quota_exceeded',
-        'provider_unavailable',
-        'timeout',
-      ];
-
-      const mockResult: AnalysisResult = {
-        fitScore: 0.5,
-        decision: 'apply',
-        recruiterMessage: 'Fallback',
-        coverLetter: 'Letter',
-        strengths: [],
-        gaps: [],
-        cvSuggestions: [],
-      };
-
-      for (const reason of reasons) {
-        jest.clearAllMocks();
-
-        const fallbackResponse: AIProviderFallbackResponse = {
-          success: false,
-          fallback: 'firebase',
-          reason,
-          message: `Provider failed: ${reason}`,
-          prompt: {
-            system: 'System',
-            user: 'User',
-          },
-        };
-
-        (global.fetch as jest.Mock).mockResolvedValueOnce({
-          ok: true,
-          json: jest.fn().mockResolvedValueOnce(fallbackResponse),
-        });
-
-        (fallbackService.handleProviderFallback as jest.Mock).mockResolvedValueOnce(
-          mockResult
-        );
-
-        await analyzeJobFit('CV', 'Job', 'en');
-
-        expect(fallbackService.handleProviderFallback).toHaveBeenCalled();
-      }
-    });
-  });
-
   describe('analyzeJobFit with HTTP errors', () => {
     it('throws error on non-200 responses', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -219,7 +78,6 @@ describe('API Client - Fallback Response Handling', () => {
       await expect(analyzeJobFit('CV', 'Job', 'en')).rejects.toThrow(
         'Internal server error'
       );
-      expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
     });
 
     it('includes HTTP status in error', async () => {
@@ -245,94 +103,6 @@ describe('API Client - Fallback Response Handling', () => {
       });
 
       await expect(analyzeJobFit('CV', 'Job', 'en')).rejects.toThrow('HTTP Error: 429');
-      expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('analyzeJobFit distinguishes normal vs fallback responses', () => {
-    it('recognizes normal response with success-like structure', async () => {
-      const normalResponse: AnalysisResult = {
-        fitScore: 0.8,
-        decision: 'apply',
-        recruiterMessage: 'Match',
-        coverLetter: 'Letter',
-        strengths: [],
-        gaps: [],
-        cvSuggestions: [],
-        // Note: no "success" field, and no "fallback" field
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValueOnce(normalResponse),
-      });
-
-      const result = await analyzeJobFit('CV', 'Job', 'en');
-
-      expect(result.fitScore).toBe(0.8);
-      expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
-    });
-
-    it('recognizes fallback response with success: false', async () => {
-      const fallbackResponse: AIProviderFallbackResponse = {
-        success: false,
-        fallback: 'firebase',
-        reason: 'rate_limit',
-        message: 'Rate limited',
-        prompt: {
-          system: 'System',
-          user: 'User',
-        },
-      };
-
-      const mockResult: AnalysisResult = {
-        fitScore: 0.5,
-        decision: 'apply',
-        recruiterMessage: 'Fallback',
-        coverLetter: 'Letter',
-        strengths: [],
-        gaps: [],
-        cvSuggestions: [],
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValueOnce(fallbackResponse),
-      });
-
-      (fallbackService.handleProviderFallback as jest.Mock).mockResolvedValueOnce(
-        mockResult
-      );
-
-      const result = await analyzeJobFit('CV', 'Job', 'en');
-
-      expect(fallbackService.handleProviderFallback).toHaveBeenCalled();
-      expect(result.fitScore).toBe(0.5);
-    });
-
-    it('ignores responses with success: true field (not fallbacks)', async () => {
-      const fakeResponse = {
-        success: true,
-        fitScore: 0.75,
-        decision: 'apply' as const,
-        recruiterMessage: 'Good',
-        coverLetter: 'Letter',
-        strengths: [],
-        gaps: [],
-        cvSuggestions: [],
-        // Includes success: true, so it's not a fallback response
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValueOnce(fakeResponse),
-      });
-
-      // The type guard should reject this because it checks success === false
-      await analyzeJobFit('CV', 'Job', 'en');
-
-      // It should be treated as a normal response
-      expect(fallbackService.handleProviderFallback).not.toHaveBeenCalled();
     });
   });
 
