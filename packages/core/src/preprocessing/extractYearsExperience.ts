@@ -1,4 +1,4 @@
-import { normalizeText } from "./normalizeText";
+import { normalizeText } from "./normalizeText.js";
 
 const CURRENT_YEAR = new Date().getFullYear();
 export type YearsExperienceConfidence = "high" | "medium" | "low";

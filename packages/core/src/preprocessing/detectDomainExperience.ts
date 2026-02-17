@@ -1,5 +1,5 @@
-import { normalizeText } from "./normalizeText";
-import { DomainCategory, getDomainsByKeyword } from "./dictionaries/roleSynonyms";
+import { normalizeText } from "./normalizeText.js";
+import { DomainCategory, getDomainsByKeyword } from "./dictionaries/roleSynonyms.js";
 
 export interface DomainExperienceFlags {
   frontend: boolean;

@@ -9,8 +9,8 @@
  * - Domain/role semantic detection using normalized synonym dictionary
  */
 
-import { extractYearsExperience, YearsExperienceConfidence } from "../preprocessing/extractYearsExperience";
-import { detectDomainExperience, DomainExperienceFlags } from "../preprocessing/detectDomainExperience";
+import { extractYearsExperience, YearsExperienceConfidence } from "../preprocessing/extractYearsExperience.js";
+import { detectDomainExperience, DomainExperienceFlags } from "../preprocessing/detectDomainExperience.js";
 
 /**
  * Structured data from a preprocessed CV
