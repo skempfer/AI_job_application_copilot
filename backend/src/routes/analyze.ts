@@ -1,11 +1,10 @@
 import { Router, Request, Response } from "express";
 import path from "path";
 import fs from "fs/promises";
-import { AIService } from "../services/aiService.js";
+import { AIService, extractTextFromPDF } from "@viora/core";
 import { saveAnalysis } from "../services/databaseService.js";
-import { extractTextFromPDF } from "../services/cvParserService.js";
 import type { AnalysisRequest } from "../types/analysis.js";
-import { AIProviderError } from "../services/providers/providerErrors.js";
+import { AIProviderError } from "@viora/core";
 import { getErrorMessage, getLanguageFromRequest } from "../i18n/index.js";
 import { checkRateLimit, incrementUsage } from "../services/rateLimitService.js";
 import { logAnalysisUsage } from "../services/usageLoggingService.js";

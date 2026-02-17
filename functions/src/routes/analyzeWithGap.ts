@@ -5,8 +5,7 @@ import { createWriteStream } from "fs";
 import { pipeline } from "stream/promises";
 import http from "http";
 import https from "https";
-import { extractTextFromPDF, parseCVToStructuredData, CVParserError } from "../services/cvParserService.js";
-import { analyzeGap, GapAnalyzerError } from "../services/gapAnalyzerService.js";
+import { extractTextFromPDF, parseCVToStructuredData, CVParserError, analyzeGap, GapAnalyzerError } from "@viora/core";
 import { saveAnalysis } from "../services/databaseService.js";
 import type { GapAnalysisRequest } from "../types/analysis.js";
 

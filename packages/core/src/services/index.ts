@@ -1,7 +1,7 @@
 // Core services exports
 export { AIService } from './aiService.js';
-export { analyzeGap } from './gapAnalyzerService.js';
-export { parseCVToStructuredData, extractTextFromPDF } from './cvParserService.js';
+export { analyzeGap, GapAnalyzerError } from './gapAnalyzerService.js';
+export { parseCVToStructuredData, extractTextFromPDF, CVParserError } from './cvParserService.js';
 export { buildOptimizedPrompt, estimateTokenCount } from './promptBuilder.js';
 export { calculateFitScore, generateExplanation, determineDecision } from './scoring.js';
 export { preprocessCV, preprocessJobDescription } from './preprocessing.js';

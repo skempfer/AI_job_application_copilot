@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { AIService } from "./services/aiService.js";
+import { AIService } from "@viora/core";
 import { createAnalyzeRouter } from "./routes/analyze.js";
 import { createUploadRouter } from "./routes/upload.js";
 import { createHistoryRouter } from "./routes/history.js";

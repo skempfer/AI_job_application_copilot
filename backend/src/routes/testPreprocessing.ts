@@ -12,8 +12,7 @@
  */
 
 import { Router, Request, Response } from "express";
-import { preprocessCV, preprocessJobDescription } from "../services/preprocessing.js";
-import { buildOptimizedPrompt } from "../services/promptBuilder.js";
+import { preprocessCV, preprocessJobDescription, buildOptimizedPrompt } from "@viora/core";
 import type { AnalysisRequest } from "../types/analysis.js";
 
 export function createTestPreprocessingRouter(): Router {
