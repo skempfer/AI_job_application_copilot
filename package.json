@@ -21,6 +21,7 @@
     "build:frontend": "cd frontend && npm run build",
     "build:functions": "cd functions && npm run build",
     "build:all": "npm run build:core && npm run build:frontend && npm run build:functions",
+    "prepare:functions": "node scripts/prepare-functions-deploy.js",
     "deploy": "npm run build:all && firebase deploy",
     "deploy:hosting": "npm run build:frontend && firebase deploy --only hosting",
     "deploy:functions": "npm run build:functions && firebase deploy --only functions",
