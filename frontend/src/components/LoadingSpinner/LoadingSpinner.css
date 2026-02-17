@@ -29,6 +29,7 @@
   text-align: center;
   margin: 0;
   max-width: 200px;
+  animation: pulse-message 1.5s ease-in-out infinite;
 }
 
 /* Dark mode */
@@ -69,5 +70,18 @@
 @media (prefers-reduced-motion: reduce) {
   .loading-spinner {
     /* Static display without animations */
+  }
+  .loading-message {
+    animation: none;
+  }
+}
+
+/* Pulse animation for message text */
+@keyframes pulse-message {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
   }
 }
