@@ -6,8 +6,7 @@
   "workspaces": [
     "packages/*",
     "backend",
-    "frontend",
-    "functions"
+    "frontend"
   ],
   "scripts": {
     "prepare": "husky install",
