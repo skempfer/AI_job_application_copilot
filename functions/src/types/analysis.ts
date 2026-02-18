@@ -11,5 +11,5 @@ export {
   type AIServiceConfig,
   type AIProviderFailureReason,
   AI_FAILURE_REASON,
-} from "@viora/core";
+} from "../core/types/analysis.js";
 

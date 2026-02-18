@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import path from "path";
 import fs from "fs/promises";
-import { AIService, extractTextFromPDF } from "@viora/core";
+import { AIService, extractTextFromPDF } from "../core/services/index.js";
 import { saveAnalysis } from "../services/databaseService.js";
 import type { AnalysisRequest } from "../types/analysis.js";
 

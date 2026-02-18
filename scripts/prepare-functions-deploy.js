@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const sourceDir = path.join(__dirname, '..', 'packages', 'core');
-const targetDir = path.join(__dirname, '..', 'functions', 'node_modules', '@viora', 'core');
+const coreSrcDir = path.join(__dirname, '..', 'packages', 'core', 'src');
+const targetDir = path.join(__dirname, '..', 'functions', 'src', 'core');
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -13,7 +13,7 @@ function copyDir(src, dest) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     
-    if (entry.name === 'node_modules' || entry.name === 'src') {
+    if (entry.name === 'node_modules') {
       continue;
     }
     
@@ -25,6 +25,6 @@ function copyDir(src, dest) {
   }
 }
 
-console.log('📦 Copying @viora/core to functions...');
-copyDir(sourceDir, targetDir);
+console.log('📦 Copying @viora/core source to functions...');
+copyDir(coreSrcDir, targetDir);
 console.log('✅ Done!');
