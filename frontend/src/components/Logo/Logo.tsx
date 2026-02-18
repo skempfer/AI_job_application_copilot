@@ -1,8 +1,3 @@
-/**
- * Viora Logo Component
- * Used in header, footer, and branding contexts
- */
-
 interface LogoProps {
   width?: number;
   height?: number;
@@ -21,16 +16,12 @@ export function Logo({ width = 240, height = 64, className = '' }: LogoProps) {
       role="img"
       className={className}
     >
-      {/* Icon */}
       <g transform="translate(0, 8)">
-        {/* Outer circle (blue accent) */}
         <circle cx="24" cy="24" r="24" fill="#2563eb" />
 
-        {/* Inner focus (white clarity point) */}
         <circle cx="24" cy="24" r="6" fill="#ffffff" />
       </g>
 
-      {/* Wordmark */}
       <text
         x="64"
         y="42"

@@ -9,7 +9,7 @@ import * as functions from "firebase-functions";
 import express from "express";
 import cors from "cors";
 import { initializeFirebaseAdmin } from "./config/firebase";
-import { AIService } from "./services/aiService";
+import { AIService } from "./core/services/aiService.js";
 import { createAnalyzeRouter } from "./routes/analyze";
 import { createUploadRouter } from "./routes/upload";
 import { createHistoryRouter } from "./routes/history";

@@ -26,10 +26,6 @@ const GapAnalysisDisplay = lazy(() => import('../features/analysis/components/Ga
 const ConsolidatedAnalysis = lazy(() => import('../features/analysis/components/ConsolidatedAnalysis').then(m => ({ default: m.ConsolidatedAnalysis })));
 const CoverLetterDisplay = lazy(() => import('../features/display/components/CoverLetterDisplay').then(m => ({ default: m.CoverLetterDisplay })));
 
-/**
- * AppContent - Main application content
- * Separated from root App to be wrapped with context providers
- */
 function AppContent() {
   const { t } = useLanguage();
   const [cv, setCv] = useState('');
@@ -72,16 +68,13 @@ function AppContent() {
     }
   }, [jobDescription]);
 
-  // Monitor rate limit status
   useEffect(() => {
     const checkRateLimit = () => {
       setRateLimited(isRateLimited());
     };
 
-    // Check initial status
     checkRateLimit();
 
-    // Set up interval to check every second while rate limited
     const interval = setInterval(checkRateLimit, 1000);
 
     return () => clearInterval(interval);
@@ -146,11 +139,6 @@ function AppContent() {
   );
 }
 
-/**
- * App - Root component with providers
- * Wraps AppContent with ThemeProvider and LanguageProvider
- * Shows splash screen only on first load (per session)
- */
 function AppWithSplash() {
   const [showSplash, setShowSplash] = useState(() => {
     const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');

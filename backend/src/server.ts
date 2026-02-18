@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { AIService } from "./services/aiService.js";
+import { AIService } from "@viora/core";
 import { createAnalyzeRouter } from "./routes/analyze.js";
 import { createUploadRouter } from "./routes/upload.js";
 import { createHistoryRouter } from "./routes/history.js";
@@ -13,15 +13,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-const requiredEnvVars = ["GROQ_API_KEY"];
-const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
-
-if (missingEnvVars.length > 0) {
-  console.error(`❌ Missing environment variables: ${missingEnvVars.join(", ")}`);
-  console.error("Create a .env file based on .env.example");
-  process.exit(1);
-}
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
@@ -35,9 +26,7 @@ if (process.env.USE_FIREBASE === "true") {
 }
 
 const aiService = new AIService({
-  apiKey: process.env.GROQ_API_KEY!,
-  apiUrl: process.env.GROQ_API_URL || "https://api.groq.com/openai/v1",
-  model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+  model: process.env.AI_MODEL_DEFAULT || "llama-3.3-70b-versatile",
 });
 
 app.use("/api/analyze", createAnalyzeRouter(aiService));
@@ -54,7 +43,28 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Viora Backend running on http://localhost:${PORT}`);
-  console.log(`⚡ Using Groq: ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"}`);
+  console.log(`⚡ AI Model: ${process.env.AI_MODEL_DEFAULT || "llama-3.3-70b-versatile (economic)"}`);
+});
+
+const gracefulShutdown = (signal: string) => {
+  console.log(`\n${signal} received, closing server gracefully...`);
+  server.close(() => {
+    console.log("✅ Server closed, port released");
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    console.error("❌ Forced shutdown after timeout");
+    process.exit(1);
+  }, 10000);
+};
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT (Ctrl+C)"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+
+process.on("uncaughtException", (error) => {
+  console.error("❌ Uncaught Exception:", error);
+  gracefulShutdown("uncaughtException");
 });

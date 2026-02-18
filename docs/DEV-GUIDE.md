@@ -1,5 +1,14 @@
 # Development Guide
 
+⚠️ **Note**: The AI inference layer was refactored in v2.0. See [AI-INFERENCE-ARCHITECTURE.md](AI-INFERENCE-ARCHITECTURE.md) for details on the new architecture with system prompts, schema validation, and structured logging.
+
+## Quick Links to AI Service Documentation
+
+- **Complete AI Architecture**: [AI-INFERENCE-ARCHITECTURE.md](AI-INFERENCE-ARCHITECTURE.md)
+- **Schema Validation**: [SCHEMA-VALIDATION.md](SCHEMA-VALIDATION.md)
+- **Error Handling**: [ERROR-HANDLING.md](ERROR-HANDLING.md)
+- **Adding New Providers**: [EXTENDING-AI-PROVIDERS.md](EXTENDING-AI-PROVIDERS.md)
+
 ## Project Initialization
 
 ### 1. Backend
@@ -15,13 +24,16 @@ Create the `.env` file based on `.env.example`:
 cp .env.example .env
 ```
 
-Edit `.env` and add your Groq API key (free at https://console.groq.com/keys):
+Edit `.env` and add your OpenAI API key:
 
 ```
-GROQ_API_KEY=gsk_your-key-here
-GROQ_API_URL=https://api.groq.com/openai/v1
-GROQ_MODEL=llama-3.3-70b-versatile
+OPENAI_API_KEY=sk_your-key-here
+OPENAI_MODEL=gpt-3.5-turbo
+# or for better quality:
+OPENAI_MODEL=gpt-4
 ```
+
+Or to use a different AI provider, see [EXTENDING-AI-PROVIDERS.md](EXTENDING-AI-PROVIDERS.md).
 
 Start the server:
 
@@ -48,20 +60,35 @@ Frontend will be at `http://localhost:5173`
 ```
 backend/
 ├── src/
-│   ├── server.ts           # Entry point, Express setup
+│   ├── server.ts              # Entry point, Express setup
 │   ├── routes/
-│   │   └── analyze.ts      # POST /api/analyze
+│   │   └── analyze.ts         # POST /api/analyze
 │   ├── services/
-│   │   └── aiService.ts    # Groq integration + prompt engineering
+│   │   ├── aiService.ts       # AI orchestration + hybrid scoring
+│   │   ├── systemPrompt.ts    # AI system rules (invariant)
+│   │   ├── promptBuilder.ts   # Task-specific prompt construction
+│   │   ├── aiResponseSchema.ts # Zod schema validation
+│   │   ├── aiLogger.ts        # Structured logging
+│   │   ├── scoring.ts         # Fit score calculation
+│   │   ├── preprocessing.ts   # CV/job text normalization
+│   │   └── gapAnalyzer.ts     # Gap analysis
 │   └── types/
-│       └── analysis.ts     # TypeScript types
+│       └── analysis.ts        # TypeScript types & interfaces
 ```
 
 **Request flow**:
-1. Client POST to `/api/analyze` with `{ cv, jobDescription }`
+1. Client POST to `/api/analyze` with `{ cv, jobDescription, language }`
 2. `analyze.ts` validates inputs
-3. `aiService.ts` builds prompt and calls Groq API
-4. JSON response is validated and returned
+3. `aiService.ts` orchestrates:
+   - Preprocessing (signal extraction)
+   - Prompt construction (system + user)
+   - OpenAI API call
+   - JSON parsing
+   - Schema validation (Zod)
+   - Score calculation (deterministic)
+   - Result formatting
+4. Validation errors and API errors are logged with correlation IDs
+5. JSON response is returned to client
 
 ### Frontend
 
@@ -151,9 +178,128 @@ export interface AnalysisResult {
 )}
 ```
 
+## Understanding the AI Service (v2.0)
+
+### Key Modules
+
+#### `systemPrompt.ts`
+- **What**: Invariant AI behavior rules (output format, anti-hallucination)
+- **Why**: Separate system rules from task-specific data
+- **How to use**: 
+  ```typescript
+  import { getSystemPrompt } from './services/systemPrompt';
+  const systemPrompt = getSystemPrompt();
+  ```
+- **When to change**: Only if AI behavior fundamentally changes (rare)
+
+#### `promptBuilder.ts`
+- **What**: Structures task-specific data into 6 modular sections
+- **Why**: Clearer prompts, easier to debug, reduced redundancy
+- **How to use**: 
+  ```typescript
+  import { buildOptimizedPrompt } from './services/promptBuilder';
+  const userPrompt = buildOptimizedPrompt(cv, jobDescription, language);
+  ```
+- **When to change**: When analysis requirements change
+
+#### `aiResponseSchema.ts`
+- **What**: Zod schema that defines and validates AISignals
+- **Why**: Ensure responses match expected structure at runtime
+- **How to use**: 
+  ```typescript
+  import { validateAIResponse } from './services/aiResponseSchema';
+  const signals = validateAIResponse(jsonData);
+  ```
+- **When to change**: When AISignals interface changes
+
+#### `aiLogger.ts`
+- **What**: Structured logging with correlation IDs and timing
+- **Why**: Observable, debuggable request tracing
+- **How to use**: 
+  ```typescript
+  import { createAIServiceLogger } from './services/aiLogger';
+  const logger = createAIServiceLogger('analyzeJobFit', correlationId);
+  logger.logAPIRequest('openai', 'gpt-3.5-turbo');
+  ```
+- **When to change**: When adding new metrics or log types
+
+### Making Changes
+
+**Scenario 1: AI returns unexpected field**
+1. Update `AISignalsSchema` in `aiResponseSchema.ts`
+2. Update `AISignals` interface in `analysis.ts`
+3. Update system/user prompt if needed
+4. Run tests: `npm test`
+
+**Scenario 2: Change prompt structure**
+1. Edit helpers in `promptBuilder.ts`
+2. Update tests in `promptBuilder.test.ts`
+3. Verify no breaking changes: all 162 tests should pass
+4. Deploy with confidence (schema validation catches bad responses)
+
+**Scenario 3: Switch to different AI provider (e.g., Anthropic)**
+1. Follow [EXTENDING-AI-PROVIDERS.md](EXTENDING-AI-PROVIDERS.md)
+2. Create new service adapter in `services/providers/`
+3. Update `aiService.ts` to use provider factory
+4. Tests validate provider behavior (schema is provider-agnostic)
+
+### Debugging
+
+**Check correlation ID in logs**:
+```bash
+grep -r "1699564234567-abc123" logs/
+```
+
+**See full request/response cycle**:
+```typescript
+// Look in backend logs for logs with same correlation ID
+[INFO] Validating inputs
+[INFO] Preprocessing
+[INFO] API request 
+[INFO] JSON parsed
+[WARN] Validation failed  ← Check this if errors occur
+[ERROR] Analysis failed
+```
+
+**Test schema validation manually**:
+```typescript
+import { validateAIResponseSafe } from './services/aiResponseSchema';
+
+const result = validateAIResponseSafe(jsonData);
+if (result.isValid) {
+  console.log('Valid:', result.data);
+} else {
+  console.log('Invalid:', result.error?.violations);
+}
+```
+
 ## Testing
 
-### Backend (example with Jest - not included)
+### Running Tests
+
+```bash
+# All tests
+npm test
+
+# Specific test file
+npm test aiService.test.ts
+
+# Coverage report
+npm test -- --coverage
+```
+
+### Test Coverage
+
+- **60+ tests** for output contract validation
+- **20+ tests** for system prompt invariants
+- **11+ tests** for prompt builder structure
+- **33+ tests** for schema validation
+- **38+ tests** for structured logging
+- **Total: 162 tests, all passing** ✓
+
+Use these tests as reference for implementing new features.
+
+### Backend (example with Jest)
 
 ```typescript
 import { AIService } from '../services/aiService';
@@ -205,28 +351,38 @@ VITE_API_URL=https://your-backend.railway.app
 1. Connect Git repository
 2. Set build command: `cd backend && npm install && npm run build`
 3. Start command: `node dist/server.js`
-4. Add env var: `GROQ_API_KEY` (generate at https://console.groq.com/keys)
+4. Add env var: `OPENAI_API_KEY` (get at https://platform.openai.com/api-keys)
+5. (Optional) Set `OPENAI_MODEL` to `gpt-4` for higher quality (costs more)
 
 ## Troubleshooting
 
 ### Error: "AI returned empty response"
-- Verify `GROQ_API_KEY` is correct
-- Check if model is available (generate new key at https://console.groq.com)
+- Verify `OPENAI_API_KEY` is correct and has API credits
+- Check OpenAI account status at https://platform.openai.com
+- See [ERROR-HANDLING.md](ERROR-HANDLING.md) for detailed error flow
 
-### Error: "Invalid AI response"
-- AI returned text instead of JSON
-- Increasing temperature may generate more creative but less structured responses
-- Check backend logs to see raw response
+### Error: "Unable to process job fit analysis"
+- Schema validation failed (AI didn't return expected fields)
+- Check backend logs for `[WARN] Validation failed`
+- Look for correlation ID to trace full request
+- See [SCHEMA-VALIDATION.md](SCHEMA-VALIDATION.md) for details
+
+### Error: "AI response is invalid"
+- JSON parsing or validation error
+- Check `[WARN] JSON parse error` or `[WARN] Validation failed` in logs
+- See [ERROR-HANDLING.md](ERROR-HANDLING.md) for recovery strategies
 
 ### Frontend can't connect to backend
 - Verify `VITE_API_URL` in `.env` is correct
 - CORS: backend should allow frontend origin
 - Check Network tab in DevTools
+- See backend logs for errors
 
-### Analysis takes too long
-- Groq is very fast (1-2s)
-- If slower, check network latency
-- Implement timeout on frontend
+### Analysis takes too long (>5 seconds)
+- OpenAI API slow: check their status https://status.openai.com/
+- Network latency: measure with timing logs
+- Consider implementing timeout on frontend
+- Check structured logs for timing breakdown by phase
 
 ## Best Practices
 

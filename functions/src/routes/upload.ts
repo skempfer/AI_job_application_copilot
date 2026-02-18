@@ -7,7 +7,6 @@ import { uploadResumeToFirebase, cleanupLocalFile } from "../services/storageSer
 const uploadDir = "/tmp/uploads";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-// Ensure upload directory exists (created lazily on first use)
 function ensureUploadDir() {
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -30,12 +29,6 @@ export function createUploadRouter(): Router {
       ensureUploadDir();
 
       const rawBodyLength = req.rawBody?.length ?? 0;
-      console.log("Upload request details", {
-        contentType: req.headers["content-type"],
-        contentLength: req.headers["content-length"],
-        rawBodyLength,
-      });
-
       if (!req.rawBody || rawBodyLength === 0) {
         res.status(400).json({ error: "Missing request body" });
         return;
@@ -109,10 +102,7 @@ export function createUploadRouter(): Router {
         try {
           const userId = fields.userId || "anonymous";
 
-          console.log("📤 Uploading to Firebase Storage...", { userId, filePath });
           const fileUrl = await uploadResumeToFirebase(filePath, userId);
-          console.log("✅ Upload successful, URL:", fileUrl);
-
           await cleanupLocalFile(filePath);
 
           res.json({

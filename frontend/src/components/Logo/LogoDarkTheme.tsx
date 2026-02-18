@@ -1,14 +1,3 @@
-/**
- * Viora Logo Dark Theme Component
- * Vibrant, colorful version optimized for real dark backgrounds (#0a0a0a, #0f172a, etc.)
- * Uses cyan accent (#60a5fa) for strong contrast and modern aesthetic
- * 
- * Use when:
- * - Dark theme contexts
- * - Black/very dark backgrounds
- * - Dark mode UI
- */
-
 interface LogoDarkThemeProps {
   width?: number;
   height?: number;
@@ -31,16 +20,12 @@ export function LogoDarkTheme({
       role="img"
       className={className}
     >
-      {/* Icon */}
       <g transform="translate(0, 4)">
-        {/* Outer circle (cyan accent) */}
         <circle cx="24" cy="24" r="24" fill="#60a5fa" />
 
-        {/* Inner focus (dark clarity point) */}
         <circle cx="24" cy="24" r="6" fill="#0f172a" />
       </g>
 
-      {/* Wordmark */}
       <text
         x="64"
         y="40"

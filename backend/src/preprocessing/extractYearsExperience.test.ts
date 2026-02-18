@@ -50,7 +50,7 @@ describe("extractYearsExperience", () => {
   describe("date range patterns", () => {
     test("detects 'YYYY - Present' format", () => {
       const result = extractYearsExperience("Senior Dev (2015 - Present)");
-      expect(result.yearsExperience).toBeGreaterThanOrEqual(11); // 2015 to 2026
+      expect(result.yearsExperience).toBeGreaterThanOrEqual(11);
       expect(result.confidence).toBe("high");
       expect(result.method).toBe("date_range");
     });
@@ -86,7 +86,7 @@ describe("extractYearsExperience", () => {
     });
 
     test("validates year order (start < end)", () => {
-      const result = extractYearsExperience("2025 - 2020"); // Invalid: end before start
+      const result = extractYearsExperience("2025 - 2020");
       expect(result.yearsExperience).not.toBe(-5);
     });
   });

@@ -1,8 +1,3 @@
-/**
- * Application Configuration
- * Centralized product metadata and branding
- */
-
 export const PRODUCT = {
   name: 'Viora',
   tagline: 'Clarity for smarter career decisions',
@@ -10,10 +5,6 @@ export const PRODUCT = {
     'Viora is an AI-powered career intelligence tool that helps you see job opportunities more clearly, evaluate real fit, and make smarter career decisions with confidence.',
 };
 
-/**
- * Version Information
- * Follows semantic versioning
- */
 export const VERSION = {
   major: 1,
   minor: 1,
@@ -23,9 +14,6 @@ export const VERSION = {
   },
 };
 
-/**
- * Application Metadata
- */
 export const APP_METADATA = {
   title: `${PRODUCT.name} - ${PRODUCT.tagline}`,
   description: PRODUCT.description,
@@ -43,21 +31,14 @@ export const APP_METADATA = {
   repository: 'https://github.com/skempfer/AI_job_application_copilot',
 };
 
-/**
- * Feature Flags
- * Control feature availability without code changes
- */
 export const FEATURES = {
-  i18n: true, // Internationalization (en, pt)
-  themes: true, // Theme switching (light, dark)
-  accessibility: true, // WCAG 2.1 AA compliance
-  analytics: true, // User analytics (Firebase Analytics)
-  beta: false, // Beta features
+  i18n: true,
+  themes: true,
+  accessibility: true,
+  analytics: true,
+  beta: false,
 };
 
-/**
- * Environment Configuration
- */
 export const ENV = {
   isDev: process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production',

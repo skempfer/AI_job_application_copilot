@@ -1,42 +1,34 @@
 export const pt = {
-  // Header
   appTitle: 'Viora',
   appTagline: 'Clareza para tomar decisões melhores na sua carreira',
   
-  // Input labels
   cvLabel: 'Seu CV',
   cvPlaceholder: 'Cole aqui seu CV completo...\n\nInclua:\n- Experiências profissionais\n- Skills técnicas\n- Projetos relevantes\n- Formação acadêmica',
   jobLabel: 'Descrição da Vaga',
   jobPlaceholder: 'Cole aqui a descrição completa da vaga...\n\nInclua:\n- Skills necessárias\n- Responsabilidades\n- Nível de experiência\n- Benefícios e expectativas',
   
-  // Buttons
   analyzeButton: '🔍 Analisar compatibilidade',
   analyzingButton: 'Analisando...',
   
-  // Results section
   completeAnalysis: 'Análise Completa',
   fitScore: 'Nota de Ajuste',
   recommendation: 'Recomendação',
   
-  // Decision texts
   applyText: 'Aplique para esta vaga',
   applyWithFixesText: 'Aplique após ajustes no CV',
   skipText: 'Pule esta vaga',
   
-  // Result details
   strengths: 'Seus Pontos Fortes',
   gaps: 'Gaps a melhorar',
   suggestions: 'Como Ajustar seu CV',
   recruiterMessage: 'Mensagem Sugerida para o Recrutador',
   
-  // Explanations
   scoreExplanation: 'Detalhamento do Score',
   positivePoints: 'Pontos positivos',
   negativePoints: 'Pontos negativos',
   summary: 'Resumo',
   noCriticalIssues: 'Nenhum problema crítico identificado',
   
-  // Analysis Components
   overallAlignment: 'Alinhamento Geral',
   holisticView: 'Visão holística',
   overallAlignmentDesc: 'Analisa seu perfil completo, experiência, senioridade e alinhamento geral com a vaga.',
@@ -48,7 +40,6 @@ export const pt = {
   criticalSkillsMissing: 'Skills críticas faltando',
   nextTechnologies: 'Próximas tecnologias para aprender',
   
-  // Consolidated Analysis
   analysisSummary: 'Resumo da Análise',
   synthesisAnalyses: 'Síntese de ambas as análises para uma decisão mais confiante',
   excellentCandidate: 'Excelente Candidato',
@@ -66,7 +57,6 @@ export const pt = {
   mentioningSkills: 'mencionando especificamente as skills que você possui',
   personalizeMessage: '💡 Personalize esta mensagem antes de enviar',
   
-  // Category translations for grouped items
   hardSkills: 'Hard Skills',
   requirementsMet: 'Requisitos atendidos',
   bonusQualifications: 'Qualificações Bônus',
@@ -75,7 +65,6 @@ export const pt = {
   redFlags: 'Red Flags',
   other: 'Outro',
   
-  // Settings
   language: 'Idioma',
   theme: 'Tema',
   english: 'English',
@@ -83,20 +72,22 @@ export const pt = {
   light: 'Claro',
   dark: 'Escuro',
   
-  // Error messages
-  cvError: 'Por favor, forneça um CV válido',
-  jobError: 'Por favor, forneça uma descrição válida da vaga',
-  analyzeError: 'Erro ao analisar compatibilidade. Tente novamente.',
+  errorTitle: 'Ops! Algo deu errado',
+  cvError: 'Por favor, forneça um CV com pelo menos 100 caracteres. Inclua experiência profissional, skills e formação.',
+  jobError: 'Por favor, forneça uma descrição completa da vaga. Inclua requisitos, responsabilidades e nível esperado.',
+  analyzeError: 'Não conseguimos processar sua análise. Verifique se o CV e a descrição estão bem formatados e tente novamente.',
   dismissError: 'Descartar',
+  dailyLimitExceeded: 'Você atingiu seu limite de análises gratuitas diárias. Por favor, tente novamente mais tarde.',
   
-  // Validation
+  aiProcessingError: 'Houve um problema ao processar sua análise. Isso pode ser devido a conteúdo mal formatado no CV ou vaga.',
+  aiFormatError: 'A resposta da IA não estava no formato esperado. Tente novamente ou formatar melhor seu CV.',
+  aiGenericError: 'Erro na análise. Tente com um CV mais detalhado ou uma descrição de vaga mais completa.',
+  
   characters: 'caracteres',
   
-  // Empty state
   readyToStart: 'Pronto para começar?',
   emptyStateText: 'Cole seu CV e a descrição da vaga acima, depois clique em "Analisar compatibilidade"',
 
-  // Cover letter
   coverLetterTitle: 'Carta de Apresentação',
   copy: 'Copiar',
   download: 'Baixar',
@@ -104,7 +95,6 @@ export const pt = {
   readFull: 'Ler Completa',
   collapse: 'Resumir',
   
-  // Resume Upload
   cvUploadLabel: 'Upload de Currículo (Opcional)',
   uploadingText: 'Fazendo upload...',
   uploadSuccess: 'Upload realizado • Clique para substituir',
@@ -116,14 +106,12 @@ export const pt = {
   fileSizeError: 'O arquivo deve ter no máximo 5MB',
   uploadError: 'Erro ao fazer upload',
   
-  // Footer
   dataPrivacy: '🔒 Seus dados não são armazenados. Análise feita via Groq API (gratuita, ultra-rápida).',
   footerOwnership: 'Propriedade e operação de Dominion Code LTDA.',
   footerEngineering: 'Produto & Engenharia por',
   termsLink: 'Termos de Serviço',
   privacyLink: 'Privacidade',
 
-  // Terms of Service
   backToHome: 'Voltar para Home',
   termsTitle: 'Termos de Serviço',
   termsLastUpdated: 'Última atualização',
@@ -152,11 +140,9 @@ export const pt = {
   termsContactTitle: 'Contato',
   termsContactText: 'Dúvidas, sugestões ou preocupações sobre estes termos? Entre em contato:',
 
-  // Privacy
   privacyTitle: 'Política de Privacidade',
   privacyComingSoon: 'Conteúdo em breve.',
 
-  // Rate Limit
-  rateLimitTitle: 'Deixe a IA gratuita respirar um pouco!',
-  rateLimitMessage: 'Volte em',
+  rateLimitTitle: 'Limite diário atingido!',
+  rateLimitMessage: 'Você pode analisar novamente em',
 };

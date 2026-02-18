@@ -8,12 +8,6 @@ const translations = {
   pt,
 };
 
-/**
- * Get error message in the specified language
- * @param key - Error message key
- * @param language - Language code ('en' or 'pt')
- * @param replacements - Object with replacements for {{placeholder}}
- */
 export function getErrorMessage(
   key: keyof ErrorMessages,
   language: Language = 'en',
@@ -31,9 +25,6 @@ export function getErrorMessage(
   return message;
 }
 
-/**
- * Helper to get language from request or default to 'en'
- */
 export function getLanguageFromRequest(language?: string): Language {
   if (language === 'pt' || language === 'en') {
     return language;

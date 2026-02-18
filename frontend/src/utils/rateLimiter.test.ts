@@ -29,7 +29,7 @@ Object.defineProperty(window, 'sessionStorage', {
 
 describe('rateLimiter', () => {
   const RATE_LIMIT_KEY = 'viora_request_rate_limit';
-  const TIME_WINDOW = 15 * 60 * 1000; // 15 minutes
+  const TIME_WINDOW = 15 * 60 * 1000;
 
   beforeEach(() => {
     sessionStorageMock.clear();

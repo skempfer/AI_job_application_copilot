@@ -1,5 +1,35 @@
 # System Architecture
 
+## ⚠️ Recent Updates
+
+### AI Inference Architecture v3.0: Two-Tier Fallback with Frontend Firebase
+
+The AI inference layer now uses a **two-tier fallback strategy**:
+
+- **Primary Provider (Backend)**: Groq LLM with error classification
+- **Fallback Signal**: Structured HTTP 200 response with original prompts when Groq fails
+- **Fallback Provider (Frontend)**: Firebase Vertex AI's generative model (prepared, not yet implemented)
+- **Degraded Mode**: Safe defaults when both providers fail (fitScore=0.5, decision='apply')
+
+**Key Changes from v2.1**:
+- ✅ Removed AIOrchestrator and DeepSeekProvider (backend only, no multi-provider orchestration)
+- ✅ Moved fallback responsibility to frontend where Firebase is available
+- ✅ Structured error classification (RateLimit, QuotaExceeded, ProviderUnavailable, Timeout)
+- ✅ Prompt preservation through error chain for frontend to use in fallback
+
+**See [PROVIDER-FALLBACK-v3.md](./PROVIDER-FALLBACK-v3.md) for complete implementation details.**
+
+### Previous: AI Inference Architecture v2.1
+
+The AI inference layer included **provider abstraction and automatic backend fallback**:
+
+- **Provider Abstraction**: Clean interface for AI providers (Groq, DeepSeek)
+- **Automatic Fallback**: Groq falls back to DeepSeek on rate limits (HTTP 429)
+  
+**Note**: This approach has been superseded by v3.0, which simplifies the backend and leverages Firebase for frontend fallback.
+
+---
+
 ## Overview
 
 ```
@@ -27,7 +57,15 @@
 │  ┌──────────────▼───────────────────────────────────────┐  │
 │  │  API Client (Pure JavaScript)                         │  │
 │  │  - analyzeJobFit()                                    │  │
-│  │  - fetch() HTTP calls                                 │  │
+│  │  - Fallback Detection (isAIProviderFallbackResponse)  │  │
+│  │  - Fallback Service Invocation                        │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                            │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │  Fallback AI Service (NEW - v3.0)                     │  │
+│  │  - handleProviderFallback()                           │  │
+│  │  - callFirebaseVertexAI() [prepared, not implemented] │  │
+│  │  - createDegradedResponse()                           │  │
 │  └──────────────┬───────────────────────────────────────┘  │
 └─────────────────┼────────────────────────────────────────────┘
                   │ HTTP POST /api/analyze
@@ -44,19 +82,72 @@
 │  ┌──────────────▼───────────────────────────────────────┐  │
 │  │  Route: POST /api/analyze                             │  │
 │  │  - Input validation                                   │  │
-│  │  - Error handling                                     │  │
+│  │  - Error classification & fallback response handling  │  │
 │  └──────────────┬───────────────────────────────────────┘  │
 │                 │                                            │
 │  ┌──────────────▼───────────────────────────────────────┐  │
-│  │  AIService (Hybrid Scoring Architecture)             │  │
-│  │  - buildPrompt() → extract signals (not score)       │  │
-│  │  - analyzeJobFit() → orchestrates:                   │  │
-│  │    1. Get AISignals from Groq                        │  │
-│  │    2. calculateFitScore(signals) [deterministic]     │  │
-│  │    3. generateExplanation(signals, score)            │  │
-│  │    4. determineDecision(score)                       │  │
-│  │  - validateSignals()                                 │  │
-│  │  - generateCVSuggestions()                           │  │
+│  │  AIService (Hybrid Scoring with Prompt Building)     │  │
+│  │  - System Prompt (invariant rules)                    │  │
+│  │  - buildOptimizedPrompt() (modular sections)          │  │
+│  │  - Error handling with prompt preservation           │  │
+│  │  - Throws AIProviderError on failure                 │  │
+│  │  - analyzeJobFit() orchestrates:                      │  │
+│  │    1. Preprocess CV & Job Description                │  │
+│  │    2. Get AISignals from Groq (primary only)          │  │
+│  │    3. Validate response against schema                │  │
+│  │    4. calculateFitScore(signals) [deterministic]      │  │
+│  │    5. generateExplanation(signals, score)             │  │
+│  │    6. determineDecision(score)                        │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                            │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │  GroqProvider (NEW - v3.0)                            │  │
+│  │  - Single provider (no orchestration)                 │  │
+│  │  - Error classification methods:                      │  │
+│  │    • classifyFailure() → AIProviderFailureReason      │  │
+│  │    • getStatusCode()                                  │  │
+│  │    • getErrorCode()                                   │  │
+│  │  - Throws AIProviderError on classified failures      │  │
+│  │  - API Call: Groq LLM (llama-3.3-70b-versatile)       │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                            │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │  Scoring Service (Pure TypeScript Logic)             │  │
+│  │  - calculateFitScore(signals) → number               │  │
+│  │  - generateExplanation(signals, score)               │  │
+│  │  - determineDecision(score)                          │  │
+│  │  Weights: hardSkills 35%, mandatory 30%,             │  │
+│  │           seniority 15%, desirable 10%,              │  │
+│  │           softSkills 5%, redFlags -5%                │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+└─────────────────┼────────────────────────────────────────────┘
+         ┌────────┴──────────┐
+         │ Success (HTTP 200)│ Failure (AIProviderError)
+         │                   │
+         ▼                   ▼
+   ┌──────────┐      ┌─────────────────────┐
+   │ Analysis │      │ Fallback Response   │
+   │ Result   │      │ (HTTP 200)          │
+   └──────────┘      │ - reason: classified│
+         │           │ - prompt: preserved │
+         │           │ - fallback: firebase│
+         │           └──────────┬──────────┘
+         │                      │
+         └──────────┬───────────┘
+                    ▼
+         Frontend receives
+         and processes
+```
+│  │  - Schema Validation (Zod)                            │  │
+│  │  - Structured Logging (timing, correlation IDs)       │  │
+│  │  - analyzeJobFit() orchestrates:                      │  │
+│  │    1. Preprocess CV & Job Description                 │  │
+│  │    2. Get AISignals from OpenAI                       │  │
+│  │    3. Validate response against schema                │  │
+│  │    4. calculateFitScore(signals) [deterministic]      │  │
+│  │    5. generateExplanation(signals, score)             │  │
+│  │    6. determineDecision(score)                        │  │
+│  │  - Error handling with detailed logging               │  │
 │  └──────────────┬───────────────────────────────────────┘  │
 │                 │                                            │
 │  ┌──────────────▼───────────────────────────────────────┐  │
@@ -72,11 +163,12 @@
                   │ API Call
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      Groq API                                │
-│  - Model: llama-3.3-70b-versatile                             │
-│  - Free, ultra-fast (1-2s)                                    │
+│                      OpenAI Chat API                          │
+│  - Model: gpt-4 or gpt-3.5-turbo                              │
+│  - Temperature: 0.2 (low randomness, consistency)             │
+│  - Max tokens: 1500                                           │
 │  - Structured JSON output (AISignals)                         │
-│  - Prompt Version: v1.1                                       │
+│  - Prompt Version: v2.0-optimized                             │
 └───────────────────────────┬─────────────────────────────────┘
                             │ JSON Response (AISignals)
                             ▼
@@ -90,10 +182,22 @@
 │    "softSkillsEvidence": ["Led team of 5 developers"],       │
 │    "seniorityMatch": "match",                                │
 │    "redFlags": [],                                           │
-│    "recruiterMessage": "..."                                 │
+│    "recruiterMessage": "Hello, I'm writing to exp...", │
+│    "coverLetter": "I am excited about this role...",         │
+│    "detectedYearsExperience": 8,                             │
+│    "detectedDomainExperience": {                             │
+│      "backend": true,                                        │
+│      "fullstack": false,                                     │
+│      "frontend": false,                                      │
+│      "qa": false,                                            │
+│      "devops": false,                                        │
+│      "product": false                                        │
+│    }                                                         │
 │  }                                                           │
 └───────────────────────────┬─────────────────────────────────┘
                             │ Backend processes signals:
+                            │ - Uses detectedYearsExperience for seniority checks
+                            │ - Uses detectedDomainExperience (roles) for role fit
                             │ fitScore = calculateFitScore(signals)
                             │ explanation = generateExplanation(signals, score)
                             │ decision = determineDecision(score)
@@ -106,13 +210,26 @@
 │    "strengths": [...],        // Derived from signals        │
 │    "gaps": [...],             // Derived from signals        │
 │    "cvSuggestions": [...],    // Generated from gaps         │
-│    "recruiterMessage": "...", // From AI                     │
+│    "recruiterMessage": "...", // From AI (signal)            │
+│    "coverLetter": "...",      // From AI (signal)            │
 │    "explanation": {           // Transparent scoring         │
 │      "positives": [...],                                     │
 │      "negatives": [...],                                     │
 │      "summary": "..."                                        │
 │    },                                                        │
-│    "promptVersion": "v1.1"    // For evolution tracking      │
+│    "promptVersion": "v2.0-optimized", // For evolution tracking│
+│    "preprocessedCV": {        // Preprocessed deterministic data
+│      "yearsExperience": 8,    // From deterministic extraction
+│      "domainExperience": {    // Roles detected from CV
+│        "backend": true,                                      │
+│        "frontend": false,                                    │
+│        "fullstack": false,                                   │
+│        "qa": false,                                          │
+│        "devops": false,                                      │
+│        "product": false                                      │
+│      },                                                      │
+│      "skills": [...]          // Extracted technical skills  │
+│    }                                                         │
 │  }                                                           │
 └───────────────────────────┬─────────────────────────────────┘
                             │ Returns to Frontend
@@ -139,14 +256,19 @@
 ### Hybrid Scoring Flow
 
 ```
-1️⃣ buildPrompt() → Prompt v1.1
-   "Extract these signals: hardSkills, mandatory requirements,
-    seniority match, red flags..."
+1️⃣ buildOptimizedPrompt() → System + User Prompt (v2.0)
+   - System Prompt: Invariant rules (output format, anti-hallucination)
+   - User Prompt: Task data in modular sections
    
-2️⃣ Groq API → AISignals (JSON)
+2️⃣ OpenAI Chat API → AISignals (JSON)
    Classifies and extracts structured information
+   Temperature: 0.2 (consistent results)
    
-3️⃣ calculateFitScore(signals) → number
+3️⃣ validateAIResponse() → Schema Validation (Zod)
+   Validates response against strict schema
+   Throws with detailed violation information if invalid
+   
+4️⃣ calculateFitScore(signals) → number
    Deterministic algorithm with fixed weights:
    - Hard skills: 35%
    - Mandatory requirements: 30%
@@ -155,17 +277,22 @@
    - Soft skills: 5%
    - Red flags: -5% penalty
    
-4️⃣ generateExplanation(signals, score)
+5️⃣ generateExplanation(signals, score)
    Explains EACH component of the score:
    - Positives: "Hard skills: +28/35 points"
    - Negatives: "Missing 1 mandatory requirement: -10 points"
    - Summary: human-readable overview
    
-5️⃣ determineDecision(score)
+6️⃣ determineDecision(score)
    Clear thresholds:
    - score >= 75: "apply"
    - score >= 50: "apply_with_fixes"
    - score < 50: "skip"
+   
+7️⃣ Structured Logging throughout
+   Correlation ID for request tracing
+   Timing for each phase
+   Performance metrics for monitoring
 ```
 
 ### Benefits
@@ -239,6 +366,102 @@ ResultsDisplay renders cards:
   - CV Suggestions
   - Recruiter Message
 ```
+
+---
+
+## Preprocessed Data Layer 🔍
+
+The system uses **deterministic preprocessing** alongside AI signals to ensure consistency and improve accuracy.
+
+### Years of Experience Detection
+
+```typescript
+detectedYearsExperience: number | null
+```
+
+**How it works**:
+- Extracts from CV using regex patterns (e.g., "5 years", "2015-2024")
+- Deterministic (same CV always yields same result)
+- Used by scoring algorithm for seniority validation
+- Can be overridden by AI signals if more accurate
+
+**Example**:
+```
+CV contains: "Senior Developer with 8 years of experience"
+Detected: detectedYearsExperience: 8
+Score Impact: Compared against job requirement ("5+ years")
+```
+
+### Domain Experience Detection (Roles)
+
+```typescript
+detectedDomainExperience: {
+  frontend?: boolean;
+  backend?: boolean;
+  fullstack?: boolean;
+  qa?: boolean;
+  devops?: boolean;
+  product?: boolean;
+} | null
+```
+
+**How it works**:
+- Analyzes CV for role-specific keywords and patterns
+- Deterministic pattern matching (not AI)
+- Boolean flags: `true` if credible evidence found, `false` otherwise
+- Used to validate if candidate has experience in required domain
+
+**Role Indicators**:
+- **Frontend**: React, Vue, Angular, CSS, HTML, TypeScript, Webpack, Jest
+- **Backend**: Node.js, Python, Java, Express, Django, APIs, Databases
+- **Fullstack**: Both frontend AND backend indicators present
+- **QA**: Testing, Selenium, Jest, Cypress, Test Automation, QA
+- **DevOps**: Docker, Kubernetes, CI/CD, Jenkins, AWS, Infrastructure
+- **Product**: Product management, features, roadmap, stakeholders, users
+
+**Example Output**:
+```json
+{
+  "frontend": false,
+  "backend": true,
+  "fullstack": false,
+  "qa": false,
+  "devops": true,
+  "product": false
+}
+```
+
+### Preprocessed CV Data in Response
+
+The `preprocessedCV` field in `AnalysisResult` includes:
+
+```typescript
+preprocessedCV: {
+  yearsExperience: number;           // Extracted years (deterministic)
+  yearsExperienceConfidence: number; // How confident (0-100)
+  domainExperience: {...};           // Roles detected (boolean flags)
+  seniority: string;                 // Calculated: "junior" | "mid" | "senior"
+  skills: string[];                  // Extracted technical skills
+}
+```
+
+### Why Dual Layer (AI + Deterministic)?
+
+**Problem with AI alone**:
+- May hallucinate or misinterpret
+- Inconsistent across requests
+- Can't audit the decision
+
+**Problem with deterministic alone**:
+- Limited to keyword matching
+- Misses context and creative expressions
+- Rigid and inflexible
+
+**Solution (Hybrid)**:
+- ✅ Deterministic preprocessing validates basic facts (years, keywords)
+- ✅ AI adds context and nuanced interpretation
+- ✅ Both layers complement each other
+- ✅ Results are consistent AND contextual
 
 ---
 

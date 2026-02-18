@@ -9,9 +9,6 @@ interface ResultsDisplayProps {
   result: FormattedAnalysisResult;
 }
 
-/**
- * Map category keys to i18n translation keys
- */
 function getCategoryTranslationKey(categoryKey: string): string {
   const lower = categoryKey.toLowerCase();
   

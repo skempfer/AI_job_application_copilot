@@ -8,9 +8,6 @@ interface CoverLetterDisplayProps {
   detectedLanguage?: 'pt' | 'en';
 }
 
-/**
- * Parsed cover letter structure
- */
 interface ParsedCoverLetter {
   bodyParagraphs: string[];
   signature: string;
@@ -18,9 +15,6 @@ interface ParsedCoverLetter {
   plainText: string;
 }
 
-/**
- * Parse cover letter into structured sections
- */
 function parseCoverLetter(text: string): ParsedCoverLetter {
   const normalized = text
     .trim()
@@ -108,9 +102,6 @@ function parseCoverLetter(text: string): ParsedCoverLetter {
   };
 }
 
-/**
- * Generate dynamic filename for exports
- */
 function generateFilename(
   language: 'pt' | 'en',
   format: 'txt' | 'pdf' | 'docx' = 'txt'

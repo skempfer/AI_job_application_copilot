@@ -1,15 +1,3 @@
-/**
- * Role and Domain Synonym Dictionary
- *
- * Maps keywords/phrases to normalized domain categories
- *
- * Used by domain experience detection to classify roles and skills
- * into high-level domains for pattern matching.
- *
- * Structure: Record<DomainCategory, string[]>
- * where string[] are all synonyms/variations for that domain
- */
-
 export type DomainCategory =
   | "frontend"
   | "backend"
@@ -18,21 +6,8 @@ export type DomainCategory =
   | "devops"
   | "product";
 
-/**
- * Comprehensive domain/role synonym dictionary
- *
- * All keywords are lowercase; search text should also be normalized
- *
- * Frontend: UI development, client-side technologies
- * Backend: Server-side, APIs, databases, microservices
- * Fullstack: Both frontend and backend work
- * QA: Testing, quality assurance, automation
- * DevOps: Infrastructure, deployment, CI/CD, cloud
- * Product: Product management, planning, strategy
- */
 export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
   frontend: [
-    // Core technologies
     "frontend",
     "front-end",
     "front end",
@@ -50,7 +25,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "remix",
     "quasar",
 
-    // Role titles
     "ui developer",
     "ux developer",
     "frontend engineer",
@@ -65,14 +39,12 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "css specialist",
     "html developer",
 
-    // UI/UX specific
     "ui engineer",
     "web ui",
     "css engineer",
     "html engineer",
     "component developer",
 
-    // Styling and tools
     "tailwind developer",
     "bootstrap developer",
     "material ui developer",
@@ -89,7 +61,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
   ],
 
   backend: [
-    // Core technologies
     "backend",
     "back-end",
     "back end",
@@ -126,7 +97,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "r",
     "matlab",
 
-    // Databases
     "database",
     "sql",
     "postgresql",
@@ -144,7 +114,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "sqlserver",
     "sql server",
 
-    // Patterns and architecture
     "microservice",
     "monolith",
     "serverless",
@@ -155,7 +124,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "typeorm",
     "hibernate",
 
-    // Role titles
     "backend engineer",
     "back-end engineer",
     "back end engineer",
@@ -172,13 +140,11 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "tech lead",
     "engineering lead",
 
-    // Infrastructure (sometimes backend)
     "infrastructure engineer",
     "systems engineer",
   ],
 
   fullstack: [
-    // Core identifiers
     "fullstack",
     "full-stack",
     "full stack",
@@ -193,7 +159,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "end-to-end developer",
     "end to end developer",
 
-    // Combined mentions
     "frontend and backend",
     "backend and frontend",
     "both frontend and backend",
@@ -201,13 +166,11 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "client-server",
     "client and server",
 
-    // Role titles emphasizing both
     "stack engineer",
     "generalist developer",
   ],
 
   qa: [
-    // Core technologies
     "qa",
     "quality assurance",
     "quality engineer",
@@ -220,7 +183,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "sdet",
     "software development engineer in test",
 
-    // Testing frameworks
     "jest",
     "mocha",
     "chai",
@@ -233,7 +195,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "playwright",
     "puppeteer",
 
-    // Testing types
     "unit testing",
     "integration testing",
     "e2e",
@@ -246,7 +207,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "load testing",
     "stress testing",
 
-    // Role titles
     "qa engineer",
     "qa developer",
     "senior qa",
@@ -255,7 +215,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "test manager",
     "quality team lead",
 
-    // Testing focused
     "tdd",
     "test-driven",
     "test driven development",
@@ -264,7 +223,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
   ],
 
   devops: [
-    // Core technologies
     "devops",
     "dev ops",
     "platform engineer",
@@ -278,7 +236,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "cloud engineer",
     "cloud architect",
 
-    // Infrastructure tools
     "docker",
     "kubernetes",
     "k8s",
@@ -294,7 +251,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "continuous deployment",
     "continuous delivery",
 
-    // Cloud platforms
     "aws",
     "amazon web services",
     "azure",
@@ -306,7 +262,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "cloudflare",
     "digitalocean",
 
-    // Configuration and monitoring
     "prometheus",
     "grafana",
     "datadog",
@@ -320,21 +275,18 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "sentry",
     "pagerduty",
 
-    // Linux and shells
     "linux",
     "bash",
     "shell",
     "powershell",
     "scripting",
 
-    // Container and orchestration
     "container",
     "orchestration",
     "container registry",
     "docker registry",
     "helm",
 
-    // Role titles
     "devops engineer",
     "devops lead",
     "infrastructure lead",
@@ -344,7 +296,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
   ],
 
   product: [
-    // Core titles
     "product owner",
     "product manager",
     "pm",
@@ -356,7 +307,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "chief product officer",
     "cpo",
 
-    // Product-adjacent
     "product strategist",
     "product strategist",
     "product analyst",
@@ -365,7 +315,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "product coordinator",
     "product specialist",
 
-    // Planning and strategy
     "strategy",
     "roadmap",
     "product roadmap",
@@ -376,12 +325,10 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
     "prd",
     "specification",
 
-    // Stakeholder management (product-focused)
     "stakeholder management",
     "cross-functional leadership",
     "product vision",
 
-    // Business roles with technical focus
     "technical lead",
     "tech lead",
     "engineering manager",
@@ -392,24 +339,6 @@ export const DOMAIN_SYNONYMS: Record<DomainCategory, string[]> = {
   ],
 };
 
-/**
- * Reverse lookup: given a keyword, return which domain(s) it belongs to
- *
- * @param keyword - Normalized keyword to look up
- * @returns Array of domain categories containing this keyword, or empty array
- *
- * @example
- * getDomainsByKeyword("react")
- * // → ["frontend"]
- *
- * @example
- * getDomainsByKeyword("backend")
- * // → ["backend"]
- *
- * @example
- * getDomainsByKeyword("unknown-role")
- * // → []
- */
 export function getDomainsByKeyword(keyword: string): DomainCategory[] {
   const normalized = keyword.toLowerCase().trim();
 
@@ -424,35 +353,10 @@ export function getDomainsByKeyword(keyword: string): DomainCategory[] {
   return domains;
 }
 
-/**
- * Gets all synonyms for a given domain
- *
- * @param domain - Domain category to get synonyms for
- * @returns Array of all keywords/synonyms for this domain
- *
- * @example
- * getSynonymsForDomain("frontend")
- * // → ["react", "vue", "angular", "ui developer", ...]
- */
 export function getSynonymsForDomain(domain: DomainCategory): string[] {
   return DOMAIN_SYNONYMS[domain] || [];
 }
 
-/**
- * Checks if a keyword belongs to a specific domain
- *
- * @param keyword - Keyword to check
- * @param domain - Domain to check against
- * @returns true if keyword belongs to domain
- *
- * @example
- * isKeywordInDomain("react", "frontend")
- * // → true
- *
- * @example
- * isKeywordInDomain("react", "backend")
- * // → false
- */
 export function isKeywordInDomain(
   keyword: string,
   domain: DomainCategory
@@ -461,11 +365,6 @@ export function isKeywordInDomain(
   return DOMAIN_SYNONYMS[domain]?.includes(normalized) ?? false;
 }
 
-/**
- * Gets all available domains
- *
- * @returns Array of all domain categories
- */
 export function getAllDomains(): DomainCategory[] {
   return Object.keys(DOMAIN_SYNONYMS) as DomainCategory[];
 }

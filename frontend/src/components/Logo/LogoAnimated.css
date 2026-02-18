@@ -1,13 +1,7 @@
-/**
- * Viora Animated Logo - Styles
- * Subtle, premium animations for brand identity
- */
-
 .viora-logo {
   overflow: visible;
 }
 
-/* Disable animation if not needed */
 .viora-logo-static .viora-ring,
 .viora-logo-static .viora-core {
   animation: none !important;
@@ -17,7 +11,6 @@
   stroke-dashoffset: 0 !important;
 }
 
-/* Ring - Smooth stroke draw animation */
 .viora-ring {
   fill: none;
   stroke-width: 3;
@@ -28,13 +21,11 @@
   animation: viora-draw 1.2s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
 }
 
-/* Core - Subtle pulse animation */
 .viora-core {
   transform-origin: center;
   animation: viora-pulse 1.5s cubic-bezier(0.4, 0.0, 0.6, 1) infinite;
 }
 
-/* Draw animation: ring stroke appears smoothly */
 @keyframes viora-draw {
   0% {
     stroke-dashoffset: 138;
@@ -46,7 +37,6 @@
   }
 }
 
-/* Pulse animation: subtle scale + opacity change */
 @keyframes viora-pulse {
   0%, 100% {
     transform: scale(1);
@@ -58,7 +48,6 @@
   }
 }
 
-/* Reduced motion preference respect */
 @media (prefers-reduced-motion: reduce) {
   .viora-ring,
   .viora-core {

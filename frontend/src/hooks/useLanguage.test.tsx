@@ -168,7 +168,6 @@ describe('useLanguage', () => {
         wrapper: createWrapper(contextValue),
       });
 
-      // Should reflect the context value provided
       expect(result.current.language).toBe('pt');
     });
   });

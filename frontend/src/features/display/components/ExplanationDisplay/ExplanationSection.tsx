@@ -12,10 +12,6 @@ interface ExplanationSectionProps {
   formatListItem: (item: string) => string;
 }
 
-/**
- * ExplanationSection - Componente reutilizável para seções da análise
- * Encapsula a lógica comum de renderização de título, ícone e lista de itens
- */
 export function ExplanationSection({
   title,
   icon,

@@ -2,8 +2,8 @@ import express from "express";
 import request from "supertest";
 import fs from "fs/promises";
 import { createAnalyzeRouter } from "./analyze.js";
-import { extractTextFromPDF } from "../services/cvParserService.js";
-import type { AIService } from "../services/aiService.js";
+import { extractTextFromPDF } from "@viora/core";
+import type { AIService } from "@viora/core";
 import type { AnalysisResult } from "../types/analysis.js";
 
 jest.mock("fs/promises");
@@ -92,6 +92,6 @@ describe("POST /api/analyze", () => {
 
     expect(response.status).toBe(200);
     expect(mockExtract).toHaveBeenCalledTimes(1);
-    expect(aiService.analyzeJobFit).toHaveBeenCalledWith("cv text", jobDescription, "en");
+    expect(aiService.analyzeJobFit).toHaveBeenCalledWith("cv text", jobDescription, "en", undefined);
   });
 });

@@ -12,18 +12,11 @@ export interface AnalysisRecord {
   improvements?: string[];
 }
 
-/**
- * Save an analysis in Realtime Database
- *
- * @param analysis - Analysis data
- * @returns ID of the created record
- */
 export async function saveAnalysis(analysis: Omit<AnalysisRecord, "id">): Promise<string> {
   try {
     const db = getDatabase();
     const analysesRef = db.ref("analyses");
     
-    // Firebase doesn't accept undefined values, so filter them out
     const cleanedAnalysis = Object.fromEntries(
       Object.entries(analysis).filter(([_, value]) => value !== undefined)
     );
@@ -43,12 +36,6 @@ export async function saveAnalysis(analysis: Omit<AnalysisRecord, "id">): Promis
   }
 }
 
-/**
- * Fetch analysis history
- *
- * @param limit - Maximum number of records (default: 50)
- * @returns Array of analyses ordered by timestamp (most recent first)
- */
 export async function getAnalysisHistory(limit: number = 50): Promise<AnalysisRecord[]> {
   try {
     const db = getDatabase();
@@ -78,12 +65,6 @@ export async function getAnalysisHistory(limit: number = 50): Promise<AnalysisRe
   }
 }
 
-/**
- * Fetch a specific analysis by ID
- *
- * @param id - Analysis ID
- * @returns Analysis data or null if not found
- */
 export async function getAnalysisById(id: string): Promise<AnalysisRecord | null> {
   try {
     const db = getDatabase();
@@ -105,9 +86,6 @@ export async function getAnalysisById(id: string): Promise<AnalysisRecord | null
   }
 }
 
-/**
- * Get analysis statistics
- */
 export async function getAnalyticsStats() {
   try {
     const db = getDatabase();

@@ -1,8 +1,3 @@
-/**
- * Language detection utility for job descriptions
- * Uses simple heuristics to detect Portuguese (pt) vs English (en)
- */
-
 const PT_KEYWORDS = [
   'vaga',
   'candidato',
@@ -83,11 +78,6 @@ const EN_KEYWORDS = [
   'about the role',
 ];
 
-/**
- * Detects language of a text based on keyword frequency
- * Returns 'pt' for Portuguese, 'en' for English
- * Default to 'en' if detection is uncertain
- */
 export function detectLanguage(text: string): 'pt' | 'en' {
   if (!text || text.trim().length === 0) {
     return 'en';
@@ -110,9 +100,6 @@ export function detectLanguage(text: string): 'pt' | 'en' {
   return 'en';
 }
 
-/**
- * Get human-readable label for detected language
- */
 export function getLanguageLabel(
   detectedLang: 'pt' | 'en',
   uiLanguage: 'pt' | 'en'

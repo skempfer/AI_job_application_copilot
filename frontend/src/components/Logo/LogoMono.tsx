@@ -1,14 +1,3 @@
-/**
- * Viora Logo Monochromatic Component
- * Minimal, single-color version for print, documentation, and minimal contexts
- * 
- * Use when:
- * - Printing
- * - Documents / PDFs
- * - Minimal/minimalist contexts
- * - Dark/light without gradient backgrounds
- */
-
 interface LogoMonoProps {
   width?: number;
   height?: number;

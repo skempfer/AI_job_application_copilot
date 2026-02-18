@@ -1,9 +1,8 @@
 import { Router, Request, Response } from "express";
 import path from "path";
 import fs from "fs/promises";
-import { AIService } from "../services/aiService.js";
+import { AIService, extractTextFromPDF } from "../core/services/index.js";
 import { saveAnalysis } from "../services/databaseService.js";
-import { extractTextFromPDF } from "../services/cvParserService.js";
 import type { AnalysisRequest } from "../types/analysis.js";
 
 export function createAnalyzeRouter(aiService: AIService): Router {
@@ -101,8 +100,17 @@ export function createAnalyzeRouter(aiService: AIService): Router {
         return;
       }
 
-      const analysisLanguage = (language as "pt" | "en" | undefined) || "en";
-      const result = await aiService.analyzeJobFit(cvText, jobDescription.trim(), analysisLanguage);
+      const effectiveUiLanguage = (req.body.uiLanguage as "pt" | "en" | undefined) || 
+                                   (language as "pt" | "en" | undefined) || 
+                                   "en";
+      const effectiveJobLanguage = req.body.jobLanguage as "pt" | "en" | undefined;
+
+      const result = await aiService.analyzeJobFit(
+        cvText, 
+        jobDescription.trim(), 
+        effectiveUiLanguage,
+        effectiveJobLanguage
+      );
 
       if (process.env.USE_FIREBASE === "true") {
         try {

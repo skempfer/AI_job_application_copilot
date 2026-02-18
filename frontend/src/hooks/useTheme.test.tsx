@@ -6,10 +6,8 @@ import { ThemeContext, Theme } from '../contexts/ThemeContext';
 describe('useTheme', () => {
   const mockSetTheme = jest.fn();
 
-  // Create a wrapper component that returns JSX
   const createWrapper = (themeValue: any) => {
     const Wrapper = ({ children }: { children: ReactNode }) => {
-      // Using React.createElement to avoid JSX syntax issues in TS
       return themeValue ? (
         <ThemeContext.Provider value={themeValue}>
           {children}
@@ -267,7 +265,6 @@ describe('useTheme', () => {
         wrapper: createWrapper(contextValue),
       });
 
-      // Should reflect the context value provided
       expect(result.current.theme).toBe('dark');
     });
   });
@@ -396,16 +393,13 @@ describe('useTheme', () => {
         wrapper: createWrapper(contextValue),
       });
 
-      // User starts in light theme
       expect(result.current.theme).toBe('light');
 
-      // User toggles to dark
       act(() => {
         result.current.toggleTheme();
       });
       expect(mockSetTheme).toHaveBeenCalledWith('dark');
 
-      // User can set theme directly
       mockSetTheme.mockClear();
       act(() => {
         result.current.setTheme('light');

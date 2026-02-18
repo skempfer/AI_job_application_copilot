@@ -1,9 +1,4 @@
 import type { Language } from '../i18n';
-
-/**
- * Best-effort translation for backend/AI freeform strings.
- * This is separate from key-based i18n (t) because the input is dynamic and unstructured.
- */
 export function translateFreeformText(text: string, language: Language): string {
   if (language !== 'pt') return text;
 

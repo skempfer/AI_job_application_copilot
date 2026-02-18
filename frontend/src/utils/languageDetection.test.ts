@@ -100,7 +100,7 @@ describe('languageDetection', () => {
         expect(detectLanguage(text)).toBe('pt');
 
         const twoMatches = 'vaga candidato important data';
-        expect(detectLanguage(twoMatches)).toBe('en'); // Only 2 PT matches is not enough
+        expect(detectLanguage(twoMatches)).toBe('en');
       });
     });
 
@@ -123,7 +123,7 @@ describe('languageDetection', () => {
       it('should detect English from specific phrases', () => {
         const text = 'If you have experience. If you possess skills. We seek developers.';
         const result = detectLanguage(text);
-        expect(result).toMatch(/en|pt/); // Could be either, but EN should be preferred
+        expect(result).toMatch(/en|pt/);
       });
     });
 
@@ -206,8 +206,8 @@ describe('languageDetection', () => {
       });
 
       it('should handle concatenated words', () => {
-        const text = 'positionjobdeveloper'; // No spaces, should not match keywords
-        expect(detectLanguage(text)).toBe('en'); // Should default to EN
+        const text = 'positionjobdeveloper';
+        expect(detectLanguage(text)).toBe('en');
       });
 
       it('should handle partial word matches within larger words', () => {
