@@ -20,8 +20,14 @@ export async function uploadResumeToFirebase(
 
     const downloadToken = uuidv4();
 
-    await bucket.upload(filePath, {
-      destination,
+    // Read file content
+    const fileContent = fs.readFileSync(filePath);
+
+    // Create file reference
+    const file = bucket.file(destination);
+
+    // Upload using file.save() which works better with Functions service account
+    await file.save(fileContent, {
       metadata: {
         contentType: "application/pdf",
         metadata: {

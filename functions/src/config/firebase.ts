@@ -8,12 +8,12 @@ export function initializeFirebaseAdmin(): void {
   }
 
   try {
-    admin.initializeApp({
-      databaseURL: "https://viora-cv-uploads-default-rtdb.firebaseio.com",
-      storageBucket: "viora-cv-uploads.firebasestorage.app",
-    });
+    // Firebase Functions automatically provides credentials via Application Default Credentials (ADC)
+    // No need to specify credential - it will use the service account with proper permissions
+    admin.initializeApp();
 
     firebaseInitialized = true;
+    console.log("✅ Firebase Admin SDK initialized successfully");
   } catch (error: any) {
     if (error.code !== 'app/duplicate-app') {
       console.error("❌ Error initializing Firebase Admin SDK:", error);

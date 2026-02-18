@@ -7,7 +7,10 @@ import { getScoreColor, getScoreBadgeClass } from '../../../utils/scoreHelpers';
 import { useLanguage } from '../../../hooks/useLanguage';
 
 function validateInputs(cv: string, jobDescription: string, resumeUrl: string | null) {
-  if (!cv || cv.trim().length === 0) {
+  const trimmedCv = cv.trim();
+  const hasResumeUrl = Boolean(resumeUrl);
+
+  if (!hasResumeUrl && trimmedCv.length === 0) {
     return { valid: false, error: 'CV is required' };
   }
 
@@ -15,7 +18,11 @@ function validateInputs(cv: string, jobDescription: string, resumeUrl: string | 
     return { valid: false, error: 'Job description is required' };
   }
 
-  if (cv.trim().length < 50 && !resumeUrl) {
+  if (!hasResumeUrl && trimmedCv.length < 50) {
+    return { valid: false, error: 'CV must be at least 50 characters or include a resume PDF' };
+  }
+
+  if (hasResumeUrl && trimmedCv.length > 0 && trimmedCv.length < 50) {
     return { valid: false, error: 'CV must be at least 50 characters or include a resume PDF' };
   }
 
