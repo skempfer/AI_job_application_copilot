@@ -24,6 +24,20 @@ export default {
           700: '#0369a1',
         },
       },
+      spacing: {
+        '1.5': '1.5rem',
+      },
+      borderRadius: {
+        'xs': '4px',
+      },
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      transitionDuration: {
+        '200': '200ms',
+        '300': '300ms',
+        '500': '500ms',
+      },
     },
   },
   plugins: [],

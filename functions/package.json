@@ -7,8 +7,8 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc",
-    "build:watch": "tsc --watch",
+    "build": "node ../scripts/prepare-functions-deploy.js && tsc",
+    "build:watch": "node ../scripts/prepare-functions-deploy.js && tsc --watch",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
