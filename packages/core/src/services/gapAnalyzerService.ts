@@ -201,13 +201,7 @@ function hasMatch(term: string, cvTokens: string[]): boolean {
     for (const token of cvTokens) {
       if (token === variant) return true;
       
-      if (variant.length > 2 && token.length > 2) {
-        if (token.includes(variant) || variant.includes(token)) {
-          return true;
-        }
-      }
-      
-      const tokenWords = token.split(" ");
+      const tokenWords = token.split(/[\s.+-]/);
       if (tokenWords.some(word => word === variant)) {
         return true;
       }
